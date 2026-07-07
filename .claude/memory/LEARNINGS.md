@@ -59,10 +59,10 @@ Rules for curators (`/evolve`):
 - Status: candidate
 
 ## L-005 · 2026-07-06 · Treat aggregator claims and fetch summaries as leads, never evidence
-- Trigger: an aggregator site mixed verified practices with unverifiable feature claims — only primary-source-corroborated claims were encoded (janus refinement session); the withheld /goal claim was later confirmed by the official loops post (round-3 research); merged with L-011: a fetch-summary of the workspace paper attributed claims the paper never makes, caught by demanding verbatim quotes
+- Trigger: an aggregator site mixed verified practices with unverifiable feature claims — only primary-source-corroborated claims were encoded (janus refinement session); the withheld /goal claim was later confirmed by the official loops post (round-3 research); merged with L-011: a fetch-summary of the workspace paper attributed claims the paper never makes, caught by demanding verbatim quotes; recurred in round 3.5: a subagent report claimed a branch was "up to date with its origin" — the remote had no such branch, and a PR create failed until `git ls-remote` settled it
 - Rule: treat aggregator claims and fetch summaries as leads, never evidence — confirm any specific claim verbatim against a primary source before adopting or citing it
 - Scope: portable
-- Evidence: 3
+- Evidence: 4
 - Status: promoted:CLAUDE.md
 
 ## L-006 · 2026-07-07 · Distinguish context bloat from dependency bloat when judging a tool
@@ -72,11 +72,11 @@ Rules for curators (`/evolve`):
 - Evidence: 1
 - Status: retired (2026-07-06: owner reversed the default-on decision — the template ships tool-agnostic, with no third-party mechanism in the genome before dogfooding proves need; external memory returns as a per-project choice)
 
-## L-007 · 2026-07-07 · When changing a convention, sweep every mention of it, not just planned edit sites
-- Trigger: the adversarial verifier failed the refinement diff because docs/USAGE.md's day-1 section still said "optional Graphify" after the convention changed to default-on; the planned edit list had missed that mention (janus refinement session)
+## L-007 · 2026-07-06 · When changing a convention, sweep every mention of it, not just planned edit sites
+- Trigger: the adversarial verifier failed the refinement diff because docs/USAGE.md's day-1 section still said "optional Graphify" after the convention changed to default-on; the planned edit list had missed that mention (janus refinement session); recurred in round 3.5 — removing new-worktree.sh missed ARCHITECTURE's component-map row, caught by the docs-consistency fixture rather than a manual sweep
 - Rule: after changing a convention, grep the whole repo for the old wording and reconcile every hit before claiming consistency
 - Scope: portable
-- Evidence: 1
+- Evidence: 2
 - Status: candidate
 
 ## L-008 · 2026-07-06 · Stress-test a plan against scale, concurrency, and headless modes before presenting it
@@ -133,4 +133,25 @@ Rules for curators (`/evolve`):
 - Rule: before encoding a mechanism, check whether the platform provides it natively; encode only the discipline the scaffold adds on top, and let the platform's mechanism carry it
 - Scope: portable
 - Evidence: 2
+- Status: candidate
+
+## L-016 · 2026-07-06 · Weigh subtraction as seriously as addition when reviewing for improvement
+- Trigger: asked "any enhancements?", the audit proposed only fixes and additions; the owner's redirect ("consider features we should remove") produced the round's highest-value changes — four feature removals (janus round-3.5 session)
+- Rule: when reviewing a system for improvement, audit what fails to earn its place with the same rigor as what is broken or missing, and propose removals alongside fixes
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-017 · 2026-07-06 · Design from first principles; cite existing implementations as evidence, not as the template
+- Trigger: the J-brain memory design was framed "from how contextual memory actually works in current harnesses"; the owner rejected it — "I want to build a harness... what should be designed" — and the first-principles redesign (prediction machine + memory pipeline) superseded it (janus round-3.5 session)
+- Rule: when asked to design a system, derive the design from the problem's own invariants; use existing implementations as evidence for or against choices, never as the starting shape
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-018 · 2026-07-06 · Preserve foreign uncommitted changes in their own labeled commit before starting your own
+- Trigger: the working tree carried uncommitted docs-consistency fixtures written outside the session (the start-of-session snapshot said clean); committing them unmodified, clearly labeled, before any session work kept authorship legible and the changes safe — they caught a real bug two commits later (janus round-3.5 session)
+- Rule: treat uncommitted working-tree changes you did not make as someone else's work — verify what they are, then commit or stash them separately with a label stating their origin, before your own commits touch the tree
+- Scope: portable
+- Evidence: 1
 - Status: candidate
