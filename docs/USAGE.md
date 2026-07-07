@@ -21,12 +21,9 @@ prerequisite.
    status says the scaffold is not bootstrapped, and Claude proposes
    `/bootstrap`.
 3. **Bootstrap.** It detects your stack (or interviews you for one), wires
-   `scripts/verify.sh` to your real formatter/linter/tests, sets up the
-   [Graphify](https://github.com/Graphify-Labs/graphify) knowledge graph by
-   default (the project's external random-access memory — skippable, and the
-   scaffold degrades gracefully without it), and *proves* the loop closes —
-   you'll see a passing full run and a deliberately-broken edit get caught.
-   From this moment every edit is checked automatically.
+   `scripts/verify.sh` to your real formatter/linter/tests, and *proves* the
+   loop closes — you'll see a passing full run and a deliberately-broken
+   edit get caught. From this moment every edit is checked automatically.
 4. **State your first goal in plain words.** Tell Claude what you want to
    build — and say how experienced you are with the domain while you're at
    it; fuzzy requirements are its cue to interview you rather than assume.

@@ -16,7 +16,7 @@ Before analyzing, state the four invariants you are protecting:
 
 Procedure:
 1. Read `.claude/memory/LEARNINGS.md`, `CLAUDE.md`, and list `.claude/skills/`. Consult `ARCHIVE.md` only through targeted greps for related priors.
-2. Cluster candidate entries: graph query first (`graphify query "..."`) when a graph exists, then grep to confirm — graph answers are leads, not evidence. Flag near-duplicates that should merge (same rule, different words), summing their Evidence.
+2. Cluster candidate entries: flag near-duplicates that should merge (same rule, different words), summing their Evidence.
 3. For each qualifying entry (Evidence >= 2, Status: candidate), classify it:
    - rule-shaped (one imperative sentence) → propose `promote → CLAUDE.md rules block`
    - procedure-shaped (multi-step) → propose `promote → skill/<suggested-name>`

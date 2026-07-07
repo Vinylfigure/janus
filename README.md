@@ -61,11 +61,6 @@ and side-effect skills confirm with you before acting. Typing the
 | 4 hooks | SessionStart status, silent correction detector, per-edit verify, stop-time reflect nudge |
 | `.claude/memory/LEARNINGS.md` | The active learnings ledger (≤25, resolved history moves to `ARCHIVE.md`) — the repo's genome |
 
-Default-on: [Graphify](https://github.com/Graphify-Labs/graphify) as a local
-code knowledge graph — `/bootstrap` installs it by default (declinable; the
-scaffold degrades gracefully to grep), and the explorer/planner agents and
-the memory skills query the graph before grepping when it exists.
-
 ## Learn more
 
 - [docs/USAGE.md](docs/USAGE.md) — the operator's guide: day-1 setup, the daily rhythm, session rituals, memory operations, and scaling to parallel sessions.

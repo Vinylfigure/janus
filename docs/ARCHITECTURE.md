@@ -110,11 +110,10 @@ tiers:
 | Registers | always-on | `CLAUDE.md` | ≤20 concepts | every session |
 | Working RAM | bounded active set | `LEARNINGS.md` | ≤25 entries | only by /reflect, /evolve, /replicate |
 | Disk | resolved history | `ARCHIVE.md` | unbounded | never wholesale — targeted grep only |
-| Index | random access | Graphify graph (incl. `.claude/memory/`) | — | queried one concept at a time; answers are leads, confirmed by grep |
 
 His related "LLM wiki" pattern — compile knowledge into cross-referenced
 markdown once, rather than re-deriving it on every retrieval — is what the
-ledger already is; the graph indexes it, it doesn't replace it.
+ledger already is.
 
 **Context-budget accounting.** Always-loaded context = CLAUDE.md (≤20
 concepts) + every skill's `description` + ≤3 hook status lines. Everything
@@ -138,24 +137,3 @@ forever — a skill is a permanent tax, so the budget mirrors CLAUDE.md's.
 | Team-shared configuration | `.claude/settings.json` is committed; `settings.local.json` is gitignored |
 | Encoded practices drift as tools evolve | `/recalibrate` re-verifies conventions against primary sources and files drift as candidate learnings; `/evolve` keeps promotion authority; the session-start staleness nudge and the heartbeat routine keep it running |
 | Loops trigger; skills encode quality | Skills auto-invoke from their trigger descriptions (the conductor directive routes goals to skills + modality); side-effect skills carry in-body gates that degrade to PR-delivery when headless; `/goal`-style loops and the weekly heartbeat only decide *when* |
-
-## The external-memory layer (default-on, gracefully degrading)
-
-[Graphify](https://github.com/Graphify-Labs/graphify) builds a local
-tree-sitter knowledge graph (`graph.json`, `graph.html`, `GRAPH_REPORT.md` —
-all gitignored as regenerable). It is the project's **random-access memory**:
-the workspace (context) is a small, expensive working set, so codebase
-structure is offloaded to an external queryable store and fetched one
-concept at a time. A graph query returns entities and relationships —
-concepts — where a grep returns file dumps.
-
-`/bootstrap` installs it and builds the graph **by default** (greenfield
-included; the graph grows with the code), ingesting `.claude/memory/` along
-with the code so learnings are queryable one concept at a time; when the
-graph exists, explorer and planner query it (`graphify query "…"`) before
-grepping, and /reflect, /evolve, and memory-curator use it for graph-first
-dedupe — always confirming by grep, since graph answers are leads, not
-evidence. `verify.sh full` regenerates it so it never goes stale — no extra
-hook needed. It is deliberately **not a hard requirement**: if the user
-declines or `uv` is unavailable, agents fall back to grep and everything
-still works. RAM by default, never load-bearing.

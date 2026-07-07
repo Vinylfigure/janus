@@ -4,8 +4,3 @@
 # Runtime hook artifacts (per-session, regenerated)
 .claude/memory/.session-signals
 .claude/memory/.nudged-*
-
-# Graphify artifacts (regenerable via `graphify .`)
-graph.html
-graph.json
-GRAPH_REPORT.md

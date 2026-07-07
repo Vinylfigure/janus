@@ -4,8 +4,8 @@ The bounded working set of lessons — memory's RAM. Written by `/reflect`
 (session lessons) and `/recalibrate` (ecosystem drift), curated by `/evolve`,
 inherited across projects by `/replicate`. Holds at most **25 active entries**.
 Entries are never deleted: when resolved (promoted, retired, merged, expired),
-`/evolve` relocates them to `ARCHIVE.md`, where history stays queryable — via
-the knowledge graph or targeted grep — without re-entering context wholesale.
+`/evolve` relocates them to `ARCHIVE.md`, where history stays queryable via
+targeted grep without re-entering context wholesale.
 
 ## Entry format
 
@@ -20,7 +20,7 @@ the knowledge graph or targeted grep — without re-entering context wholesale.
 
 Rules for writers (`/reflect`, `/recalibrate`):
 - One entry = one concept. If the lesson needs two sentences of rule, it is two entries.
-- Before appending, check for an equivalent: graph query first (`graphify query "..."` when a graph exists), then grep BOTH this file and `ARCHIVE.md` to confirm — graph answers are leads, not evidence. Active equivalent → bump its Evidence. Archived equivalent → write a fresh active entry citing the archived id.
+- Before appending, grep BOTH this file and `ARCHIVE.md` for an equivalent. Active equivalent → bump its Evidence. Archived equivalent → write a fresh active entry citing the archived id.
 - IDs are sequential across both files: highest L-NNN in this file or `ARCHIVE.md`, plus 1.
 - If a write would take the active count past 25, warn that `/evolve` is needed.
 
@@ -66,7 +66,7 @@ Rules for curators (`/evolve`):
 - Rule: a tool that moves knowledge out of always-loaded context into on-demand external memory should default ON with graceful degradation; weigh its dependency cost separately from its context benefit
 - Scope: portable
 - Evidence: 1
-- Status: candidate
+- Status: retired (2026-07-06: owner reversed the default-on decision — the template ships tool-agnostic, with no third-party mechanism in the genome before dogfooding proves need; external memory returns as a per-project choice)
 
 ## L-007 · 2026-07-07 · When changing a convention, sweep every mention of it, not just planned edit sites
 - Trigger: the adversarial verifier failed the refinement diff because docs/USAGE.md's day-1 section still said "optional Graphify" after the convention changed to default-on; the planned edit list had missed that mention (janus refinement session)

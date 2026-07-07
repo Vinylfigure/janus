@@ -37,8 +37,6 @@ case "$MODE" in
     # Template plumbing suite. /bootstrap replaces this block with the
     # project's real suite (lint all, typecheck, tests, build), e.g.:
     #   ruff check . && pytest
-    # If graphify is installed, keep the knowledge graph fresh too:
-    #   command -v graphify >/dev/null 2>&1 && graphify . --quiet
     "$(dirname "$0")/test-hooks.sh"
     # janus:bootstrap:full:end
     ;;

@@ -67,8 +67,7 @@ which is what makes the ledger a genome rather than a notebook.
 - `Scope: portable` is a promise: true in *any* repository. Judge harshly —
   a wrongly-portable entry pollutes every descendant.
 - Never delete; mark, then archive. History is data — it stays queryable
-  (targeted grep or graph) in `ARCHIVE.md` and never re-enters context
-  wholesale.
+  (targeted grep) in `ARCHIVE.md` and never re-enters context wholesale.
 - IDs are sequential across both files; parallel worktree sessions reconcile
   colliding IDs at merge time (see the worktree-parallel skill).
 
