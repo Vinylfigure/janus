@@ -13,7 +13,7 @@ promoted and retired entries stay in place as lineage history.
 - Rule: <imperative, testable, one concept — a rule, not a story>
 - Scope: project | portable      # portable = true in any repo, inherited by /replicate
 - Evidence: 1                    # incremented by /reflect on recurrence
-- Status: candidate              # candidate | promoted:CLAUDE.md | promoted:skill/<name> | inherited | retired
+- Status: candidate              # candidate | promoted:CLAUDE.md | promoted:rules/<topic> | promoted:skill/<name> | inherited | retired
 ```
 
 Rules for writers (`/reflect`, `/recalibrate`):
@@ -23,7 +23,7 @@ Rules for writers (`/reflect`, `/recalibrate`):
 
 Rules for curators (`/evolve`):
 - Evidence ≥ 2 (or explicit user confirmation) qualifies for promotion.
-- Rule-shaped → CLAUDE.md `janus:rules` block. Procedure-shaped → a skill via /add-skill.
+- Rule-shaped + global → CLAUDE.md `janus:rules` block. Rule-shaped + path-local → `.claude/rules/<topic>.md`. Procedure-shaped → a skill via /add-skill.
 - Mark promoted entries `Status: promoted:<target>`; never delete them.
 
 ---

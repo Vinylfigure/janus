@@ -18,7 +18,7 @@ procedure-shaped.
 
 ## Steps
 
-1. Confirm the skill deserves to exist: it's a *procedure* (multi-step, repeatable), not a *fact* (belongs in CLAUDE.md) and not a one-off. Check the public agent-skills library (github.com/anthropics/skills) before authoring from scratch — adapt rather than reinvent; its `spec/agent-skills-spec.md` is the authority on frontmatter fields.
+1. Confirm the skill deserves to exist: it's a *procedure* (multi-step, repeatable), not a *fact* (belongs in CLAUDE.md), not a *path-local rule* (belongs in `.claude/rules/<topic>.md` with `paths:` frontmatter), and not a one-off. Check the public agent-skills library (github.com/anthropics/skills) before authoring from scratch — adapt rather than reinvent; its `spec/agent-skills-spec.md` is the authority on frontmatter fields.
 2. Choose the name (kebab-case directory under `.claude/skills/<name>/SKILL.md`) after checking existing skills and built-ins.
 3. Write frontmatter:
    - `description`: what it does, then "Use when …" triggers, ≤50 words (this is the only part always in context).

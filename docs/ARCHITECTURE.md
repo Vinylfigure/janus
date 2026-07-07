@@ -97,6 +97,33 @@ This is why the caps are hard: every concept added to CLAUDE.md competes for
 the same limited workspace the model needs for the actual task. When `/evolve`
 refuses to add a rule without retiring one, that is the design working.
 
+## The memory pipeline (J-brain)
+
+Learning crosses sessions through three tiers, all native Claude Code
+mechanisms — no external dependency. Retrieval is just-in-time at every
+tier: indexes load, bodies are pulled when relevant.
+
+| Tier | Mechanism | Scope | Loads |
+|---|---|---|---|
+| Rules | `CLAUDE.md` (≤20 concepts) + path-scoped `.claude/rules/*.md` | git-shared | always / when matching files are touched |
+| Genome | `LEARNINGS.md` ledger (reflect → evolve → replicate) | git-shared | only by the memory skills |
+| Ambient | native auto memory (`MEMORY.md` index + topic files) | machine-local | index each session; topic files on demand |
+
+Capture is ambient (auto memory notes things as work happens, zero
+ceremony), consolidation is deliberate (`/reflect` harvests shareable
+repo-truths from auto memory and the session into evidence-gated ledger
+entries), promotion is curated (`/evolve` routes: global rule → CLAUDE.md;
+path-local rule → `.claude/rules/<topic>.md` with `paths:` frontmatter;
+procedure → skill).
+
+**The adapter slot.** The ambient tier is replaceable without touching the
+reflect → evolve → replicate loop: `autoMemoryDirectory` relocates the
+store, `autoMemoryEnabled` toggles it, and an MCP memory server can augment
+retrieval. An external memory backend plugs in there — the pipeline's
+interfaces (harvest at `/reflect`, promote at `/evolve`) do not change.
+Dogfooding note: subagent persistent memory is docs-supported and a future
+option for the verifier — observe the need first, encode later.
+
 ## Context-budget accounting
 
 Always-loaded context = CLAUDE.md (≤20 concepts) + every skill's

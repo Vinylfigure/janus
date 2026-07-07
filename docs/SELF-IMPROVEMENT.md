@@ -7,8 +7,9 @@ how a lesson earns promotion, and how knowledge crosses repositories.
 ## Lifecycle of a lesson
 
 ```
-signal ──► entry ──► evidence ──► promotion ──► inheritance
-(hooks)   (/reflect)  (recurrence)  (/evolve)    (/replicate)
+signal ─────────► entry ──► evidence ──► promotion ──► inheritance
+(hooks + ambient  (/reflect)  (recurrence)  (/evolve)    (/replicate)
+ auto memory)
 ```
 
 **1. Signal.** Hooks log learning-shaped events silently as they happen:
@@ -26,6 +27,9 @@ A second writer feeds the same ledger from outside: `/recalibrate`
 re-verifies the scaffold's encoded conventions against primary sources and
 files ecosystem drift as candidates — the signal source is the world
 changing rather than a session event, but the discipline is identical.
+A third source is ambient: Claude Code's native auto memory accumulates
+machine-local notes as work happens, and `/reflect` harvests the shareable
+repo-truths among them into the git-shared ledger.
 
 **3. Evidence.** Nothing promotes on one occurrence — one occurrence is an
 anecdote. `Evidence: 2` (or explicit user confirmation) is the threshold.
@@ -33,9 +37,12 @@ The session-start hook surfaces ripe entries so they don't rot.
 
 **4. Promotion.** `/evolve` (analysis delegated to the `memory-curator`
 agent) moves qualifying lessons up:
-- Rule-shaped → a bullet in CLAUDE.md's `janus:rules` block, citing its id.
-- Procedure-shaped → a skill, via `/add-skill` (procedures load on demand;
-  rules must not).
+- Rule-shaped, global → a bullet in CLAUDE.md's `janus:rules` block, citing its id.
+- Rule-shaped, path-local → `.claude/rules/<topic>.md` with `paths:` glob
+  frontmatter — it loads only when Claude touches matching files, so it
+  spends no CLAUDE.md budget.
+- Procedure-shaped → a skill, via `/add-skill` (procedures and path-local
+  rules load on demand; global rules must not grow past the cap).
 - It is also the garbage collector: rules contradicted by newer entries are
   retired, and the CLAUDE.md caps (≤20 concepts, ≤12 rules) are asserted at
   the end of every run. **Adding requires room; room comes from merging or

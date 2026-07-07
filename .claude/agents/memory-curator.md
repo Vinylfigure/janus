@@ -17,7 +17,8 @@ Procedure:
 1. Read `.claude/memory/LEARNINGS.md`, `CLAUDE.md`, and list `.claude/skills/`.
 2. Cluster candidate entries: flag near-duplicates that should merge (same rule, different words), summing their Evidence.
 3. For each qualifying entry (Evidence >= 2, Status: candidate), classify it:
-   - rule-shaped (one imperative sentence) → propose `promote → CLAUDE.md rules block`
+   - rule-shaped (one imperative sentence), global → propose `promote → CLAUDE.md rules block`
+   - rule-shaped but path-local (only true for part of the codebase) → propose `promote → rules/<topic>` with the `paths:` globs it should carry
    - procedure-shaped (multi-step) → propose `promote → skill/<suggested-name>`
    - stack-specific in a not-yet-bootstrapped template → propose `hold for children`
 4. Check existing CLAUDE.md rules against the ledger: any rule contradicted by a newer, better-evidenced entry → propose `retire`, citing both ids.

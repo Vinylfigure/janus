@@ -103,6 +103,10 @@ don't wait for the nudge.
 - **Read the ledger** at `.claude/memory/LEARNINGS.md`. Entries are
   append-only and marked, never deleted: `candidate` → `promoted:*` /
   `retired`, plus `inherited` in children.
+- **Auto memory is the ambient tier**: Claude Code natively keeps
+  machine-local notes per repo — browse or toggle them with `/memory`.
+  `/reflect` harvests the shareable repo-truths from there into the
+  git-shared ledger; machine-local trivia stays local.
 - **Nothing promotes on one occurrence.** Evidence ≥ 2 (or your explicit
   confirmation) is the bar. If you *know* a lesson is right after one
   occurrence, say so and `/evolve` will take your word as evidence.
