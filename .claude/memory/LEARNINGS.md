@@ -1,11 +1,9 @@
-# Learnings ledger (active)
+# Learnings ledger
 
-The bounded working set of lessons — memory's RAM. Written by `/reflect`
+Append-mostly, git-tracked — the repo's genome. Written by `/reflect`
 (session lessons) and `/recalibrate` (ecosystem drift), curated by `/evolve`,
-inherited across projects by `/replicate`. Holds at most **25 active entries**.
-Entries are never deleted: when resolved (promoted, retired, merged, expired),
-`/evolve` relocates them to `ARCHIVE.md`, where history stays queryable — via
-the knowledge graph or targeted grep — without re-entering context wholesale.
+inherited across projects by `/replicate`. Entries are never deleted —
+promoted and retired entries stay in place as lineage history.
 
 ## Entry format
 
@@ -15,29 +13,28 @@ the knowledge graph or targeted grep — without re-entering context wholesale.
 - Rule: <imperative, testable, one concept — a rule, not a story>
 - Scope: project | portable      # portable = true in any repo, inherited by /replicate
 - Evidence: 1                    # incremented by /reflect on recurrence
-- Status: candidate              # candidate | promoted:CLAUDE.md | promoted:skill/<name> | inherited | retired
+- Status: candidate              # candidate | promoted:CLAUDE.md | promoted:rules/<topic> | promoted:skill/<name> | inherited | retired
 ```
 
 Rules for writers (`/reflect`, `/recalibrate`):
 - One entry = one concept. If the lesson needs two sentences of rule, it is two entries.
-- Before appending, check for an equivalent: graph query first (`graphify query "..."` when a graph exists), then grep BOTH this file and `ARCHIVE.md` to confirm — graph answers are leads, not evidence. Active equivalent → bump its Evidence. Archived equivalent → write a fresh active entry citing the archived id.
-- IDs are sequential across both files: highest L-NNN in this file or `ARCHIVE.md`, plus 1.
-- If a write would take the active count past 25, warn that `/evolve` is needed.
+- Before appending, grep for an equivalent entry; if found, increment its Evidence instead.
+- IDs are sequential; find the highest existing L-NNN and add 1.
 
 Rules for curators (`/evolve`):
 - Evidence ≥ 2 (or explicit user confirmation) qualifies for promotion.
-- Rule-shaped → CLAUDE.md `janus:rules` block. Procedure-shaped → a skill via /add-skill.
-- Mark resolved entries (`promoted:<target>` / `retired`), then MOVE them to `ARCHIVE.md` — never delete. Keep this file ≤25 active entries; the overflow policy lives in the evolve skill.
+- Rule-shaped + global → CLAUDE.md `janus:rules` block. Rule-shaped + path-local → `.claude/rules/<topic>.md`. Procedure-shaped → a skill via /add-skill.
+- Mark promoted entries `Status: promoted:<target>`; never delete them.
 
 ---
 
 <!-- entries below this line -->
 
-## L-001 · 2026-07-07 · Fixture-test every hook with sample JSON before committing
-- Trigger: session-start.sh shipped a counting bug that only surfaced when tested against a seeded fixture ledger (janus build session)
+## L-001 · 2026-07-06 · Fixture-test every hook with sample JSON before committing
+- Trigger: session-start.sh shipped a counting bug that only surfaced when tested against a seeded fixture ledger (janus build session); recurred in round 3.5 — the ripe-counter awk carried two more counting bugs (Evidence >= 10 missed, state leaking across entries) that only red-first regression fixtures exposed
 - Rule: before committing a hook script, pipe fixture JSON through it and assert exit code and output for the pass, fail, and repeat cases
 - Scope: portable
-- Evidence: 1
+- Evidence: 2
 - Status: candidate
 
 ## L-002 · 2026-07-07 · Scope pattern-counts below the content marker in self-documenting files
@@ -61,18 +58,25 @@ Rules for curators (`/evolve`):
 - Evidence: 1
 - Status: candidate
 
+## L-005 · 2026-07-06 · Treat aggregator claims and fetch summaries as leads, never evidence
+- Trigger: an aggregator site mixed verified practices with unverifiable feature claims — only primary-source-corroborated claims were encoded (janus refinement session); the withheld /goal claim was later confirmed by the official loops post (round-3 research); merged with L-011: a fetch-summary of the workspace paper attributed claims the paper never makes, caught by demanding verbatim quotes; recurred in round 3.5: a subagent report claimed a branch was "up to date with its origin" — the remote had no such branch, and a PR create failed until `git ls-remote` settled it
+- Rule: treat aggregator claims and fetch summaries as leads, never evidence — confirm any specific claim verbatim against a primary source before adopting or citing it
+- Scope: portable
+- Evidence: 4
+- Status: promoted:CLAUDE.md
+
 ## L-006 · 2026-07-07 · Distinguish context bloat from dependency bloat when judging a tool
 - Trigger: user corrected the "keep Graphify optional" recommendation — offloading structure to an external queryable store REDUCES the bloat the workspace budget guards; only the install dependency is a cost (janus refinement session)
 - Rule: a tool that moves knowledge out of always-loaded context into on-demand external memory should default ON with graceful degradation; weigh its dependency cost separately from its context benefit
 - Scope: portable
 - Evidence: 1
-- Status: candidate
+- Status: retired (2026-07-06: owner reversed the default-on decision — the template ships tool-agnostic, with no third-party mechanism in the genome before dogfooding proves need; external memory returns as a per-project choice)
 
-## L-007 · 2026-07-07 · When changing a convention, sweep every mention of it, not just planned edit sites
-- Trigger: the adversarial verifier failed the refinement diff because docs/USAGE.md's day-1 section still said "optional Graphify" after the convention changed to default-on; the planned edit list had missed that mention (janus refinement session)
+## L-007 · 2026-07-06 · When changing a convention, sweep every mention of it, not just planned edit sites
+- Trigger: the adversarial verifier failed the refinement diff because docs/USAGE.md's day-1 section still said "optional Graphify" after the convention changed to default-on; the planned edit list had missed that mention (janus refinement session); recurred in round 3.5 — removing new-worktree.sh missed ARCHITECTURE's component-map row, caught by the docs-consistency fixture rather than a manual sweep
 - Rule: after changing a convention, grep the whole repo for the old wording and reconcile every hit before claiming consistency
 - Scope: portable
-- Evidence: 1
+- Evidence: 2
 - Status: candidate
 
 ## L-008 · 2026-07-06 · Stress-test a plan against scale, concurrency, and headless modes before presenting it
@@ -96,9 +100,58 @@ Rules for curators (`/evolve`):
 - Evidence: 1
 - Status: candidate
 
+## L-011 · 2026-07-06 · Verify a source's specific claims as verbatim quotes before citing them
+- Trigger: a first fetch-summary of the transformer-circuits workspace paper attributed capacity limits and RAG recommendations to it that the paper never makes; a re-fetch demanding verbatim quotes caught the embellishment (janus round-3 session)
+- Rule: before citing a source for a specific claim, re-verify the claim as a verbatim quote from the source itself — summarization layers embellish; kin to L-005, a summary is a lead, not evidence
+- Scope: portable
+- Evidence: 1
+- Status: retired (merged into L-005)
+
 ## L-012 · 2026-07-06 · Propose the maintenance heartbeat at the end of /bootstrap
 - Trigger: user asked why the weekly heartbeat isn't on by default for every project; auto-creating a billed cloud routine silently would violate the escalation-is-proposed rule, but the end of session zero is the natural moment to offer it (janus round-3 evolve session)
 - Rule: when a project finishes bootstrapping, propose creating the maintenance heartbeat (one yes, PR-delivery only) instead of waiting for the user to discover it
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-013 · 2026-07-06 · Absence from one environment is not deprecation — confirm drift against the primary source
+- Trigger: a maintenance audit flagged the scaffold's /goal references as drift because the command was absent from the auditing session's surface; the official best-practices page documents /goal as a real feature, and the planned "fix" was withdrawn before landing (janus round-3.5 session)
+- Rule: before declaring an encoded reference drifted, confirm the claim against the product's primary documentation — a feature missing from the current environment's surface may still exist in the product
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-014 · 2026-07-06 · Mechanisms enter the template only after dogfooding evidence demonstrates the need
+- Trigger: round-3.5 subtraction removed Graphify (never built here), the ARCHIVE.md + ≤25 cap (ledger held 12 entries), and staged expiry policies — all machinery added for problems no session had hit, against the repo's own Evidence >= 2 discipline (janus round-3.5 session)
+- Rule: disciplines can be designed up front, but a mechanism (tool, file, cap, fallback) enters the scaffold only after real use demonstrates the need it serves
+- Scope: portable
+- Evidence: 3
+- Status: candidate
+
+## L-015 · 2026-07-06 · Platform owns mechanisms; the template keeps only the disciplines it adds
+- Trigger: the explorer/planner agents duplicated native exploration/planning subagents, and scripts/new-worktree.sh duplicated native claude --worktree; both were removed with their embedded disciplines consolidated into plan-feature and worktree-parallel (janus round-3.5 session)
+- Rule: before encoding a mechanism, check whether the platform provides it natively; encode only the discipline the scaffold adds on top, and let the platform's mechanism carry it
+- Scope: portable
+- Evidence: 2
+- Status: candidate
+
+## L-016 · 2026-07-06 · Weigh subtraction as seriously as addition when reviewing for improvement
+- Trigger: asked "any enhancements?", the audit proposed only fixes and additions; the owner's redirect ("consider features we should remove") produced the round's highest-value changes — four feature removals (janus round-3.5 session)
+- Rule: when reviewing a system for improvement, audit what fails to earn its place with the same rigor as what is broken or missing, and propose removals alongside fixes
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-017 · 2026-07-06 · Design from first principles; cite existing implementations as evidence, not as the template
+- Trigger: the J-brain memory design was framed "from how contextual memory actually works in current harnesses"; the owner rejected it — "I want to build a harness... what should be designed" — and the first-principles redesign (prediction machine + memory pipeline) superseded it (janus round-3.5 session)
+- Rule: when asked to design a system, derive the design from the problem's own invariants; use existing implementations as evidence for or against choices, never as the starting shape
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-018 · 2026-07-06 · Preserve foreign uncommitted changes in their own labeled commit before starting your own
+- Trigger: the working tree carried uncommitted docs-consistency fixtures written outside the session (the start-of-session snapshot said clean); committing them unmodified, clearly labeled, before any session work kept authorship legible and the changes safe — they caught a real bug two commits later (janus round-3.5 session)
+- Rule: treat uncommitted working-tree changes you did not make as someone else's work — verify what they are, then commit or stash them separately with a label stating their origin, before your own commits touch the tree
 - Scope: portable
 - Evidence: 1
 - Status: candidate

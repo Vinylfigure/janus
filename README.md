@@ -53,18 +53,15 @@ and side-effect skills confirm with you before acting. Typing the
 | `/replicate` | Stamp a child project; carry portable learnings forward |
 | `/reflect` | Distill this session's lessons into the learnings ledger |
 | `/evolve` | Promote stable lessons into CLAUDE.md or new skills; enforce the budget |
+| `/recalibrate` | Re-verify encoded practices against primary sources; file drift as learnings |
 | `/plan-feature` | Plan-first workflow with explicit "done means" criteria |
 | `/verify-loop` | Iterate a change to green against a runnable check |
+| `/ship` | Verify green, commit, push, PR, then babysit CI and reviews until merged |
 | `/worktree-parallel` | Fan out parallel sessions in git worktrees |
 | `/add-skill` | Author new skills in the canonical shape |
-| `explorer`, `planner`, `verifier`, `memory-curator` | Subagents: scout, architect, skeptic, librarian |
+| `verifier`, `memory-curator` | Subagents: the skeptic and the librarian (scouting and design use Claude Code's native subagents) |
 | 4 hooks | SessionStart status, silent correction detector, per-edit verify, stop-time reflect nudge |
-| `.claude/memory/LEARNINGS.md` | The active learnings ledger (≤25, resolved history moves to `ARCHIVE.md`) — the repo's genome |
-
-Default-on: [Graphify](https://github.com/Graphify-Labs/graphify) as a local
-code knowledge graph — `/bootstrap` installs it by default (declinable; the
-scaffold degrades gracefully to grep), and the explorer/planner agents and
-the memory skills query the graph before grepping when it exists.
+| `.claude/memory/LEARNINGS.md` | The append-only learnings ledger — the repo's genome |
 
 ## Learn more
 

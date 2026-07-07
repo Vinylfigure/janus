@@ -7,8 +7,9 @@ how a lesson earns promotion, and how knowledge crosses repositories.
 ## Lifecycle of a lesson
 
 ```
-signal ──► entry ──► evidence ──► promotion ──► archival ──► inheritance
-(hooks)   (/reflect)  (recurrence)  (/evolve)    (/evolve)    (/replicate)
+signal ─────────► entry ──► evidence ──► promotion ──► inheritance
+(hooks + ambient  (/reflect)  (recurrence)  (/evolve)    (/replicate)
+ auto memory)
 ```
 
 **1. Signal.** Hooks log learning-shaped events silently as they happen:
@@ -18,7 +19,8 @@ flags verification failures. Both append one line to
 false positives are harmless.
 
 **2. Entry.** At stop time, if signals exist, the Stop hook blocks once and
-asks for `/reflect`. Reflect reads the transcript plus the signal log and
+asks for `/reflect`. If a session ends without reflecting (or dies), the
+leftover signals surface at the next session start instead of being lost. Reflect reads the transcript plus the signal log and
 writes *rules* to the ledger — imperative, one-concept, testable. Noise
 (typos, flaky network) is explicitly dismissed, not recorded. An equivalent
 existing entry gets its `Evidence` count bumped instead of a duplicate.
@@ -26,6 +28,9 @@ A second writer feeds the same ledger from outside: `/recalibrate`
 re-verifies the scaffold's encoded conventions against primary sources and
 files ecosystem drift as candidates — the signal source is the world
 changing rather than a session event, but the discipline is identical.
+A third source is ambient: Claude Code's native auto memory accumulates
+machine-local notes as work happens, and `/reflect` harvests the shareable
+repo-truths among them into the git-shared ledger.
 
 **3. Evidence.** Nothing promotes on one occurrence — one occurrence is an
 anecdote. `Evidence: 2` (or explicit user confirmation) is the threshold.
@@ -33,9 +38,12 @@ The session-start hook surfaces ripe entries so they don't rot.
 
 **4. Promotion.** `/evolve` (analysis delegated to the `memory-curator`
 agent) moves qualifying lessons up:
-- Rule-shaped → a bullet in CLAUDE.md's `janus:rules` block, citing its id.
-- Procedure-shaped → a skill, via `/add-skill` (procedures load on demand;
-  rules must not).
+- Rule-shaped, global → a bullet in CLAUDE.md's `janus:rules` block, citing its id.
+- Rule-shaped, path-local → `.claude/rules/<topic>.md` with `paths:` glob
+  frontmatter — it loads only when Claude touches matching files, so it
+  spends no CLAUDE.md budget.
+- Procedure-shaped → a skill, via `/add-skill` (procedures and path-local
+  rules load on demand; global rules must not grow past the cap).
 - It is also the garbage collector: rules contradicted by newer entries are
   retired, and the CLAUDE.md caps (≤20 concepts, ≤12 rules) are asserted at
   the end of every run. **Adding requires room; room comes from merging or
@@ -47,30 +55,20 @@ agent) moves qualifying lessons up:
   side-effect skill: no invocation lock, an in-body gate immediately before
   the irreversible action, degrading to PR-delivery when no user is present.
 
-**5. Archival.** Resolved entries — `promoted:*`, `retired`, merged-away, or
-expired (Evidence 1, untouched 60+ days) — move from the active ledger to
-`ARCHIVE.md`, keeping `LEARNINGS.md` a bounded working set (≤25). If an
-archived lesson recurs, `/reflect` writes a fresh active entry citing the
-archived id: a resolution that stopped working is itself evidence.
-
-**6. Inheritance.** `/replicate` copies `Scope: portable` entries (and their
-promoted rules) — from the active ledger *and* the archive — into child
-repositories, re-marked `Status: inherited`, into the child's *active*
-ledger; the child's archive starts empty. Children re-earn promotion with
-their own evidence. Ledger entries are never deleted —
-`promoted`/`retired`/`inherited` markings keep the full lineage history,
-which is what makes the ledger a genome rather than a notebook.
+**5. Inheritance.** `/replicate` copies `Scope: portable` entries (and their
+promoted rules) into child repositories, re-marked `Status: inherited`.
+Children re-earn promotion with their own evidence. Ledger entries are never
+deleted — `promoted`/`retired`/`inherited` markings keep the full lineage
+history, which is what makes the ledger a genome rather than a notebook.
 
 ## Ledger integrity rules
 
 - One entry = one concept. Two-sentence rules are two entries.
 - `Scope: portable` is a promise: true in *any* repository. Judge harshly —
   a wrongly-portable entry pollutes every descendant.
-- Never delete; mark, then archive. History is data — it stays queryable
-  (targeted grep or graph) in `ARCHIVE.md` and never re-enters context
-  wholesale.
-- IDs are sequential across both files; parallel worktree sessions reconcile
-  colliding IDs at merge time (see the worktree-parallel skill).
+- Never delete; mark. History is data.
+- IDs are sequential; parallel worktree sessions reconcile colliding IDs at
+  merge time (see the worktree-parallel skill).
 
 ## Improving Janus itself (dogfooding)
 
@@ -82,10 +80,11 @@ here flow to every future child. Two rules keep that safe:
 1. A change to a cap, hook protocol, or skill shape must update
    [ARCHITECTURE.md](ARCHITECTURE.md) in the same commit — the rationale doc
    is what stops future sessions from "simplifying" load-bearing constraints.
-2. Prove loop changes with the fixture tests before committing: pipe sample
-   hook JSON into each script and check exit codes and output (see the
-   Verification section of the original build plan, or just read the hook
-   headers — each documents its contract).
+2. Prove loop changes with the fixture tests before committing: run
+   `scripts/test-hooks.sh` — the same suite CI runs on every push — and give
+   new behavior a new fixture in the same commit. Each hook's header comment
+   documents its stdin/exit-code contract; the fixtures are the executable
+   form of those contracts.
 
 Existing children do not auto-update; they inherit at replication time only.
 To backport an improvement to a child, cherry-pick the commit or re-run the

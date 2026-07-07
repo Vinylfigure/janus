@@ -25,10 +25,17 @@ if [ -f "$CLAUDE_MD" ] && grep -q "NOT BOOTSTRAPPED" "$CLAUDE_MD"; then
   lines+=("This scaffold is not bootstrapped: run /bootstrap to wire verification to a real stack.")
 fi
 
+# Leftover signals: a session that skipped the Stop nudge (or died) must not
+# lose its lessons. The compact branch above already reports the count.
+if [ "$source" != "compact" ] && [ -s "$SIGNALS" ]; then
+  n=$(wc -l < "$SIGNALS" | tr -d ' ')
+  lines+=("$n unprocessed learning signal(s) from a previous session — consider /reflect.")
+fi
+
 if [ -f "$LEDGER" ]; then
   # Count only real entries (below the marker), not the format spec above it.
   candidates=$(awk '/<!-- entries below this line -->/{in_entries=1; next} in_entries && /^- Status: candidate/{n++} END{print n+0}' "$LEDGER" 2>/dev/null || echo 0)
-  ripe=$(awk '/<!-- entries below this line -->/{in_entries=1; next} !in_entries{next} /^- Evidence: [2-9]/{e=1} /^- Status: candidate/{if(e)n++; e=0} END{print n+0}' "$LEDGER" 2>/dev/null || echo 0)
+  ripe=$(awk '/<!-- entries below this line -->/{in_entries=1; next} !in_entries{next} /^## /{e=0} /^- Evidence: /{if($3+0 >= 2) e=1} /^- Status: candidate/{if(e)n++; e=0} END{print n+0}' "$LEDGER" 2>/dev/null || echo 0)
   if [ "${ripe:-0}" -gt 0 ]; then
     lines+=("Memory: ${candidates:-0} candidate learnings, $ripe with Evidence >= 2 — consider /evolve.")
   fi

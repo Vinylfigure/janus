@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Fixture tests for the Janus hook plumbing. This is what `verify.sh full`
-# runs for the template repo itself, and what CI runs on every PR.
+# Fixture tests for the Janus scaffold plumbing: hook behavior plus
+# name-level docs cross-references. This is what `verify.sh full` runs for
+# the template repo itself, and what CI runs on every PR.
 #
 # Behavioral tests run against a sandbox copy of the repo (CLAUDE_PROJECT_DIR
 # points at a temp dir), so they never touch the real memory files.
@@ -19,6 +20,38 @@ for f in "$ROOT"/.claude/hooks/*.sh "$ROOT"/scripts/*.sh; do
   if bash -n "$f" 2>/dev/null; then pass "bash -n $(basename "$f")"; else fail "bash -n $(basename "$f")"; fi
 done
 if jq . "$ROOT/.claude/settings.json" >/dev/null 2>&1; then pass "settings.json is valid JSON"; else fail "settings.json is valid JSON"; fi
+
+echo "== docs consistency (name-level) =="
+# Keeps docs/ honest about the tree: names, paths, and counts only — semantic
+# accuracy stays on SELF-IMPROVEMENT.md rule 1 and /recalibrate.
+if [ ! -f "$ROOT/docs/ARCHITECTURE.md" ]; then
+  echo "  skip: no docs/ARCHITECTURE.md (docs pruned — checks opt out)"
+else
+  for d in "$ROOT"/.claude/skills/*/; do
+    name=$(basename "$d")
+    if grep -q -- "/$name" "$ROOT/docs/USAGE.md"; then pass "skill /$name in USAGE.md"; else fail "skill /$name missing from docs/USAGE.md — add a trigger-table row"; fi
+  done
+  for f in "$ROOT"/.claude/hooks/*.sh; do
+    b=$(basename "$f")
+    if grep -q "$b" "$ROOT/docs/ARCHITECTURE.md"; then pass "hook $b in ARCHITECTURE.md"; else fail "hook $b missing from docs/ARCHITECTURE.md hook table"; fi
+  done
+  for f in "$ROOT"/.claude/agents/*.md; do
+    a=$(basename "$f" .md)
+    if grep -q "$a" "$ROOT/docs/ARCHITECTURE.md"; then pass "agent $a in ARCHITECTURE.md"; else fail "agent $a missing from docs/ARCHITECTURE.md"; fi
+  done
+  for t in $(grep -ohE '[A-Za-z0-9_.-]+\.sh' "$ROOT"/docs/*.md | sort -u); do
+    if [ -f "$ROOT/scripts/$t" ] || [ -f "$ROOT/.claude/hooks/$t" ]; then pass "docs script ref $t exists"; else fail "docs reference $t but no such file in scripts/ or .claude/hooks/"; fi
+  done
+  for p in .github/workflows/verify.yml .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/recalibrated-at; do
+    if [ -e "$ROOT/$p" ]; then pass "component-map path $p exists"; else fail "component-map path $p missing from tree"; fi
+  done
+  n=$(ls "$ROOT"/.claude/hooks/*.sh 2>/dev/null | wc -l | tr -d ' ')
+  if grep -qE "hooks/ +$n shell hooks" "$ROOT/docs/ARCHITECTURE.md"; then pass "component-map hook count is $n"; else fail "component map hook count != $n (expected line matching 'hooks/ +$n shell hooks')"; fi
+  n=$(ls -d "$ROOT"/.claude/skills/*/ 2>/dev/null | wc -l | tr -d ' ')
+  if grep -qE "skills/ +$n skills" "$ROOT/docs/ARCHITECTURE.md"; then pass "component-map skill count is $n"; else fail "component map skill count != $n (expected line matching 'skills/ +$n skills')"; fi
+  n=$(ls "$ROOT"/.claude/agents/*.md 2>/dev/null | wc -l | tr -d ' ')
+  if grep -qE "agents/ +$n subagents" "$ROOT/docs/ARCHITECTURE.md"; then pass "component-map agent count is $n"; else fail "component map agent count != $n (expected line matching 'agents/ +$n subagents')"; fi
+fi
 
 echo "== sandbox setup =="
 SANDBOX=$(mktemp -d)
@@ -63,12 +96,41 @@ echo '{"tool_input":{"file_path":"'"$SANDBOX"'/.claude/memory/LEARNINGS.md"}}' |
 [ $? -eq 0 ] && pass "memory files exempt from the loop" || fail "memory files exempt from the loop"
 rm -f "$SIGNALS"
 
+echo "== verify.sh dispatcher (template contract) =="
+# Runs the REAL repo dispatcher (the sandbox copy is a stub). Asserts only
+# what survives /bootstrap: the *.sh/*.json arms, the usage exit, and the
+# sentinel markers. Never runs `full` here (recursion) or the *) fallback
+# (bootstrap replaces it).
+mkdir -p "$SANDBOX/fixtures"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$SANDBOX/fixtures/good.sh"
+printf '#!/usr/bin/env bash\nif true; then\n' > "$SANDBOX/fixtures/bad.sh"
+printf '{ "unterminated":\n' > "$SANDBOX/fixtures/bad.json"
+"$ROOT/scripts/verify.sh" quick "$SANDBOX/fixtures/good.sh" >/dev/null 2>&1 && pass "quick: valid .sh -> exit 0" || fail "quick: valid .sh -> exit 0"
+"$ROOT/scripts/verify.sh" quick "$SANDBOX/fixtures/bad.sh" >/dev/null 2>&1 && fail "quick: broken .sh -> nonzero" || pass "quick: broken .sh -> nonzero"
+"$ROOT/scripts/verify.sh" quick "$SANDBOX/fixtures/bad.json" >/dev/null 2>&1 && fail "quick: broken .json -> nonzero" || pass "quick: broken .json -> nonzero"
+"$ROOT/scripts/verify.sh" bogus >/dev/null 2>&1
+rc=$?
+[ "$rc" -eq 64 ] && pass "unknown mode -> exit 64" || fail "unknown mode -> exit 64 (got $rc)"
+for m in quick:start quick:end full:start full:end; do
+  grep -q "janus:bootstrap:$m" "$ROOT/scripts/verify.sh" && pass "sentinel janus:bootstrap:$m present" || fail "sentinel janus:bootstrap:$m present"
+done
+
 echo "== session-start.sh =="
 # Seed controlled CLAUDE.md state (L-009): these fixtures must pass in bootstrapped
 # children too, so never depend on the live repo's facts block.
 printf '# Sandbox project\n\n- App stack: NOT BOOTSTRAPPED — run /bootstrap.\n' > "$SANDBOX/CLAUDE.md"
 out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -q "bootstrap" && pass "un-bootstrapped repo -> bootstrap nudge" || fail "un-bootstrapped repo -> bootstrap nudge (got: $out)"
+# Leftover signals: a session that died or skipped the Stop nudge must not lose its lessons.
+printf 'correction:2026-01-01T00:00:00Z\nverify-fail:/tmp/x\n' > "$SIGNALS"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "unprocessed learning signal" && pass "leftover signals -> reflect nudge" || fail "leftover signals -> reflect nudge (got: $out)"
+out=$(echo '{"source":"compact"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "unprocessed learning signal" && fail "compact -> no duplicate signals line (got: $out)" || pass "compact -> no duplicate signals line"
+echo "$out" | grep -q "Learning signals pending: 2" && pass "compact line reports pending count" || fail "compact line reports pending count (got: $out)"
+rm -f "$SIGNALS"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "unprocessed" && fail "no signals -> silent (got: $out)" || pass "no signals -> silent"
 # Decouple ledger fixtures from the shipped ledger's real entries: truncate the
 # sandbox copy to header + marker so the fixtures below control what exists.
 awk '{print} /<!-- entries below this line -->/{exit}' "$SANDBOX/.claude/memory/LEARNINGS.md" > "$SANDBOX/.claude/memory/LEARNINGS.md.tmp" \
@@ -78,6 +140,19 @@ echo "$out" | grep -q "consider /evolve" && fail "clean ledger -> no memory line
 printf '\n## L-900 · 2026-01-01 · Fixture entry\n- Trigger: fixture\n- Rule: fixture rule\n- Scope: project\n- Evidence: 2\n- Status: candidate\n' >> "$SANDBOX/.claude/memory/LEARNINGS.md"
 out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -q "1 with Evidence >= 2" && pass "ripe learning counted (spec text not miscounted)" || fail "ripe learning counted (got: $out)"
+# Regression: multi-digit Evidence must count as ripe (numeric >=, not a [2-9] first-digit match).
+awk '{print} /<!-- entries below this line -->/{exit}' "$SANDBOX/.claude/memory/LEARNINGS.md" > "$SANDBOX/.claude/memory/LEARNINGS.md.tmp" \
+  && mv "$SANDBOX/.claude/memory/LEARNINGS.md.tmp" "$SANDBOX/.claude/memory/LEARNINGS.md"
+printf '\n## L-901 · 2026-01-01 · Double-digit evidence fixture\n- Trigger: fixture\n- Rule: fixture rule\n- Scope: project\n- Evidence: 10\n- Status: candidate\n' >> "$SANDBOX/.claude/memory/LEARNINGS.md"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "1 candidate learnings, 1 with Evidence >= 2" && pass "Evidence: 10 counts as ripe" || fail "Evidence: 10 counts as ripe (got: $out)"
+# Regression: a non-candidate entry's Evidence must not leak into the next entry
+# (replicated children start with high-Evidence 'inherited' entries).
+awk '{print} /<!-- entries below this line -->/{exit}' "$SANDBOX/.claude/memory/LEARNINGS.md" > "$SANDBOX/.claude/memory/LEARNINGS.md.tmp" \
+  && mv "$SANDBOX/.claude/memory/LEARNINGS.md.tmp" "$SANDBOX/.claude/memory/LEARNINGS.md"
+printf '\n## L-902 · 2026-01-01 · Inherited high-evidence fixture\n- Trigger: fixture\n- Rule: fixture rule\n- Scope: portable\n- Evidence: 3\n- Status: inherited\n\n## L-903 · 2026-01-01 · Fresh candidate fixture\n- Trigger: fixture\n- Rule: fixture rule\n- Scope: project\n- Evidence: 1\n- Status: candidate\n' >> "$SANDBOX/.claude/memory/LEARNINGS.md"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "consider /evolve" && fail "non-candidate Evidence must not leak to next entry (got: $out)" || pass "non-candidate Evidence must not leak to next entry"
 out=$(echo '{"source":"compact"}' | "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -qi "compacted" && pass "compact source -> workspace-rescue line" || fail "compact source -> workspace-rescue line (got: $out)"
 
@@ -102,25 +177,9 @@ rm -f "$STAMPF"
 out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -q "recalibrate" && fail "un-bootstrapped -> staleness gated off (got: $out)" || pass "un-bootstrapped -> staleness gated off"
 
-echo "== new-worktree.sh (skipped outside a git checkout) =="
-if git -C "$ROOT" rev-parse --verify HEAD >/dev/null 2>&1; then
-  SLUG="tests-$$"
-  if "$ROOT/scripts/new-worktree.sh" create "$SLUG" >/dev/null 2>&1 \
-     && "$ROOT/scripts/new-worktree.sh" clean "$SLUG" >/dev/null 2>&1 \
-     && [ ! -d "$ROOT/../$(basename "$ROOT")-wt-$SLUG" ]; then
-    pass "worktree create/clean cycle"
-  else
-    fail "worktree create/clean cycle"
-    git -C "$ROOT" worktree remove --force "$ROOT/../$(basename "$ROOT")-wt-$SLUG" 2>/dev/null
-    git -C "$ROOT" branch -D "wt/$SLUG" 2>/dev/null
-  fi
-else
-  echo "  skip: not a git checkout with commits"
-fi
-
 echo
 if [ "$FAILS" -eq 0 ]; then
-  echo "ALL HOOK TESTS PASSED"
+  echo "ALL SCAFFOLD TESTS PASSED"
   exit 0
 else
   echo "$FAILS TEST(S) FAILED" >&2

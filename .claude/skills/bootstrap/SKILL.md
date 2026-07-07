@@ -21,14 +21,11 @@ commands — this skill wires that up and proves it.
 2. Wire `scripts/verify.sh`:
    - Replace the block between `# janus:bootstrap:quick:start` and `:end` with per-file checks keyed on file extension (format check, lint, typecheck of the changed file). Budget: <10s. Keep the template's `*.sh`/`*.json` arms — hook scripts exist in every child and deserve the same loop.
    - Replace the block between `# janus:bootstrap:full:start` and `:end` with the real suite: lint all, typecheck all, tests, build if applicable.
-3. Set up the Graphify external-memory layer (default: yes — the graph is the project's random-access memory: codebase structure lives there, queryable on demand, instead of occupying the workspace). Skip only if the user declines or `uv` is unavailable; the scaffold degrades gracefully (agents fall back to grep):
-   - `uv tool install graphifyy && graphify install`, then `graphify .` to build the initial graph. Greenfield projects included — the graph grows with the code. Make sure the ingest covers `.claude/memory/` (LEARNINGS.md and ARCHIVE.md): learnings become queryable one concept at a time instead of ever loading wholesale.
-   - If installed, append to the `full` arm: `command -v graphify >/dev/null 2>&1 && graphify . --quiet` so the graph never goes stale.
-4. Rewrite the block between `<!-- janus:facts:start -->` and `<!-- janus:facts:end -->` in CLAUDE.md: stack + package manager; how to run verify (quick/full); how to run the app; knowledge-graph line if Graphify was installed ("Query the graph before grepping: `graphify query` or MCP `query_graph`").
-5. Prove the loop closes, both ways:
+3. Rewrite the block between `<!-- janus:facts:start -->` and `<!-- janus:facts:end -->` in CLAUDE.md: stack + package manager; how to run verify (quick/full); how to run the app.
+4. Prove the loop closes, both ways:
    - Run `scripts/verify.sh full` — must exit 0 on the healthy project.
    - Make a deliberately bad edit to a real source file (e.g. introduce a syntax error), confirm `scripts/verify.sh quick <file>` exits nonzero with useful output, then revert the edit.
-6. If this project was replicated from a parent, review inherited entries in `.claude/memory/LEARNINGS.md` (`Status: inherited`): any that are stack-relevant here get re-marked `candidate` so `/evolve` can promote them.
+5. If this project was replicated from a parent, review inherited entries in `.claude/memory/LEARNINGS.md` (`Status: inherited`): any that are stack-relevant here get re-marked `candidate` so `/evolve` can promote them.
 
 ## Before finishing
 
