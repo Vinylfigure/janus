@@ -21,8 +21,8 @@ commands — this skill wires that up and proves it.
 2. Wire `scripts/verify.sh`:
    - Replace the block between `# janus:bootstrap:quick:start` and `:end` with per-file checks keyed on file extension (format check, lint, typecheck of the changed file). Budget: <10s. Keep the template's `*.sh`/`*.json` arms — hook scripts exist in every child and deserve the same loop.
    - Replace the block between `# janus:bootstrap:full:start` and `:end` with the real suite: lint all, typecheck all, tests, build if applicable.
-3. Offer the Graphify knowledge-graph layer (optional, skip cleanly if declined or `uv` is unavailable):
-   - `uv tool install graphifyy && graphify install`, then `graphify .` to build the initial graph.
+3. Set up the Graphify external-memory layer (default: yes — the graph is the project's random-access memory: codebase structure lives there, queryable on demand, instead of occupying the workspace). Skip only if the user declines or `uv` is unavailable; the scaffold degrades gracefully (agents fall back to grep):
+   - `uv tool install graphifyy && graphify install`, then `graphify .` to build the initial graph. Greenfield projects included — the graph grows with the code.
    - If installed, append to the `full` arm: `command -v graphify >/dev/null 2>&1 && graphify . --quiet` so the graph never goes stale.
 4. Rewrite the block between `<!-- janus:facts:start -->` and `<!-- janus:facts:end -->` in CLAUDE.md: stack + package manager; how to run verify (quick/full); how to run the app; knowledge-graph line if Graphify was installed ("Query the graph before grepping: `graphify query` or MCP `query_graph`").
 5. Prove the loop closes, both ways:

@@ -15,13 +15,15 @@ articulate the failure before fixing.
 2. Diagnose before patching: one sentence on *why* it failed, then the fix — reflexive patching compounds errors.
 3. Five rounds is the cap: a loop that isn't converging is itself a signal.
 4. Evidence is pasted output, not summaries of output.
+5. Green output is not proof — articulate what would falsify success before you believe it.
 
 ## Steps
 
 1. Verbalize the success criterion as a runnable check. Use the argument if given; default to `scripts/verify.sh full`. For UI or behavioral criteria, define the observation precisely (what command, what expected output).
 2. Run the check.
 3. On failure: state in one sentence why it failed (hypothesis, not narration), then make the smallest fix that addresses that hypothesis. Return to step 2.
-4. Track rounds. On the 5th consecutive red:
+4. On green: before declaring done, state one concrete way this check could pass while the work is still wrong (stale cache, check too narrow, happy path only). If the scenario is plausible, run one probe to close it; if the probe fails, that is a failure — return to step 3.
+5. Track rounds. On the 5th consecutive red:
    - Stop editing.
    - Summarize the failure trajectory: each hypothesis, each fix, each result.
    - Append a line to `.claude/memory/.session-signals` (`verify-fail:loop-exhausted`) so the Stop-hook reflect nudge is guaranteed to fire.
@@ -29,5 +31,6 @@ articulate the failure before fixing.
 
 ## Before finishing
 
-Paste the final green output verbatim. State how many rounds it took and, if
-more than 2, whether there is a lesson for `/reflect`.
+Paste the final green output verbatim, plus the counterfactual you stated and
+how it was closed. State how many rounds it took and, if more than 2, whether
+there is a lesson for `/reflect`.

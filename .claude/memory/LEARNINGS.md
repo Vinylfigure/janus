@@ -1,8 +1,9 @@
 # Learnings ledger
 
-Append-mostly, git-tracked. Written by `/reflect`, curated by `/evolve`,
-inherited across projects by `/replicate`. Entries are never deleted — promoted
-and retired entries stay as lineage history.
+Append-mostly, git-tracked. Written by `/reflect` (session lessons) and
+`/recalibrate` (ecosystem drift), curated by `/evolve`, inherited across
+projects by `/replicate`. Entries are never deleted — promoted and retired
+entries stay as lineage history.
 
 ## Entry format
 
@@ -46,6 +47,34 @@ Rules for curators (`/evolve`):
 ## L-003 · 2026-07-07 · Inject post-compaction context via SessionStart source=compact, not PreCompact
 - Trigger: compaction workspace-rescue was first designed as a PreCompact hook; PreCompact output cannot reliably reach the post-compaction context window (janus hardening session)
 - Rule: to restore context after compaction, hook SessionStart and branch on source == "compact"
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-004 · 2026-07-07 · Re-verify encoded practices against primary sources before trusting them
+- Trigger: the worktree-parallel skill shipped using a manual script while `claude --worktree` already existed natively; found by re-checking Cherny's own posts (https://x.com/bcherny/status/2017742743125299476) when the user asked if terminal-tab advice was stale (janus refinement session)
+- Rule: a practice encoded in scaffold files is a claim about a moving target — re-verify it against primary sources before relying on or extending it
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-005 · 2026-07-07 · Treat aggregator claims as leads to verify, never as evidence
+- Trigger: a single aggregator site mixed verified practices with unverifiable feature claims (auto-mode-over-plan-mode, /goal, /dream); only claims corroborated by primary sources were encoded (janus refinement session)
+- Rule: adopt a practice only when a primary source (official docs, changelog, the practitioner's own posts) confirms it; aggregator content generates hypotheses, not conclusions
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-006 · 2026-07-07 · Distinguish context bloat from dependency bloat when judging a tool
+- Trigger: user corrected the "keep Graphify optional" recommendation — offloading structure to an external queryable store REDUCES the bloat the workspace budget guards; only the install dependency is a cost (janus refinement session)
+- Rule: a tool that moves knowledge out of always-loaded context into on-demand external memory should default ON with graceful degradation; weigh its dependency cost separately from its context benefit
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-007 · 2026-07-07 · When changing a convention, sweep every mention of it, not just planned edit sites
+- Trigger: the adversarial verifier failed the refinement diff because docs/USAGE.md's day-1 section still said "optional Graphify" after the convention changed to default-on; the planned edit list had missed that mention (janus refinement session)
+- Rule: after changing a convention, grep the whole repo for the old wording and reconcile every hit before claiming consistency
 - Scope: portable
 - Evidence: 1
 - Status: candidate
