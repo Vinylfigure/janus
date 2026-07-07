@@ -18,7 +18,7 @@ CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked 
   memory/recalibrated-at      committed epoch stamp of the last /recalibrate run
 scripts/
   verify.sh                   quick|full dispatcher; /bootstrap fills the case arms
-  test-hooks.sh               fixture suite for the hook plumbing (verify.sh full + CI)
+  test-hooks.sh               fixture suite for the scaffold plumbing — hooks + docs cross-refs (verify.sh full + CI)
   new-worktree.sh             worktree create/list/clean
 .github/workflows/verify.yml  CI: runs test-hooks.sh on every push/PR
 ```

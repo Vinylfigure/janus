@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Fixture tests for the Janus hook plumbing. This is what `verify.sh full`
-# runs for the template repo itself, and what CI runs on every PR.
+# Fixture tests for the Janus scaffold plumbing: hook behavior plus
+# name-level docs cross-references. This is what `verify.sh full` runs for
+# the template repo itself, and what CI runs on every PR.
 #
 # Behavioral tests run against a sandbox copy of the repo (CLAUDE_PROJECT_DIR
 # points at a temp dir), so they never touch the real memory files.
@@ -19,6 +20,38 @@ for f in "$ROOT"/.claude/hooks/*.sh "$ROOT"/scripts/*.sh; do
   if bash -n "$f" 2>/dev/null; then pass "bash -n $(basename "$f")"; else fail "bash -n $(basename "$f")"; fi
 done
 if jq . "$ROOT/.claude/settings.json" >/dev/null 2>&1; then pass "settings.json is valid JSON"; else fail "settings.json is valid JSON"; fi
+
+echo "== docs consistency (name-level) =="
+# Keeps docs/ honest about the tree: names, paths, and counts only — semantic
+# accuracy stays on SELF-IMPROVEMENT.md rule 1 and /recalibrate.
+if [ ! -f "$ROOT/docs/ARCHITECTURE.md" ]; then
+  echo "  skip: no docs/ARCHITECTURE.md (docs pruned — checks opt out)"
+else
+  for d in "$ROOT"/.claude/skills/*/; do
+    name=$(basename "$d")
+    if grep -q -- "/$name" "$ROOT/docs/USAGE.md"; then pass "skill /$name in USAGE.md"; else fail "skill /$name missing from docs/USAGE.md — add a trigger-table row"; fi
+  done
+  for f in "$ROOT"/.claude/hooks/*.sh; do
+    b=$(basename "$f")
+    if grep -q "$b" "$ROOT/docs/ARCHITECTURE.md"; then pass "hook $b in ARCHITECTURE.md"; else fail "hook $b missing from docs/ARCHITECTURE.md hook table"; fi
+  done
+  for f in "$ROOT"/.claude/agents/*.md; do
+    a=$(basename "$f" .md)
+    if grep -q "$a" "$ROOT/docs/ARCHITECTURE.md"; then pass "agent $a in ARCHITECTURE.md"; else fail "agent $a missing from docs/ARCHITECTURE.md"; fi
+  done
+  for t in $(grep -ohE '[A-Za-z0-9_.-]+\.sh' "$ROOT"/docs/*.md | sort -u); do
+    if [ -f "$ROOT/scripts/$t" ] || [ -f "$ROOT/.claude/hooks/$t" ]; then pass "docs script ref $t exists"; else fail "docs reference $t but no such file in scripts/ or .claude/hooks/"; fi
+  done
+  for p in .github/workflows/verify.yml .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/ARCHIVE.md .claude/memory/recalibrated-at; do
+    if [ -e "$ROOT/$p" ]; then pass "component-map path $p exists"; else fail "component-map path $p missing from tree"; fi
+  done
+  n=$(ls "$ROOT"/.claude/hooks/*.sh 2>/dev/null | wc -l | tr -d ' ')
+  if grep -qE "hooks/ +$n shell hooks" "$ROOT/docs/ARCHITECTURE.md"; then pass "component-map hook count is $n"; else fail "component map hook count != $n (expected line matching 'hooks/ +$n shell hooks')"; fi
+  n=$(ls -d "$ROOT"/.claude/skills/*/ 2>/dev/null | wc -l | tr -d ' ')
+  if grep -qE "skills/ +$n skills" "$ROOT/docs/ARCHITECTURE.md"; then pass "component-map skill count is $n"; else fail "component map skill count != $n (expected line matching 'skills/ +$n skills')"; fi
+  n=$(ls "$ROOT"/.claude/agents/*.md 2>/dev/null | wc -l | tr -d ' ')
+  if grep -qE "agents/ +$n subagents" "$ROOT/docs/ARCHITECTURE.md"; then pass "component-map agent count is $n"; else fail "component map agent count != $n (expected line matching 'agents/ +$n subagents')"; fi
+fi
 
 echo "== sandbox setup =="
 SANDBOX=$(mktemp -d)
@@ -120,7 +153,7 @@ fi
 
 echo
 if [ "$FAILS" -eq 0 ]; then
-  echo "ALL HOOK TESTS PASSED"
+  echo "ALL SCAFFOLD TESTS PASSED"
   exit 0
 else
   echo "$FAILS TEST(S) FAILED" >&2

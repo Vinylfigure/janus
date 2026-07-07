@@ -82,10 +82,11 @@ here flow to every future child. Two rules keep that safe:
 1. A change to a cap, hook protocol, or skill shape must update
    [ARCHITECTURE.md](ARCHITECTURE.md) in the same commit — the rationale doc
    is what stops future sessions from "simplifying" load-bearing constraints.
-2. Prove loop changes with the fixture tests before committing: pipe sample
-   hook JSON into each script and check exit codes and output (see the
-   Verification section of the original build plan, or just read the hook
-   headers — each documents its contract).
+2. Prove loop changes with the fixture tests before committing: run
+   `scripts/test-hooks.sh` — the same suite CI runs on every push — and give
+   new behavior a new fixture in the same commit. Each hook's header comment
+   documents its stdin/exit-code contract; the fixtures are the executable
+   form of those contracts.
 
 Existing children do not auto-update; they inherit at replication time only.
 To backport an improvement to a child, cherry-pick the commit or re-run the
