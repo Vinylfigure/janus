@@ -7,7 +7,9 @@ argument-hint: [success command or observable criterion]
 Boris's rule: if the agent can close the feedback loop on its own, it will
 iterate until the output is right. This skill is that loop, with two
 workspace disciplines added: articulate the criterion before running, and
-articulate the failure before fixing.
+articulate the failure before fixing. Goal-shaped loops (`/goal`) can drive
+this skill natively — the loop decides *when* to retry; this skill encodes
+*how* to verify.
 
 ## Hold in mind
 

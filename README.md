@@ -41,6 +41,11 @@ To make this repo itself a template: `gh repo edit <owner>/janus --template`
 
 ## What's inside
 
+You don't memorize these commands — every skill carries a trigger
+description, so Claude proposes the right one when the situation matches,
+and side-effect skills confirm with you before acting. Typing the
+`/command` is the escape hatch.
+
 | Piece | Purpose |
 |---|---|
 | `CLAUDE.md` | Always-loaded memory, hard-capped at 20 concepts (see [why](docs/ARCHITECTURE.md#the-global-workspace-rationale)) |
@@ -54,11 +59,12 @@ To make this repo itself a template: `gh repo edit <owner>/janus --template`
 | `/add-skill` | Author new skills in the canonical shape |
 | `explorer`, `planner`, `verifier`, `memory-curator` | Subagents: scout, architect, skeptic, librarian |
 | 4 hooks | SessionStart status, silent correction detector, per-edit verify, stop-time reflect nudge |
-| `.claude/memory/LEARNINGS.md` | The append-only learnings ledger — the repo's genome |
+| `.claude/memory/LEARNINGS.md` | The active learnings ledger (≤25, resolved history moves to `ARCHIVE.md`) — the repo's genome |
 
-Optional: [Graphify](https://github.com/Graphify-Labs/graphify) as a local
-code knowledge graph — `/bootstrap` offers to install it, and the explorer/
-planner agents query the graph instead of grepping when it exists.
+Default-on: [Graphify](https://github.com/Graphify-Labs/graphify) as a local
+code knowledge graph — `/bootstrap` installs it by default (declinable; the
+scaffold degrades gracefully to grep), and the explorer/planner agents and
+the memory skills query the graph before grepping when it exists.
 
 ## Learn more
 

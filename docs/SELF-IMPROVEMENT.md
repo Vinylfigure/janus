@@ -7,8 +7,8 @@ how a lesson earns promotion, and how knowledge crosses repositories.
 ## Lifecycle of a lesson
 
 ```
-signal ──► entry ──► evidence ──► promotion ──► inheritance
-(hooks)   (/reflect)  (recurrence)  (/evolve)    (/replicate)
+signal ──► entry ──► evidence ──► promotion ──► archival ──► inheritance
+(hooks)   (/reflect)  (recurrence)  (/evolve)    (/evolve)    (/replicate)
 ```
 
 **1. Signal.** Hooks log learning-shaped events silently as they happen:
@@ -41,19 +41,36 @@ agent) moves qualifying lessons up:
   the end of every run. **Adding requires room; room comes from merging or
   retiring.** The budget rationale is in
   [ARCHITECTURE.md](ARCHITECTURE.md#the-global-workspace-rationale).
+- Editing CLAUDE.md is gated: in an interactive session `/evolve` asks the
+  user first; in a headless run (the heartbeat) it delivers via PR — the
+  review is the confirmation. This is the general convention for every
+  side-effect skill: no invocation lock, an in-body gate immediately before
+  the irreversible action, degrading to PR-delivery when no user is present.
 
-**5. Inheritance.** `/replicate` copies `Scope: portable` entries (and their
-promoted rules) into child repositories, re-marked `Status: inherited`.
-Children re-earn promotion with their own evidence. Ledger entries are never
-deleted — `promoted`/`retired`/`inherited` markings keep the full lineage
-history, which is what makes the ledger a genome rather than a notebook.
+**5. Archival.** Resolved entries — `promoted:*`, `retired`, merged-away, or
+expired (Evidence 1, untouched 60+ days) — move from the active ledger to
+`ARCHIVE.md`, keeping `LEARNINGS.md` a bounded working set (≤25). If an
+archived lesson recurs, `/reflect` writes a fresh active entry citing the
+archived id: a resolution that stopped working is itself evidence.
+
+**6. Inheritance.** `/replicate` copies `Scope: portable` entries (and their
+promoted rules) — from the active ledger *and* the archive — into child
+repositories, re-marked `Status: inherited`, into the child's *active*
+ledger; the child's archive starts empty. Children re-earn promotion with
+their own evidence. Ledger entries are never deleted —
+`promoted`/`retired`/`inherited` markings keep the full lineage history,
+which is what makes the ledger a genome rather than a notebook.
 
 ## Ledger integrity rules
 
 - One entry = one concept. Two-sentence rules are two entries.
 - `Scope: portable` is a promise: true in *any* repository. Judge harshly —
   a wrongly-portable entry pollutes every descendant.
-- Never delete; mark. History is data.
+- Never delete; mark, then archive. History is data — it stays queryable
+  (targeted grep or graph) in `ARCHIVE.md` and never re-enters context
+  wholesale.
+- IDs are sequential across both files; parallel worktree sessions reconcile
+  colliding IDs at merge time (see the worktree-parallel skill).
 
 ## Improving Janus itself (dogfooding)
 
