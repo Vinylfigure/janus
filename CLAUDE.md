@@ -26,6 +26,7 @@ load on demand; this file is always in context, so every line must earn it.
 
 <!-- janus:rules:start -->
 <!-- Populated only by /evolve. Cap: 12 rules. Each cites a LEARNINGS.md id. -->
+- Aggregator claims and fetch summaries are leads, never evidence — confirm claims verbatim against a primary source before adopting or citing. (L-005)
 <!-- janus:rules:end -->
 
 ## Map

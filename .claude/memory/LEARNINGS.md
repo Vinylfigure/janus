@@ -61,13 +61,6 @@ Rules for curators (`/evolve`):
 - Evidence: 1
 - Status: candidate
 
-## L-005 · 2026-07-07 · Treat aggregator claims as leads to verify, never as evidence
-- Trigger: a single aggregator site mixed verified practices with unverifiable feature claims (auto-mode-over-plan-mode, /goal, /dream); only claims corroborated by primary sources were encoded (janus refinement session). Second occurrence: the withheld /goal claim was later confirmed by the official loops post — withholding until primary confirmation was exactly right (round-3 research)
-- Rule: adopt a practice only when a primary source (official docs, changelog, the practitioner's own posts) confirms it; aggregator content generates hypotheses, not conclusions
-- Scope: portable
-- Evidence: 2
-- Status: candidate
-
 ## L-006 · 2026-07-07 · Distinguish context bloat from dependency bloat when judging a tool
 - Trigger: user corrected the "keep Graphify optional" recommendation — offloading structure to an external queryable store REDUCES the bloat the workspace budget guards; only the install dependency is a cost (janus refinement session)
 - Rule: a tool that moves knowledge out of always-loaded context into on-demand external memory should default ON with graceful degradation; weigh its dependency cost separately from its context benefit
@@ -103,9 +96,9 @@ Rules for curators (`/evolve`):
 - Evidence: 1
 - Status: candidate
 
-## L-011 · 2026-07-06 · Verify a source's specific claims as verbatim quotes before citing them
-- Trigger: a first fetch-summary of the transformer-circuits workspace paper attributed capacity limits and RAG recommendations to it that the paper never makes; a re-fetch demanding verbatim quotes caught the embellishment (janus round-3 session)
-- Rule: before citing a source for a specific claim, re-verify the claim as a verbatim quote from the source itself — summarization layers embellish; kin to L-005, a summary is a lead, not evidence
+## L-012 · 2026-07-06 · Propose the maintenance heartbeat at the end of /bootstrap
+- Trigger: user asked why the weekly heartbeat isn't on by default for every project; auto-creating a billed cloud routine silently would violate the escalation-is-proposed rule, but the end of session zero is the natural moment to offer it (janus round-3 evolve session)
+- Rule: when a project finishes bootstrapping, propose creating the maintenance heartbeat (one yes, PR-delivery only) instead of waiting for the user to discover it
 - Scope: portable
 - Evidence: 1
 - Status: candidate
