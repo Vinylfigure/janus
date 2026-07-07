@@ -1,7 +1,6 @@
 ---
 name: worktree-parallel
-description: Fan a task out into parallel Claude Code sessions, each in its own git worktree, then merge tracks after each verifies green. Use for independent workstreams - refactor + feature + bugfix concurrently.
-disable-model-invocation: true
+description: Fan a task out into parallel Claude Code sessions, each in its own git worktree, then merge tracks after each verifies green. Use when work splits into genuinely independent tracks (refactor + feature + bugfix) or the user asks to parallelize; confirms the track plan before creating worktrees.
 argument-hint: [task to parallelize]
 ---
 
@@ -19,7 +18,7 @@ session gets the same skills, hooks, and memory for free.
 
 ## Steps
 
-1. Split the task into independent tracks. For each, write one paragraph: scope, files it will touch, its "done means" check. If two tracks overlap on files, merge them into one track.
+1. Split the task into independent tracks. For each, write one paragraph: scope, files it will touch, its "done means" check. If two tracks overlap on files, merge them into one track. Gate: show the user the track table and wait for a yes before creating any worktree.
 2. Launch each track in its own worktree:
    - **Native path (preferred)**: `claude --worktree <slug>` — Claude Code creates and manages the worktree itself (add `--tmux` to give each its own tmux session/pane).
    - **Fallback** (older CLI versions): `scripts/new-worktree.sh create <slug>` creates `../<repo>-wt-<slug>` on branch `wt/<slug>`, then start `claude` there manually.
@@ -29,6 +28,7 @@ session gets the same skills, hooks, and memory for free.
 5. Merge protocol, once tracks report green:
    - In the main checkout, merge each track's branch one at a time, running `scripts/verify.sh full` after each merge.
    - On conflict or post-merge red: fix in the main checkout before merging the next track.
+   - Ledger reconciliation: if more than one track appended `LEARNINGS.md` entries, colliding L-NNN ids are guaranteed — renumber the later entries sequentially above the merged maximum, bump Evidence on true duplicates instead of keeping twins, and land the result as one consolidated commit.
 6. Cleanup: remove each merged track's worktree (`scripts/new-worktree.sh clean <slug>` for script-created trees; `git worktree remove` + branch delete for native ones).
 
 ## Before finishing

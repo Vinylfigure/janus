@@ -64,14 +64,43 @@ echo '{"tool_input":{"file_path":"'"$SANDBOX"'/.claude/memory/LEARNINGS.md"}}' |
 rm -f "$SIGNALS"
 
 echo "== session-start.sh =="
+# Seed controlled CLAUDE.md state (L-009): these fixtures must pass in bootstrapped
+# children too, so never depend on the live repo's facts block.
+printf '# Sandbox project\n\n- App stack: NOT BOOTSTRAPPED — run /bootstrap.\n' > "$SANDBOX/CLAUDE.md"
 out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -q "bootstrap" && pass "un-bootstrapped repo -> bootstrap nudge" || fail "un-bootstrapped repo -> bootstrap nudge (got: $out)"
+# Decouple ledger fixtures from the shipped ledger's real entries: truncate the
+# sandbox copy to header + marker so the fixtures below control what exists.
+awk '{print} /<!-- entries below this line -->/{exit}' "$SANDBOX/.claude/memory/LEARNINGS.md" > "$SANDBOX/.claude/memory/LEARNINGS.md.tmp" \
+  && mv "$SANDBOX/.claude/memory/LEARNINGS.md.tmp" "$SANDBOX/.claude/memory/LEARNINGS.md"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -q "consider /evolve" && fail "clean ledger -> no memory line" || pass "clean ledger -> no memory line"
 printf '\n## L-900 · 2026-01-01 · Fixture entry\n- Trigger: fixture\n- Rule: fixture rule\n- Scope: project\n- Evidence: 2\n- Status: candidate\n' >> "$SANDBOX/.claude/memory/LEARNINGS.md"
 out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -q "1 with Evidence >= 2" && pass "ripe learning counted (spec text not miscounted)" || fail "ripe learning counted (got: $out)"
 out=$(echo '{"source":"compact"}' | "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -qi "compacted" && pass "compact source -> workspace-rescue line" || fail "compact source -> workspace-rescue line (got: $out)"
+
+echo "== session-start.sh: recalibration staleness =="
+STAMPF="$SANDBOX/.claude/memory/recalibrated-at"
+# Bootstrapped sandbox: overwrite via printf (sed -i diverges BSD/GNU), restore via cp below.
+printf '# Sandbox project\n\n- App stack: wired (fixture)\n' > "$SANDBOX/CLAUDE.md"
+rm -f "$STAMPF"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "recalibrate" && pass "bootstrapped + no stamp -> stale nudge" || fail "bootstrapped + no stamp -> stale nudge (got: $out)"
+date +%s > "$STAMPF"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "recalibrate" && fail "fresh stamp -> silent (got: $out)" || pass "fresh stamp -> silent"
+echo 1750000000 > "$STAMPF"   # 2025-06-15: fixed past epoch, always >30d old — fixture never rots
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "recalibrate" && pass "old stamp -> stale nudge" || fail "old stamp -> stale nudge (got: $out)"
+printf 'not-a-number\n' > "$STAMPF"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "recalibrate" && pass "garbage stamp -> treated stale, no crash" || fail "garbage stamp -> treated stale (got: $out)"
+printf '# Sandbox project\n\n- App stack: NOT BOOTSTRAPPED — run /bootstrap.\n' > "$SANDBOX/CLAUDE.md"
+rm -f "$STAMPF"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "recalibrate" && fail "un-bootstrapped -> staleness gated off (got: $out)" || pass "un-bootstrapped -> staleness gated off"
 
 echo "== new-worktree.sh (skipped outside a git checkout) =="
 if git -C "$ROOT" rev-parse --verify HEAD >/dev/null 2>&1; then

@@ -2,26 +2,66 @@
 
 The operator's guide. [ARCHITECTURE.md](ARCHITECTURE.md) explains *why* the
 pieces exist; [SELF-IMPROVEMENT.md](SELF-IMPROVEMENT.md) specs the memory
-system; this document is *how you drive it*, day to day.
+system; this document is *how you drive it* — though mostly, it drives.
 
-## Day 1: starting a project
+**You never need to memorize the command vocabulary.** Every skill carries a
+trigger description, so Claude proposes the right one when the situation
+matches, and each side-effect skill confirms with you before doing anything
+irreversible. Every `/command` in this doc is an escape hatch, not a
+prerequisite.
+
+## Session zero: starting a project
 
 1. **Create the repo.** Either click **Use this template** on GitHub, or — from
-   any existing Janus project — run `/replicate <name>` and let it interview
-   you. Replication is better once you have history: portable learnings are
-   inherited, so each generation starts smarter.
+   any existing Janus project — say you want to start a new project and let
+   `/replicate` interview you (it confirms name, visibility, and location
+   before creating anything). Replication is better once you have history:
+   portable learnings are inherited, so each generation starts smarter.
 2. **Open a session.** `cd` into the clone, run `claude`. The session-start
-   hook will tell you the scaffold is not bootstrapped.
-3. **Run `/bootstrap`.** It detects your stack (or interviews you for one),
-   wires `scripts/verify.sh` to your real formatter/linter/tests, sets up the
+   status says the scaffold is not bootstrapped, and Claude proposes
+   `/bootstrap`.
+3. **Bootstrap.** It detects your stack (or interviews you for one), wires
+   `scripts/verify.sh` to your real formatter/linter/tests, sets up the
    [Graphify](https://github.com/Graphify-Labs/graphify) knowledge graph by
    default (the project's external random-access memory — skippable, and the
    scaffold degrades gracefully without it), and *proves* the loop closes —
    you'll see a passing full run and a deliberately-broken edit get caught.
-   From this moment every edit you or Claude makes is checked automatically.
-4. **Build your first feature with `/plan-feature`.** It will explore via
-   subagents, write a plan with explicit "done means" criteria, and drive the
-   implementation through the verification loop.
+   From this moment every edit is checked automatically.
+4. **State your first goal in plain words.** Tell Claude what you want to
+   build — and say how experienced you are with the domain while you're at
+   it; fuzzy requirements are its cue to interview you rather than assume.
+   For anything non-trivial it will propose the plan-first flow
+   (`/plan-feature`): explore, plan with explicit "done means" and unknowns,
+   sign-off, build, verify. The Stop hook closes the day by asking for
+   `/reflect` if the session logged lessons.
+
+## How the scaffold drives
+
+CLAUDE.md's conductor directive makes Claude act on the session-start status
+and propose the route — skills, order, and *modality* — whenever you state a
+goal. What fires when:
+
+| Skill | Claude reaches for it when… | Nudged by | Confirms before |
+|---|---|---|---|
+| `/bootstrap` | the facts block says NOT BOOTSTRAPPED | session-start line | — |
+| `/plan-feature` | a non-trivial change is requested | — | plan sign-off |
+| `/verify-loop` | any "done" claim is near | per-edit hook runs the quick check anyway | — |
+| `/reflect` | a correction happened or the session ends | **Stop hook blocks once** when signals exist | — |
+| `/evolve` | between tasks with ripe learnings | session-start ripe count · heartbeat | **CLAUDE.md edits** (headless: PR) |
+| `/recalibrate` | the status says recalibration is stale, or a documented practice misbehaves | session-start stale line · heartbeat | — (writes candidates + stamp only) |
+| `/ship` | a verified change is ready to leave the machine | — | **branch + remote** before first push (headless: PR only) |
+| `/worktree-parallel` | work splits into independent tracks | — | **track table** before any worktree |
+| `/replicate` | you want a new project from this scaffold | — | **name/visibility/path** before creation |
+| `/add-skill` | a procedure got repeated or explained twice | `/evolve` promotes procedure-shaped lessons | — (budget check: ≤15 skills) |
+
+**The modality ladder** — Claude proposes the level that fits the observable
+shape of the work, and escalation is always proposed, never silent:
+
+- answerable in this session → just do it inline (inner loop has your back)
+- multi-file or risky → plan mode / `/plan-feature`
+- genuinely independent tracks → `/worktree-parallel` sessions
+- long-running and pollable (CI, a flaky migration) → a `/loop` or `/goal` loop
+- calendar cadence, no session open → the heartbeat routine (below)
 
 ## The daily rhythm
 
@@ -31,12 +71,15 @@ system; this document is *how you drive it*, day to day.
 - **Let the inner loop work.** After every edit, the PostToolUse hook runs the
   quick check and feeds failures straight back to Claude. You don't need to
   paste lint errors — they arrive automatically.
+- **When requirements are fuzzy, say so and let Claude interview you.**
+  Disclosing your experience level ("I've never touched OAuth") changes what
+  it explains vs. assumes. Plans name their unknowns and how each resolves.
 - **Before accepting "done", demand the loop be closed**: `/verify-loop`
   (iterates to green against a runnable check, max 5 rounds) or the
   `verifier` agent (adversarial: runs the suite *plus* probes the change
   directly, and only passes on pasted evidence).
-- **Ship with `/ship`**: verify → commit → push → PR → babysit CI and reviews
-  until merged.
+- **Ship when ready**: `/ship` verifies, commits, confirms branch and remote,
+  pushes, opens the PR, and babysits CI and reviews until merged.
 
 ## Session rituals (the self-learning loop)
 
@@ -50,32 +93,57 @@ You mostly don't have to think about this — the hooks do:
   writes one-concept rules to `.claude/memory/LEARNINGS.md` (or states why
   there was no lesson).
 - **When the session-start line says learnings are ripe** ("N with
-  Evidence ≥ 2 — consider /evolve"), run `/evolve`. It promotes stable
+  Evidence ≥ 2"), Claude proposes `/evolve` between tasks. It promotes stable
   lessons into `CLAUDE.md` rules or new skills, retires contradicted rules,
-  and enforces the concept budget. This is how corrections compound instead
-  of repeating.
+  archives resolved entries, and enforces the budgets — asking you before it
+  touches CLAUDE.md. This is how corrections compound instead of repeating.
 
 You can also run `/reflect` manually any time something surprising happened —
 don't wait for the nudge.
 
 ## Memory operations
 
-- **Read the ledger** at `.claude/memory/LEARNINGS.md`. Entries are
-  append-only and marked, never deleted: `candidate` → `promoted:*` /
-  `retired`, plus `inherited` in children.
+- **The active ledger** at `.claude/memory/LEARNINGS.md` is a bounded working
+  set (≤25 entries). Entries are marked, never deleted: `candidate` →
+  `promoted:*` / `retired`, plus `inherited` in children — and resolved
+  entries move to `.claude/memory/ARCHIVE.md`, where history stays queryable
+  (graph or targeted grep) without ever re-entering context wholesale.
 - **Nothing promotes on one occurrence.** Evidence ≥ 2 (or your explicit
   confirmation) is the bar. If you *know* a lesson is right after one
   occurrence, say so and `/evolve` will take your word as evidence.
 - **`Scope: portable` is a promise** — true in any repository. These entries
   are what `/replicate` carries into children. Judge harshly.
-- **The budget is load-bearing**: CLAUDE.md holds ≤20 concepts, ≤12 learned
-  rules. When `/evolve` refuses to add without retiring, that's the design
-  working, not a limitation to remove (rationale in
+- **The budgets are load-bearing**: CLAUDE.md ≤20 concepts, ≤12 learned
+  rules; ≤25 active ledger entries; ≤15 skills. When `/evolve` refuses to add
+  without retiring, that's the design working, not a limitation to remove
+  (rationale in
   [ARCHITECTURE.md](ARCHITECTURE.md#the-global-workspace-rationale)).
-- **Run `/recalibrate` periodically** (roughly monthly): it re-verifies the
-  scaffold's encoded practices against primary sources (Anthropic docs,
+- **Recalibration keeps encoded practices honest**: `/recalibrate` re-verifies
+  the scaffold's conventions against primary sources (Anthropic docs,
   changelog, the Claude Code team's posts) and files drift as candidate
-  ledger entries — `/evolve` still decides what changes.
+  ledger entries — `/evolve` still decides what changes. You don't schedule
+  it in your head: the session-start line nudges when the last run
+  (`.claude/memory/recalibrated-at`, committed) is more than 30 days old, and
+  the heartbeat can run it for you.
+
+## The heartbeat (autonomous maintenance)
+
+For calendar-cadence upkeep with no session open, create a weekly cloud
+routine once — just ask Claude: *"schedule a weekly maintenance heartbeat"*
+(`/schedule` creates it conversationally; routines run headless in
+Anthropic's cloud and survive your laptop being closed). The prompt that
+works:
+
+> Run /recalibrate. If the ledger then reports entries at Evidence >= 2, run
+> /evolve. Deliver every change as a PR — never commit to the default branch.
+
+Two design points make this safe:
+
+- **Headless gates degrade to PRs.** `/evolve` and `/ship` never touch the
+  default branch without a user; the PR review *is* the confirmation.
+- **Loops trigger; skills encode quality** (the official loops guidance).
+  The heartbeat only decides *when* — what "verified" and "promotable" mean
+  live in the skills, same as in interactive sessions.
 
 ## Scaling up
 
@@ -87,21 +155,23 @@ don't wait for the nudge.
   conversation. Number your terminal tabs, enable system notifications, and
   use `claude agents` from the root directory as the fleet view. Every
   worktree carries the full scaffold (`.claude/` is in-tree). Merge only
-  tracks that verified green; clean worktrees after.
+  tracks that verified green; reconcile ledger IDs at merge time (the skill
+  covers this); clean worktrees after.
 - **Delegate to subagents by habit**: `explorer` to scout before you plan,
   `planner` for an independent design, `verifier` before you believe "done",
   `memory-curator` inside `/evolve`. Delegation keeps the main thread's
   context clean for actual decisions.
 - **New procedures become skills**: when you catch yourself giving the same
-  multi-step instructions twice, run `/add-skill`. Rules go to CLAUDE.md;
-  procedures become skills.
+  multi-step instructions twice, Claude should propose `/add-skill` — within
+  the 15-skill budget. Rules go to CLAUDE.md; procedures become skills.
 
 ## Replication and lineage
 
 - `/replicate <name>` stamps a child repo (GitHub template path or local
-  fallback), copies portable rules and ledger entries in as
-  `Status: inherited`, rewrites identity, and hands off to the child's
-  `/bootstrap`.
+  fallback), copies portable rules and ledger entries — from the active
+  ledger *and* the archive — in as `Status: inherited`, rewrites identity,
+  resets the child's recalibration clock, and hands off to the child's
+  `/bootstrap`. The child's archive starts empty.
 - Children **re-earn** promotion: inherited entries need fresh evidence in
   the child before `/evolve` promotes them there.
 - Children do **not** auto-update from the template. To backport a template
@@ -116,6 +186,11 @@ don't wait for the nudge.
 - **Hook didn't fire?** Hooks need the workspace trusted (accept the trust
   dialog) and `jq` installed — without `jq` they degrade to silent no-ops.
   `claude --debug` shows hook execution.
+- **Skill didn't auto-fire?** State the situation in plain words ("this is
+  ready to go out", "these three fixes are independent") and Claude should
+  propose the skill; if not, the slash command always works — and the
+  description probably needs sharper trigger wording, which is itself a
+  `/reflect` lesson.
 - **Quick check too slow?** It runs on *every* edit; keep it under ~10s. Move
   anything slower into the `full` arm.
 - **Stop nudge felt wrong?** It fires at most once per session and only when

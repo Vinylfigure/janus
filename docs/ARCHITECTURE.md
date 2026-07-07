@@ -13,7 +13,9 @@ CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked 
   hooks/                      4 shell hooks (protocol below)
   skills/                     10 skills — load on demand (progressive disclosure)
   agents/                     4 subagents — run in their own context windows
-  memory/LEARNINGS.md         append-only learnings ledger (git-tracked)
+  memory/LEARNINGS.md         active learnings ledger (bounded: ≤25 entries, git-tracked)
+  memory/ARCHIVE.md           resolved history — queryable, never loaded wholesale
+  memory/recalibrated-at      committed epoch stamp of the last /recalibrate run
 scripts/
   verify.sh                   quick|full dispatcher; /bootstrap fills the case arms
   test-hooks.sh               fixture suite for the hook plumbing (verify.sh full + CI)
@@ -36,7 +38,11 @@ little as possible — hook output lands in always-on context, which is a
 budgeted resource (see rationale below).
 
 ```
-SessionStart      session-start.sh      → ≤2 lines: bootstrap status, ripe-learnings count;
+SessionStart      session-start.sh      → ≤3 short lines: bootstrap status, ripe-learnings
+                                          count, recalibration staleness (only once
+                                          bootstrapped; stale = recalibrated-at missing or
+                                          >30 days — epoch lives in the file's CONTENT
+                                          because git does not preserve mtimes across clones);
                                           when source == "compact": one extra line telling the
                                           agent to re-verbalize its working set (invariants +
                                           "done means") — compaction is exactly when the
@@ -54,7 +60,10 @@ Stop              stop-reflect-nudge.sh → if .session-signals is non-empty AND
 
 Marker files (both gitignored): `.session-signals` is the per-session event
 log, deleted by `/reflect`; `.nudged-<session_id>` is the once-per-session
-guard, so an ignored nudge never becomes an infinite loop.
+guard, so an ignored nudge never becomes an infinite loop. By contrast,
+`recalibrated-at` is **committed**: it is provenance, not runtime state — a
+headless heartbeat recalibrating in a cloud clone must be able to reset the
+staleness signal everywhere via its PR.
 
 Deliberately unused events: `PreToolUse`, `PreCompact`, `Notification`,
 `SubagentStop` — nothing in the template earns them yet. Add hooks only with
@@ -80,9 +89,41 @@ Janus turns each finding into an enforced convention:
 | Workspace representations generalize across tasks | Learnings are distilled as one-concept imperative *rules*, not narratives, so they transfer between tasks and (via `Scope: portable`) between repositories |
 | Routine work happens outside the workspace | Progressive disclosure: skill bodies load only on use; clean sessions get no Stop-hook ceremony; exploration and verification are delegated to subagents so their context never enters the main thread |
 
+Honesty note: the paper is interpretability research about *internal*
+representations. It makes no claims about agent harnesses, external memory,
+RAG, or knowledge graphs — the mapping above is Janus's inference, and the
+paper is convergent evidence for the small-active-set bounds, not a
+prescription. Treat it accordingly when citing it.
+
 This is why the caps are hard: every concept added to CLAUDE.md competes for
 the same limited workspace the model needs for the actual task. When `/evolve`
 refuses to add a rule without retiring one, that is the design working.
+
+## The memory hierarchy
+
+Karpathy's LLM-OS framing — the model is the CPU, the context window is RAM,
+everything outside it is disk — is the architecture behind Janus's memory
+tiers:
+
+| Tier | Analog | File | Bound | Loaded |
+|---|---|---|---|---|
+| Registers | always-on | `CLAUDE.md` | ≤20 concepts | every session |
+| Working RAM | bounded active set | `LEARNINGS.md` | ≤25 entries | only by /reflect, /evolve, /replicate |
+| Disk | resolved history | `ARCHIVE.md` | unbounded | never wholesale — targeted grep only |
+| Index | random access | Graphify graph (incl. `.claude/memory/`) | — | queried one concept at a time; answers are leads, confirmed by grep |
+
+His related "LLM wiki" pattern — compile knowledge into cross-referenced
+markdown once, rather than re-deriving it on every retrieval — is what the
+ledger already is; the graph indexes it, it doesn't replace it.
+
+**Context-budget accounting.** Always-loaded context = CLAUDE.md (≤20
+concepts) + every skill's `description` + ≤3 hook status lines. Everything
+else is on-demand: skill bodies load on invocation, the ledger is opened by
+exactly three skills, the archive never loads wholesale, exploration and
+verification run in subagents that return conclusions. This is why skill
+descriptions are capped at ≤50 words and the skill count at ≤15: since the
+model-invocation flip, every skill's description rides in every session
+forever — a skill is a permanent tax, so the budget mirrors CLAUDE.md's.
 
 ## The methodology mapping (Boris Cherny / Anthropic practice)
 
@@ -95,7 +136,8 @@ refuses to add a rule without retiring one, that is the design working.
 | Subagents for focused work | explorer / planner / verifier / memory-curator, each read-only or evidence-bound |
 | Parallel sessions in worktrees — 3–5 at once, one task per session | `/worktree-parallel`: native `claude --worktree` (script fallback), `claude agents` as the fleet view; `.claude/` is in-tree so every worktree gets the full scaffold |
 | Team-shared configuration | `.claude/settings.json` is committed; `settings.local.json` is gitignored |
-| Encoded practices drift as tools evolve | `/recalibrate` re-verifies conventions against primary sources and files drift as candidate learnings; `/evolve` keeps promotion authority |
+| Encoded practices drift as tools evolve | `/recalibrate` re-verifies conventions against primary sources and files drift as candidate learnings; `/evolve` keeps promotion authority; the session-start staleness nudge and the heartbeat routine keep it running |
+| Loops trigger; skills encode quality | Skills auto-invoke from their trigger descriptions (the conductor directive routes goals to skills + modality); side-effect skills carry in-body gates that degrade to PR-delivery when headless; `/goal`-style loops and the weekly heartbeat only decide *when* |
 
 ## The external-memory layer (default-on, gracefully degrading)
 
@@ -108,9 +150,12 @@ concept at a time. A graph query returns entities and relationships —
 concepts — where a grep returns file dumps.
 
 `/bootstrap` installs it and builds the graph **by default** (greenfield
-included; the graph grows with the code); when the graph exists, explorer
-and planner query it (`graphify query "…"`) before grepping; `verify.sh
-full` regenerates it so it never goes stale — no extra hook needed. It is
-deliberately **not a hard requirement**: if the user declines or `uv` is
-unavailable, agents fall back to grep and everything still works. RAM by
-default, never load-bearing.
+included; the graph grows with the code), ingesting `.claude/memory/` along
+with the code so learnings are queryable one concept at a time; when the
+graph exists, explorer and planner query it (`graphify query "…"`) before
+grepping, and /reflect, /evolve, and memory-curator use it for graph-first
+dedupe — always confirming by grep, since graph answers are leads, not
+evidence. `verify.sh full` regenerates it so it never goes stale — no extra
+hook needed. It is deliberately **not a hard requirement**: if the user
+declines or `uv` is unavailable, agents fall back to grep and everything
+still works. RAM by default, never load-bearing.

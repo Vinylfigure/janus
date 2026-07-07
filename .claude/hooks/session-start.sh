@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SessionStart hook: inject at most 2 lines of status into the new session.
+# SessionStart hook: inject at most 3 short lines of status into the new session.
 # Workspace rule: hooks add concepts to always-on context, so keep it minimal.
 set -euo pipefail
 
@@ -31,6 +31,18 @@ if [ -f "$LEDGER" ]; then
   ripe=$(awk '/<!-- entries below this line -->/{in_entries=1; next} !in_entries{next} /^- Evidence: [2-9]/{e=1} /^- Status: candidate/{if(e)n++; e=0} END{print n+0}' "$LEDGER" 2>/dev/null || echo 0)
   if [ "${ripe:-0}" -gt 0 ]; then
     lines+=("Memory: ${candidates:-0} candidate learnings, $ripe with Evidence >= 2 — consider /evolve.")
+  fi
+fi
+
+# Recalibration staleness: nudge only once bootstrapped — session zero has one job.
+# The stamp holds epoch seconds in its CONTENT (mtimes don't survive clones).
+STAMP="$DIR/.claude/memory/recalibrated-at"
+if [ -f "$CLAUDE_MD" ] && ! grep -q "NOT BOOTSTRAPPED" "$CLAUDE_MD"; then
+  stamp=""
+  [ -f "$STAMP" ] && stamp=$(tr -cd '0-9' < "$STAMP")
+  now=$(date +%s)
+  if [ -z "$stamp" ] || [ "$((now - stamp))" -gt 2592000 ]; then
+    lines+=("Recalibration is stale (never recorded or >30 days) — consider /recalibrate to re-verify encoded practices.")
   fi
 fi
 

@@ -12,6 +12,7 @@ load on demand; this file is always in context, so every line must earn it.
 - Before any complex task, verbalize the 3–5 invariants you must hold in mind.
 - Delegate exploration and verification to subagents; keep this thread's workspace clean.
 - One task per session: parallel work goes to separate worktree sessions (`/worktree-parallel`), never the main checkout.
+- Conduct, don't wait: act on the session-start status; when the user states a goal, propose the route — skills, order, and modality (inline / plan / worktrees / loop / heartbeat). Escalation is proposed, never silent; slash commands are shortcuts, never prerequisites.
 - Keep this file concept-dense; procedures belong in skills, facts belong here.
 
 ## Project facts
@@ -25,10 +26,11 @@ load on demand; this file is always in context, so every line must earn it.
 
 <!-- janus:rules:start -->
 <!-- Populated only by /evolve. Cap: 12 rules. Each cites a LEARNINGS.md id. -->
+- Aggregator claims and fetch summaries are leads, never evidence — confirm claims verbatim against a primary source before adopting or citing. (L-005)
 <!-- janus:rules:end -->
 
 ## Map
 
 - Skills: `.claude/skills/` — bootstrap, replicate, reflect, evolve, recalibrate, plan-feature, verify-loop, worktree-parallel, add-skill, ship
 - Agents: `.claude/agents/` — explorer, planner, verifier, memory-curator
-- Memory: `.claude/memory/LEARNINGS.md` · Verify: `scripts/verify.sh` · Docs: `docs/`
+- Memory: `.claude/memory/LEARNINGS.md` (active, ≤25) · archive: `ARCHIVE.md` · Verify: `scripts/verify.sh` · Docs: `docs/`

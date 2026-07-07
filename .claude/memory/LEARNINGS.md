@@ -1,9 +1,11 @@
-# Learnings ledger
+# Learnings ledger (active)
 
-Append-mostly, git-tracked. Written by `/reflect` (session lessons) and
-`/recalibrate` (ecosystem drift), curated by `/evolve`, inherited across
-projects by `/replicate`. Entries are never deleted — promoted and retired
-entries stay as lineage history.
+The bounded working set of lessons — memory's RAM. Written by `/reflect`
+(session lessons) and `/recalibrate` (ecosystem drift), curated by `/evolve`,
+inherited across projects by `/replicate`. Holds at most **25 active entries**.
+Entries are never deleted: when resolved (promoted, retired, merged, expired),
+`/evolve` relocates them to `ARCHIVE.md`, where history stays queryable — via
+the knowledge graph or targeted grep — without re-entering context wholesale.
 
 ## Entry format
 
@@ -16,15 +18,16 @@ entries stay as lineage history.
 - Status: candidate              # candidate | promoted:CLAUDE.md | promoted:skill/<name> | inherited | retired
 ```
 
-Rules for writers (`/reflect`):
+Rules for writers (`/reflect`, `/recalibrate`):
 - One entry = one concept. If the lesson needs two sentences of rule, it is two entries.
-- Before appending, grep for an equivalent entry; if found, increment its Evidence instead.
-- IDs are sequential; find the highest existing L-NNN and add 1.
+- Before appending, check for an equivalent: graph query first (`graphify query "..."` when a graph exists), then grep BOTH this file and `ARCHIVE.md` to confirm — graph answers are leads, not evidence. Active equivalent → bump its Evidence. Archived equivalent → write a fresh active entry citing the archived id.
+- IDs are sequential across both files: highest L-NNN in this file or `ARCHIVE.md`, plus 1.
+- If a write would take the active count past 25, warn that `/evolve` is needed.
 
 Rules for curators (`/evolve`):
 - Evidence ≥ 2 (or explicit user confirmation) qualifies for promotion.
 - Rule-shaped → CLAUDE.md `janus:rules` block. Procedure-shaped → a skill via /add-skill.
-- Mark promoted entries `Status: promoted:<target>`; never delete them.
+- Mark resolved entries (`promoted:<target>` / `retired`), then MOVE them to `ARCHIVE.md` — never delete. Keep this file ≤25 active entries; the overflow policy lives in the evolve skill.
 
 ---
 
@@ -58,13 +61,6 @@ Rules for curators (`/evolve`):
 - Evidence: 1
 - Status: candidate
 
-## L-005 · 2026-07-07 · Treat aggregator claims as leads to verify, never as evidence
-- Trigger: a single aggregator site mixed verified practices with unverifiable feature claims (auto-mode-over-plan-mode, /goal, /dream); only claims corroborated by primary sources were encoded (janus refinement session)
-- Rule: adopt a practice only when a primary source (official docs, changelog, the practitioner's own posts) confirms it; aggregator content generates hypotheses, not conclusions
-- Scope: portable
-- Evidence: 1
-- Status: candidate
-
 ## L-006 · 2026-07-07 · Distinguish context bloat from dependency bloat when judging a tool
 - Trigger: user corrected the "keep Graphify optional" recommendation — offloading structure to an external queryable store REDUCES the bloat the workspace budget guards; only the install dependency is a cost (janus refinement session)
 - Rule: a tool that moves knowledge out of always-loaded context into on-demand external memory should default ON with graceful degradation; weigh its dependency cost separately from its context benefit
@@ -75,6 +71,34 @@ Rules for curators (`/evolve`):
 ## L-007 · 2026-07-07 · When changing a convention, sweep every mention of it, not just planned edit sites
 - Trigger: the adversarial verifier failed the refinement diff because docs/USAGE.md's day-1 section still said "optional Graphify" after the convention changed to default-on; the planned edit list had missed that mention (janus refinement session)
 - Rule: after changing a convention, grep the whole repo for the old wording and reconcile every hit before claiming consistency
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-008 · 2026-07-06 · Stress-test a plan against scale, concurrency, and headless modes before presenting it
+- Trigger: user rejected the round-3 plan approval asking "will this perform under stress and scaling?"; the resulting review found 4 real design bugs the plan had missed — ledger cap deadlock, worktree ID collisions, headless gates with no user, mtime loss across clones (janus round-3 session)
+- Rule: before presenting a plan, run an adversarial pass over its behavior at scale, under concurrent use, and with no user present — and pair every failure found with a fix, not just a risk note
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-009 · 2026-07-06 · Seed behavioral fixtures with controlled data, never the repo's live content
+- Trigger: bumping L-005 to Evidence 2 broke two session-start fixtures that asserted against the shipped ledger's real entry counts (janus round-3 session)
+- Rule: a behavioral fixture must create the data it asserts against (truncate and seed in the sandbox); asserting against live repo content couples tests to unrelated edits
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-010 · 2026-07-06 · Store cross-clone state in file content, never in file mtimes
+- Trigger: the recalibration staleness design first used a gitignored marker checked via find -mtime; gitignored files never sync between clones, and git does not preserve mtimes on committed files either — both halves were broken (janus round-3 session)
+- Rule: any timestamp or state that must survive a git clone boundary goes in the file's content (e.g. epoch seconds) and is committed; mtimes are per-checkout artifacts
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-012 · 2026-07-06 · Propose the maintenance heartbeat at the end of /bootstrap
+- Trigger: user asked why the weekly heartbeat isn't on by default for every project; auto-creating a billed cloud routine silently would violate the escalation-is-proposed rule, but the end of session zero is the natural moment to offer it (janus round-3 evolve session)
+- Rule: when a project finishes bootstrapping, propose creating the maintenance heartbeat (one yes, PR-delivery only) instead of waiting for the user to discover it
 - Scope: portable
 - Evidence: 1
 - Status: candidate
