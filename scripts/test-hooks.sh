@@ -121,6 +121,16 @@ echo "== session-start.sh =="
 printf '# Sandbox project\n\n- App stack: NOT BOOTSTRAPPED — run /bootstrap.\n' > "$SANDBOX/CLAUDE.md"
 out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -q "bootstrap" && pass "un-bootstrapped repo -> bootstrap nudge" || fail "un-bootstrapped repo -> bootstrap nudge (got: $out)"
+# Leftover signals: a session that died or skipped the Stop nudge must not lose its lessons.
+printf 'correction:2026-01-01T00:00:00Z\nverify-fail:/tmp/x\n' > "$SIGNALS"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "unprocessed learning signal" && pass "leftover signals -> reflect nudge" || fail "leftover signals -> reflect nudge (got: $out)"
+out=$(echo '{"source":"compact"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "unprocessed learning signal" && fail "compact -> no duplicate signals line (got: $out)" || pass "compact -> no duplicate signals line"
+echo "$out" | grep -q "Learning signals pending: 2" && pass "compact line reports pending count" || fail "compact line reports pending count (got: $out)"
+rm -f "$SIGNALS"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "unprocessed" && fail "no signals -> silent (got: $out)" || pass "no signals -> silent"
 # Decouple ledger fixtures from the shipped ledger's real entries: truncate the
 # sandbox copy to header + marker so the fixtures below control what exists.
 awk '{print} /<!-- entries below this line -->/{exit}' "$SANDBOX/.claude/memory/LEARNINGS.md" > "$SANDBOX/.claude/memory/LEARNINGS.md.tmp" \

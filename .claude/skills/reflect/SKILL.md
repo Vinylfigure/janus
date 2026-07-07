@@ -18,10 +18,11 @@ Restate these in your own words before step 1:
 
 ## Steps
 
-1. Scan this session for learning events, in three passes:
+1. Scan this session for learning events, in four passes:
    - **Transcript pass**: user corrections, verification failures, surprises (things that worked differently than you assumed), wasted paths (approaches abandoned after real effort).
    - **Signals pass**: read `.claude/memory/.session-signals` if it exists — each `correction:` and `verify-fail:` line should be accounted for by an entry or an explicit "no lesson" judgment.
    - **Auto-memory pass**: read the project's auto-memory `MEMORY.md` (the memory directory named in your session context; skip silently if auto memory is absent or disabled). Ambient notes that are shareable repo-truths — a build quirk, a recurring correction, a workflow fact — are candidate lessons under the same rules below; machine-local trivia stays local.
+   - **Prediction pass**: compare what the task *predicted* — stated invariants, predicted failure modes, "done means" criteria — against what actually happened. A wrong prediction is the highest-value lesson here: it is a model error rather than a process error, and it is the one signal no user correction will ever surface.
 2. For each event, decide: is there a rule here? Some failures are noise (typo, flaky network). Say so in one line and move on — do not manufacture lessons.
 3. For each real lesson, check `LEARNINGS.md` for an equivalent entry (grep for key terms). If found: increment its `Evidence` count and update its date. If not: append a new entry after the `<!-- entries below this line -->` marker, using the format spec at the top of the file. Next ID = highest existing L-NNN + 1.
 4. Delete `.claude/memory/.session-signals`.

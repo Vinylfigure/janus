@@ -43,7 +43,7 @@ goal. What fires when:
 | `/bootstrap` | the facts block says NOT BOOTSTRAPPED | session-start line | — |
 | `/plan-feature` | a non-trivial change is requested | — | plan sign-off |
 | `/verify-loop` | any "done" claim is near | per-edit hook runs the quick check anyway | — |
-| `/reflect` | a correction happened or the session ends | **Stop hook blocks once** when signals exist | — |
+| `/reflect` | a correction happened or the session ends | **Stop hook blocks once** when signals exist · leftover signals resurface at session start | — |
 | `/evolve` | between tasks with ripe learnings | session-start ripe count · heartbeat | **CLAUDE.md edits** (headless: PR) |
 | `/recalibrate` | the status says recalibration is stale, or a documented practice misbehaves | session-start stale line · heartbeat | — (writes candidates + stamp only) |
 | `/ship` | a verified change is ready to leave the machine | — | **branch + remote** before first push (headless: PR only) |

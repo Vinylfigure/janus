@@ -36,7 +36,8 @@ little as possible — hook output lands in always-on context, which is a
 budgeted resource (see rationale below).
 
 ```
-SessionStart      session-start.sh      → ≤3 short lines: bootstrap status, ripe-learnings
+SessionStart      session-start.sh      → ≤3 short lines: bootstrap status, leftover
+                                          unprocessed signals (→ consider /reflect), ripe-learnings
                                           count, recalibration staleness (only once
                                           bootstrapped; stale = recalibrated-at missing or
                                           >30 days — epoch lives in the file's CONTENT

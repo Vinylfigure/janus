@@ -19,7 +19,8 @@ flags verification failures. Both append one line to
 false positives are harmless.
 
 **2. Entry.** At stop time, if signals exist, the Stop hook blocks once and
-asks for `/reflect`. Reflect reads the transcript plus the signal log and
+asks for `/reflect`. If a session ends without reflecting (or dies), the
+leftover signals surface at the next session start instead of being lost. Reflect reads the transcript plus the signal log and
 writes *rules* to the ledger — imperative, one-concept, testable. Noise
 (typos, flaky network) is explicitly dismissed, not recorded. An equivalent
 existing entry gets its `Evidence` count bumped instead of a duplicate.
