@@ -62,5 +62,6 @@ planner agents query the graph instead of grepping when it exists.
 
 ## Learn more
 
+- [docs/USAGE.md](docs/USAGE.md) — the operator's guide: day-1 setup, the daily rhythm, session rituals, memory operations, and scaling to parallel sessions.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — component map, hook protocol, and the research this design is built on (Anthropic's Global Workspace findings, Boris Cherny's Claude Code methodology).
 - [docs/SELF-IMPROVEMENT.md](docs/SELF-IMPROVEMENT.md) — the lifecycle of a lesson, from signal to inheritance, and how to improve Janus itself.

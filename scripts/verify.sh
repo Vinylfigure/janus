@@ -20,23 +20,26 @@ FILE="${2:-}"
 case "$MODE" in
   quick)
     # janus:bootstrap:quick:start
-    # NOT BOOTSTRAPPED: no-op. /bootstrap replaces this block with real
-    # per-file checks, e.g.:
-    #   case "$FILE" in
-    #     *.py) ruff check "$FILE" && ruff format --check "$FILE" ;;
-    #     *.ts|*.tsx) npx eslint "$FILE" && npx tsc --noEmit ;;
-    #   esac
-    exit 0
+    # Template plumbing checks. /bootstrap replaces this block with the
+    # project's real per-file checks (budget: <10s), e.g.:
+    #   *.py) ruff check "$FILE" && ruff format --check "$FILE" ;;
+    #   *.ts|*.tsx) npx eslint "$FILE" && npx tsc --noEmit ;;
+    # Keep the *.sh/*.json arms — hook scripts exist in every child.
+    case "$FILE" in
+      *.sh) bash -n "$FILE" ;;
+      *.json) command -v jq >/dev/null 2>&1 && jq . "$FILE" >/dev/null ;;
+      *) exit 0 ;;
+    esac
     # janus:bootstrap:quick:end
     ;;
   full)
     # janus:bootstrap:full:start
-    # NOT BOOTSTRAPPED: no-op. /bootstrap replaces this block with the real
-    # suite, e.g.:
+    # Template plumbing suite. /bootstrap replaces this block with the
+    # project's real suite (lint all, typecheck, tests, build), e.g.:
     #   ruff check . && pytest
     # If graphify is installed, keep the knowledge graph fresh too:
     #   command -v graphify >/dev/null 2>&1 && graphify . --quiet
-    exit 0
+    "$(dirname "$0")/test-hooks.sh"
     # janus:bootstrap:full:end
     ;;
   *)

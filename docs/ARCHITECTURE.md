@@ -11,12 +11,14 @@ CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked 
 .claude/
   settings.json               hook wiring + safe-command permissions
   hooks/                      4 shell hooks (protocol below)
-  skills/                     8 skills — load on demand (progressive disclosure)
+  skills/                     9 skills — load on demand (progressive disclosure)
   agents/                     4 subagents — run in their own context windows
   memory/LEARNINGS.md         append-only learnings ledger (git-tracked)
 scripts/
   verify.sh                   quick|full dispatcher; /bootstrap fills the case arms
+  test-hooks.sh               fixture suite for the hook plumbing (verify.sh full + CI)
   new-worktree.sh             worktree create/list/clean
+.github/workflows/verify.yml  CI: runs test-hooks.sh on every push/PR
 ```
 
 Sentinel markers give skills deterministic edit targets:
@@ -34,7 +36,11 @@ little as possible — hook output lands in always-on context, which is a
 budgeted resource (see rationale below).
 
 ```
-SessionStart      session-start.sh      → ≤2 lines: bootstrap status, ripe-learnings count
+SessionStart      session-start.sh      → ≤2 lines: bootstrap status, ripe-learnings count;
+                                          when source == "compact": one extra line telling the
+                                          agent to re-verbalize its working set (invariants +
+                                          "done means") — compaction is exactly when the
+                                          workspace was disrupted
 UserPromptSubmit  prompt-signal.sh      → silent; correction-looking prompts append
                                           "correction:<ts>" to .claude/memory/.session-signals
 PostToolUse       post-edit-verify.sh   → runs `verify.sh quick <file>`; on failure appends
@@ -83,6 +89,7 @@ refuses to add a rule without retiring one, that is the design working.
 | Practice | Where it lives in Janus |
 |---|---|
 | Plan mode before code | `/plan-feature` (and prime directive #1) |
+| Ship as a loop — babysit CI and reviews to merged | `/ship`, plus `.github/workflows/verify.yml` running `scripts/test-hooks.sh` as the remote closed loop |
 | CLAUDE.md as compounding memory — "any time Claude does something wrong, add a note" | The session loop: signals → `/reflect` → ledger → `/evolve` → CLAUDE.md, with evidence thresholds so notes compound instead of accumulating |
 | Closed feedback loops — "if Claude can close the loop on its own, it will iterate until the output is right" | PostToolUse hook (inner loop) + `/verify-loop` + the verifier agent |
 | Subagents for focused work | explorer / planner / verifier / memory-curator, each read-only or evidence-bound |

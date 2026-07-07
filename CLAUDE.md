@@ -17,7 +17,8 @@ load on demand; this file is always in context, so every line must earn it.
 ## Project facts
 
 <!-- janus:facts:start -->
-- Stack: NOT BOOTSTRAPPED — run /bootstrap to specialize this scaffold.
+- App stack: NOT BOOTSTRAPPED — run /bootstrap to specialize this scaffold.
+- Template plumbing is wired: `scripts/verify.sh quick|full` (full runs the hook fixture suite `scripts/test-hooks.sh`; CI runs it on every PR).
 <!-- janus:facts:end -->
 
 ## Learned rules
@@ -28,6 +29,6 @@ load on demand; this file is always in context, so every line must earn it.
 
 ## Map
 
-- Skills: `.claude/skills/` — bootstrap, replicate, reflect, evolve, plan-feature, verify-loop, worktree-parallel, add-skill
+- Skills: `.claude/skills/` — bootstrap, replicate, reflect, evolve, plan-feature, verify-loop, worktree-parallel, add-skill, ship
 - Agents: `.claude/agents/` — explorer, planner, verifier, memory-curator
 - Memory: `.claude/memory/LEARNINGS.md` · Verify: `scripts/verify.sh` · Docs: `docs/`

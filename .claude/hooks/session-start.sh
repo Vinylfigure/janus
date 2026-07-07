@@ -6,8 +6,20 @@ set -euo pipefail
 DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 LEDGER="$DIR/.claude/memory/LEARNINGS.md"
 CLAUDE_MD="$DIR/CLAUDE.md"
+SIGNALS="$DIR/.claude/memory/.session-signals"
+
+input=$(cat)
+source=$(printf '%s' "$input" | { command -v jq >/dev/null 2>&1 && jq -r '.source // "startup"' || echo startup; })
 
 lines=()
+
+# Workspace rescue: compaction just disrupted the model's working set.
+# This is the one start where an extra line is worth its budget.
+if [ "$source" = "compact" ]; then
+  pending=0
+  [ -s "$SIGNALS" ] && pending=$(wc -l < "$SIGNALS" | tr -d ' ')
+  lines+=("Context was just compacted — re-verbalize your working set: restate the current task's 3-5 invariants and its 'done means' check before continuing. Learning signals pending: $pending.")
+fi
 
 if [ -f "$CLAUDE_MD" ] && grep -q "NOT BOOTSTRAPPED" "$CLAUDE_MD"; then
   lines+=("This scaffold is not bootstrapped: run /bootstrap to wire verification to a real stack.")
