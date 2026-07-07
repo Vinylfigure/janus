@@ -1,0 +1,36 @@
+---
+name: replicate
+description: Stamp a new project from this Janus template - create the child repo, carry portable learnings forward as inheritance, rewrite identity, and hand off to /bootstrap. Use when starting any new project from this scaffold.
+disable-model-invocation: true
+argument-hint: [new project name]
+---
+
+The lineage loop. Children start with the scaffold *plus* everything this
+repository has learned that is true anywhere — heredity, not just copying.
+
+## Hold in mind
+
+1. Only `Scope: portable` knowledge crosses repositories — project-specific rules in a child are noise that erodes trust in the whole memory system.
+2. Inherited entries arrive as `Status: inherited`, not `candidate`: the child re-earns promotion with its own evidence.
+3. The child must not keep the template's identity: name, facts block, and README head must be rewritten before first commit.
+4. The child's first session should run `/bootstrap` — say so explicitly in the handoff.
+
+## Steps
+
+1. Interview the user (skip anything already given in the argument): project name, one-line purpose, expected stack (or unknown), GitHub visibility (public/private) or local-only.
+2. Create the child:
+   - **GitHub path** (preferred): `gh repo create <name> --template <owner>/<template-repo> --<visibility> --clone`
+   - **Local fallback**: `git clone --depth 1 <template> <name> && rm -rf <name>/.git && git -C <name> init -b main`
+3. Apply heredity, in the child:
+   - From the parent's CLAUDE.md `janus:rules` block, copy rules whose ledger entries are `Scope: portable` into the child's rules block (keep the `(L-NNN)` citations).
+   - From the parent's `LEARNINGS.md`, copy every `Scope: portable` entry (any Status except `retired`) into the child's ledger, re-marking each `Status: inherited`.
+   - Copy nothing project-scoped. When in doubt, leave it behind.
+4. Rewrite identity in the child: CLAUDE.md title + facts block (project name, purpose, `Stack: NOT BOOTSTRAPPED — run /bootstrap`), README title and first paragraph.
+5. Commit in the child: `chore: replicate from janus template (N learnings inherited)`.
+6. Hand off: tell the user to open a session in the child and run `/bootstrap`, and list what was inherited.
+
+## Before finishing
+
+List each inherited learning id with a one-line justification of why it is
+portable. Confirm the child's CLAUDE.md carries the child's name (not
+"Janus (template)") and that its rules block is within the cap of 12.
