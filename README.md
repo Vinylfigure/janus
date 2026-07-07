@@ -57,7 +57,7 @@ and side-effect skills confirm with you before acting. Typing the
 | `/verify-loop` | Iterate a change to green against a runnable check |
 | `/worktree-parallel` | Fan out parallel sessions in git worktrees |
 | `/add-skill` | Author new skills in the canonical shape |
-| `explorer`, `planner`, `verifier`, `memory-curator` | Subagents: scout, architect, skeptic, librarian |
+| `verifier`, `memory-curator` | Subagents: the skeptic and the librarian (scouting and design use Claude Code's native subagents) |
 | 4 hooks | SessionStart status, silent correction detector, per-edit verify, stop-time reflect nudge |
 | `.claude/memory/LEARNINGS.md` | The append-only learnings ledger — the repo's genome |
 

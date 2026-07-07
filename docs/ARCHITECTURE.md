@@ -12,13 +12,12 @@ CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked 
   settings.json               hook wiring + safe-command permissions
   hooks/                      4 shell hooks (protocol below)
   skills/                     10 skills — load on demand (progressive disclosure)
-  agents/                     4 subagents — run in their own context windows
+  agents/                     2 subagents — run in their own context windows
   memory/LEARNINGS.md         append-only learnings ledger (git-tracked)
   memory/recalibrated-at      committed epoch stamp of the last /recalibrate run
 scripts/
   verify.sh                   quick|full dispatcher; /bootstrap fills the case arms
   test-hooks.sh               fixture suite for the scaffold plumbing — hooks + docs cross-refs (verify.sh full + CI)
-  new-worktree.sh             worktree create/list/clean
 .github/workflows/verify.yml  CI: runs test-hooks.sh on every push/PR
 ```
 
@@ -117,7 +116,7 @@ CLAUDE.md's.
 | Ship as a loop — babysit CI and reviews to merged | `/ship`, plus `.github/workflows/verify.yml` running `scripts/test-hooks.sh` as the remote closed loop |
 | CLAUDE.md as compounding memory — "any time Claude does something wrong, add a note" | The session loop: signals → `/reflect` → ledger → `/evolve` → CLAUDE.md, with evidence thresholds so notes compound instead of accumulating |
 | Closed feedback loops — "if Claude can close the loop on its own, it will iterate until the output is right" | PostToolUse hook (inner loop) + `/verify-loop` + the verifier agent |
-| Subagents for focused work | explorer / planner / verifier / memory-curator, each read-only or evidence-bound |
+| Subagents for focused work | Custom: verifier (evidence-bound judge) and memory-curator (proposal-only librarian). Scouting and independent design use Claude Code's native exploration/planning subagents — the platform owns the mechanism; the template keeps only the disciplines it adds |
 | Parallel sessions in worktrees — 3–5 at once, one task per session | `/worktree-parallel`: native `claude --worktree` (script fallback), `claude agents` as the fleet view; `.claude/` is in-tree so every worktree gets the full scaffold |
 | Team-shared configuration | `.claude/settings.json` is committed; `settings.local.json` is gitignored |
 | Encoded practices drift as tools evolve | `/recalibrate` re-verifies conventions against primary sources and files drift as candidate learnings; `/evolve` keeps promotion authority; the session-start staleness nudge and the heartbeat routine keep it running |

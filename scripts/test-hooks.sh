@@ -148,22 +148,6 @@ rm -f "$STAMPF"
 out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -q "recalibrate" && fail "un-bootstrapped -> staleness gated off (got: $out)" || pass "un-bootstrapped -> staleness gated off"
 
-echo "== new-worktree.sh (skipped outside a git checkout) =="
-if git -C "$ROOT" rev-parse --verify HEAD >/dev/null 2>&1; then
-  SLUG="tests-$$"
-  if "$ROOT/scripts/new-worktree.sh" create "$SLUG" >/dev/null 2>&1 \
-     && "$ROOT/scripts/new-worktree.sh" clean "$SLUG" >/dev/null 2>&1 \
-     && [ ! -d "$ROOT/../$(basename "$ROOT")-wt-$SLUG" ]; then
-    pass "worktree create/clean cycle"
-  else
-    fail "worktree create/clean cycle"
-    git -C "$ROOT" worktree remove --force "$ROOT/../$(basename "$ROOT")-wt-$SLUG" 2>/dev/null
-    git -C "$ROOT" branch -D "wt/$SLUG" 2>/dev/null
-  fi
-else
-  echo "  skip: not a git checkout with commits"
-fi
-
 echo
 if [ "$FAILS" -eq 0 ]; then
   echo "ALL SCAFFOLD TESTS PASSED"

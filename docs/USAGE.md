@@ -143,18 +143,17 @@ Two design points make this safe:
 
 - **Parallel workstreams**: `/worktree-parallel` splits a task into
   independent tracks and launches each with native worktrees:
-  `claude --worktree <name>` (add `--tmux` for its own tmux session);
-  `scripts/new-worktree.sh` remains as the fallback and cleanup helper.
+  `claude --worktree <name>` (add `--tmux` for its own tmux session).
   Run 3–5 sessions, **one task per session** — never multiplex tracks in one
   conversation. Number your terminal tabs, enable system notifications, and
   use `claude agents` from the root directory as the fleet view. Every
   worktree carries the full scaffold (`.claude/` is in-tree). Merge only
   tracks that verified green; reconcile ledger IDs at merge time (the skill
   covers this); clean worktrees after.
-- **Delegate to subagents by habit**: `explorer` to scout before you plan,
-  `planner` for an independent design, `verifier` before you believe "done",
-  `memory-curator` inside `/evolve`. Delegation keeps the main thread's
-  context clean for actual decisions.
+- **Delegate to subagents by habit**: a native exploration subagent to scout
+  before you plan, `verifier` before you believe "done", `memory-curator`
+  inside `/evolve`. Delegation keeps the main thread's context clean for
+  actual decisions.
 - **New procedures become skills**: when you catch yourself giving the same
   multi-step instructions twice, Claude should propose `/add-skill` — within
   the 15-skill budget. Rules go to CLAUDE.md; procedures become skills.
