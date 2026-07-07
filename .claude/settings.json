@@ -45,8 +45,7 @@
   },
   "permissions": {
     "allow": [
-      "Bash(scripts/verify.sh *)",
-      "Bash(scripts/new-worktree.sh *)"
+      "Bash(scripts/verify.sh *)"
     ]
   }
 }

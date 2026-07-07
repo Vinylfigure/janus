@@ -22,8 +22,8 @@ repository has learned that is true anywhere — heredity, not just copying.
    - **Local fallback**: `git clone --depth 1 <template> <name> && rm -rf <name>/.git && git -C <name> init -b main`
 3. Apply heredity, in the child:
    - From the parent's CLAUDE.md `janus:rules` block, copy rules whose ledger entries are `Scope: portable` into the child's rules block (keep the `(L-NNN)` citations).
-   - From the parent's `LEARNINGS.md` AND `ARCHIVE.md`, copy every `Scope: portable` entry (any Status except `retired`) into the child's *active* ledger, re-marking each `Status: inherited`. The child's `ARCHIVE.md` starts empty — history is not heredity.
-   - Copy nothing project-scoped. When in doubt, leave it behind. If inheritance would exceed 25 active entries in the child, keep the most portable-in-practice and drop the rest — heredity is selective.
+   - From the parent's `LEARNINGS.md`, copy every `Scope: portable` entry (any Status except `retired`) into the child's ledger, re-marking each `Status: inherited`.
+   - Copy nothing project-scoped. When in doubt, leave it behind — heredity is selective.
    - Reset the child's recalibration clock: `date +%s > .claude/memory/recalibrated-at` in the child.
 4. Rewrite identity in the child: CLAUDE.md title + facts block (project name, purpose, `Stack: NOT BOOTSTRAPPED — run /bootstrap`), README title and first paragraph.
 5. Commit in the child: `chore: replicate from janus template (N learnings inherited)`.
@@ -33,5 +33,4 @@ repository has learned that is true anywhere — heredity, not just copying.
 
 List each inherited learning id with a one-line justification of why it is
 portable. Confirm the child's CLAUDE.md carries the child's name (not
-"Janus (template)"), its rules block is within the cap of 12, and its active
-ledger is within 25.
+"Janus (template)") and that its rules block is within the cap of 12.

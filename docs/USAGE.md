@@ -21,12 +21,9 @@ prerequisite.
    status says the scaffold is not bootstrapped, and Claude proposes
    `/bootstrap`.
 3. **Bootstrap.** It detects your stack (or interviews you for one), wires
-   `scripts/verify.sh` to your real formatter/linter/tests, sets up the
-   [Graphify](https://github.com/Graphify-Labs/graphify) knowledge graph by
-   default (the project's external random-access memory — skippable, and the
-   scaffold degrades gracefully without it), and *proves* the loop closes —
-   you'll see a passing full run and a deliberately-broken edit get caught.
-   From this moment every edit is checked automatically.
+   `scripts/verify.sh` to your real formatter/linter/tests, and *proves* the
+   loop closes — you'll see a passing full run and a deliberately-broken
+   edit get caught. From this moment every edit is checked automatically.
 4. **State your first goal in plain words.** Tell Claude what you want to
    build — and say how experienced you are with the domain while you're at
    it; fuzzy requirements are its cue to interview you rather than assume.
@@ -46,7 +43,7 @@ goal. What fires when:
 | `/bootstrap` | the facts block says NOT BOOTSTRAPPED | session-start line | — |
 | `/plan-feature` | a non-trivial change is requested | — | plan sign-off |
 | `/verify-loop` | any "done" claim is near | per-edit hook runs the quick check anyway | — |
-| `/reflect` | a correction happened or the session ends | **Stop hook blocks once** when signals exist | — |
+| `/reflect` | a correction happened or the session ends | **Stop hook blocks once** when signals exist · leftover signals resurface at session start | — |
 | `/evolve` | between tasks with ripe learnings | session-start ripe count · heartbeat | **CLAUDE.md edits** (headless: PR) |
 | `/recalibrate` | the status says recalibration is stale, or a documented practice misbehaves | session-start stale line · heartbeat | — (writes candidates + stamp only) |
 | `/ship` | a verified change is ready to leave the machine | — | **branch + remote** before first push (headless: PR only) |
@@ -95,28 +92,29 @@ You mostly don't have to think about this — the hooks do:
 - **When the session-start line says learnings are ripe** ("N with
   Evidence ≥ 2"), Claude proposes `/evolve` between tasks. It promotes stable
   lessons into `CLAUDE.md` rules or new skills, retires contradicted rules,
-  archives resolved entries, and enforces the budgets — asking you before it
-  touches CLAUDE.md. This is how corrections compound instead of repeating.
+  and enforces the budgets — asking you before it touches CLAUDE.md. This is
+  how corrections compound instead of repeating.
 
 You can also run `/reflect` manually any time something surprising happened —
 don't wait for the nudge.
 
 ## Memory operations
 
-- **The active ledger** at `.claude/memory/LEARNINGS.md` is a bounded working
-  set (≤25 entries). Entries are marked, never deleted: `candidate` →
-  `promoted:*` / `retired`, plus `inherited` in children — and resolved
-  entries move to `.claude/memory/ARCHIVE.md`, where history stays queryable
-  (graph or targeted grep) without ever re-entering context wholesale.
+- **Read the ledger** at `.claude/memory/LEARNINGS.md`. Entries are
+  append-only and marked, never deleted: `candidate` → `promoted:*` /
+  `retired`, plus `inherited` in children.
+- **Auto memory is the ambient tier**: Claude Code natively keeps
+  machine-local notes per repo — browse or toggle them with `/memory`.
+  `/reflect` harvests the shareable repo-truths from there into the
+  git-shared ledger; machine-local trivia stays local.
 - **Nothing promotes on one occurrence.** Evidence ≥ 2 (or your explicit
   confirmation) is the bar. If you *know* a lesson is right after one
   occurrence, say so and `/evolve` will take your word as evidence.
 - **`Scope: portable` is a promise** — true in any repository. These entries
   are what `/replicate` carries into children. Judge harshly.
 - **The budgets are load-bearing**: CLAUDE.md ≤20 concepts, ≤12 learned
-  rules; ≤25 active ledger entries; ≤15 skills. When `/evolve` refuses to add
-  without retiring, that's the design working, not a limitation to remove
-  (rationale in
+  rules; ≤15 skills. When `/evolve` refuses to add without retiring, that's
+  the design working, not a limitation to remove (rationale in
   [ARCHITECTURE.md](ARCHITECTURE.md#the-global-workspace-rationale)).
 - **Recalibration keeps encoded practices honest**: `/recalibrate` re-verifies
   the scaffold's conventions against primary sources (Anthropic docs,
@@ -149,18 +147,17 @@ Two design points make this safe:
 
 - **Parallel workstreams**: `/worktree-parallel` splits a task into
   independent tracks and launches each with native worktrees:
-  `claude --worktree <name>` (add `--tmux` for its own tmux session);
-  `scripts/new-worktree.sh` remains as the fallback and cleanup helper.
+  `claude --worktree <name>` (add `--tmux` for its own tmux session).
   Run 3–5 sessions, **one task per session** — never multiplex tracks in one
   conversation. Number your terminal tabs, enable system notifications, and
   use `claude agents` from the root directory as the fleet view. Every
   worktree carries the full scaffold (`.claude/` is in-tree). Merge only
   tracks that verified green; reconcile ledger IDs at merge time (the skill
   covers this); clean worktrees after.
-- **Delegate to subagents by habit**: `explorer` to scout before you plan,
-  `planner` for an independent design, `verifier` before you believe "done",
-  `memory-curator` inside `/evolve`. Delegation keeps the main thread's
-  context clean for actual decisions.
+- **Delegate to subagents by habit**: a native exploration subagent to scout
+  before you plan, `verifier` before you believe "done", `memory-curator`
+  inside `/evolve`. Delegation keeps the main thread's context clean for
+  actual decisions.
 - **New procedures become skills**: when you catch yourself giving the same
   multi-step instructions twice, Claude should propose `/add-skill` — within
   the 15-skill budget. Rules go to CLAUDE.md; procedures become skills.
@@ -168,10 +165,9 @@ Two design points make this safe:
 ## Replication and lineage
 
 - `/replicate <name>` stamps a child repo (GitHub template path or local
-  fallback), copies portable rules and ledger entries — from the active
-  ledger *and* the archive — in as `Status: inherited`, rewrites identity,
-  resets the child's recalibration clock, and hands off to the child's
-  `/bootstrap`. The child's archive starts empty.
+  fallback), copies portable rules and ledger entries in as
+  `Status: inherited`, rewrites identity, resets the child's recalibration
+  clock, and hands off to the child's `/bootstrap`.
 - Children **re-earn** promotion: inherited entries need fresh evidence in
   the child before `/evolve` promotes them there.
 - Children do **not** auto-update from the template. To backport a template

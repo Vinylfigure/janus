@@ -21,8 +21,8 @@ it's delivered when the PR merges with green checks.
 3. Push — gated: confirm the branch and remote with the user before the first push of this run (headless runs skip the question but must push a feature branch and deliver via PR, never the default branch). Then `git push -u origin <branch>`. On network failure retry up to 4 times with backoff (2s/4s/8s/16s).
 4. Open the PR against the default branch using whatever this environment provides (`gh pr create`, or the GitHub MCP tools in remote sessions). Honor the repo's PR template if one exists. Body: what changed, why, how it was verified.
 5. Babysit until terminal state:
-   - **Remote/web sessions**: subscribe to PR activity (`subscribe_pr_activity`) so CI results and review comments arrive as events; also schedule a periodic self check-in if the environment supports it, since CI-success events aren't always delivered.
-   - **CLI sessions**: `gh pr checks <url> --watch`, and re-check reviews when they land.
+   - **Remote/web sessions**: subscribe to PR activity if the environment exposes a subscription tool, so CI results and review comments arrive as events; also schedule a periodic self check-in if the environment supports it, since CI-success events aren't always delivered.
+   - **CLI sessions**: `gh pr checks <url> --watch`, and re-check reviews when they land. A later session resumes the babysit with `claude --from-pr <number>` — PR-linked sessions survive the terminal closing.
    - On CI failure: read the failing job's log, state the diagnosis in one sentence, fix, push. Each failure is also a `/reflect` signal if it reveals a gap in `verify.sh`.
    - On review comments: apply clear fixes directly; for ambiguous or architectural asks, check with the user before acting.
 6. Terminal: merged or closed. If several fix rounds go nowhere or a failure is out of scope, stop and report where it's stuck instead of going quiet.

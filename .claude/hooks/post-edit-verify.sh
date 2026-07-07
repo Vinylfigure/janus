@@ -2,8 +2,8 @@
 # PostToolUse hook (Edit|Write|MultiEdit): the inner verification loop.
 # Runs the quick check on the edited file; on failure, exits 2 with the
 # failure output on stderr so Claude sees it immediately and iterates.
-# While the project is un-bootstrapped, verify.sh quick is a fast no-op,
-# so the template stays quiet out of the box.
+# While un-bootstrapped, verify.sh quick only checks the scaffold's own
+# *.sh/*.json plumbing, so the template stays quiet for app code.
 set -uo pipefail
 
 command -v jq >/dev/null 2>&1 || exit 0
