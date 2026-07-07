@@ -21,7 +21,7 @@ Restate these in your own words before step 1:
    - **Transcript pass**: user corrections, verification failures, surprises (things that worked differently than you assumed), wasted paths (approaches abandoned after real effort).
    - **Signals pass**: read `.claude/memory/.session-signals` if it exists — each `correction:` and `verify-fail:` line should be accounted for by an entry or an explicit "no lesson" judgment.
 2. For each event, decide: is there a rule here? Some failures are noise (typo, flaky network). Say so in one line and move on — do not manufacture lessons.
-3. For each real lesson, check for an equivalent entry: grep BOTH `LEARNINGS.md` and `ARCHIVE.md`. Active equivalent: increment its `Evidence` count and update its date. Archived equivalent: append a fresh *active* entry citing the archived id (recurrence after resolution means the resolution failed — that's evidence); never edit the archive. No equivalent: append a new entry after the `<!-- entries below this line -->` marker, using the format spec at the top of the file. Next ID = highest L-NNN across BOTH files + 1. If the active count would pass 25, tell the user /evolve is needed.
+3. For each real lesson, check `LEARNINGS.md` for an equivalent entry (grep for key terms). If found: increment its `Evidence` count and update its date. If not: append a new entry after the `<!-- entries below this line -->` marker, using the format spec at the top of the file. Next ID = highest existing L-NNN + 1.
 4. Delete `.claude/memory/.session-signals`.
 5. If any entry now has `Evidence: 2` or more, tell the user: "N learnings have enough evidence to promote — run /evolve when convenient."
 

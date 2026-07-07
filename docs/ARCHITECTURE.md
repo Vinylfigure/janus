@@ -13,8 +13,7 @@ CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked 
   hooks/                      4 shell hooks (protocol below)
   skills/                     10 skills — load on demand (progressive disclosure)
   agents/                     4 subagents — run in their own context windows
-  memory/LEARNINGS.md         active learnings ledger (bounded: ≤25 entries, git-tracked)
-  memory/ARCHIVE.md           resolved history — queryable, never loaded wholesale
+  memory/LEARNINGS.md         append-only learnings ledger (git-tracked)
   memory/recalibrated-at      committed epoch stamp of the last /recalibrate run
 scripts/
   verify.sh                   quick|full dispatcher; /bootstrap fills the case arms
@@ -99,30 +98,16 @@ This is why the caps are hard: every concept added to CLAUDE.md competes for
 the same limited workspace the model needs for the actual task. When `/evolve`
 refuses to add a rule without retiring one, that is the design working.
 
-## The memory hierarchy
+## Context-budget accounting
 
-Karpathy's LLM-OS framing — the model is the CPU, the context window is RAM,
-everything outside it is disk — is the architecture behind Janus's memory
-tiers:
-
-| Tier | Analog | File | Bound | Loaded |
-|---|---|---|---|---|
-| Registers | always-on | `CLAUDE.md` | ≤20 concepts | every session |
-| Working RAM | bounded active set | `LEARNINGS.md` | ≤25 entries | only by /reflect, /evolve, /replicate |
-| Disk | resolved history | `ARCHIVE.md` | unbounded | never wholesale — targeted grep only |
-
-His related "LLM wiki" pattern — compile knowledge into cross-referenced
-markdown once, rather than re-deriving it on every retrieval — is what the
-ledger already is.
-
-**Context-budget accounting.** Always-loaded context = CLAUDE.md (≤20
-concepts) + every skill's `description` + ≤3 hook status lines. Everything
-else is on-demand: skill bodies load on invocation, the ledger is opened by
-exactly three skills, the archive never loads wholesale, exploration and
-verification run in subagents that return conclusions. This is why skill
-descriptions are capped at ≤50 words and the skill count at ≤15: since the
-model-invocation flip, every skill's description rides in every session
-forever — a skill is a permanent tax, so the budget mirrors CLAUDE.md's.
+Always-loaded context = CLAUDE.md (≤20 concepts) + every skill's
+`description` + ≤3 hook status lines. Everything else is on-demand: skill
+bodies load on invocation, the ledger is opened by exactly three skills,
+exploration and verification run in subagents that return conclusions. This
+is why skill descriptions are capped at ≤50 words and the skill count at
+≤15: since the model-invocation flip, every skill's description rides in
+every session forever — a skill is a permanent tax, so the budget mirrors
+CLAUDE.md's.
 
 ## The methodology mapping (Boris Cherny / Anthropic practice)
 

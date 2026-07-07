@@ -33,4 +33,4 @@ load on demand; this file is always in context, so every line must earn it.
 
 - Skills: `.claude/skills/` — bootstrap, replicate, reflect, evolve, recalibrate, plan-feature, verify-loop, worktree-parallel, add-skill, ship
 - Agents: `.claude/agents/` — explorer, planner, verifier, memory-curator
-- Memory: `.claude/memory/LEARNINGS.md` (active, ≤25) · archive: `ARCHIVE.md` · Verify: `scripts/verify.sh` · Docs: `docs/`
+- Memory: `.claude/memory/LEARNINGS.md` · Verify: `scripts/verify.sh` · Docs: `docs/`

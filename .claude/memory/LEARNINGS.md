@@ -1,11 +1,9 @@
-# Learnings ledger (active)
+# Learnings ledger
 
-The bounded working set of lessons — memory's RAM. Written by `/reflect`
+Append-mostly, git-tracked — the repo's genome. Written by `/reflect`
 (session lessons) and `/recalibrate` (ecosystem drift), curated by `/evolve`,
-inherited across projects by `/replicate`. Holds at most **25 active entries**.
-Entries are never deleted: when resolved (promoted, retired, merged, expired),
-`/evolve` relocates them to `ARCHIVE.md`, where history stays queryable via
-targeted grep without re-entering context wholesale.
+inherited across projects by `/replicate`. Entries are never deleted —
+promoted and retired entries stay in place as lineage history.
 
 ## Entry format
 
@@ -20,14 +18,13 @@ targeted grep without re-entering context wholesale.
 
 Rules for writers (`/reflect`, `/recalibrate`):
 - One entry = one concept. If the lesson needs two sentences of rule, it is two entries.
-- Before appending, grep BOTH this file and `ARCHIVE.md` for an equivalent. Active equivalent → bump its Evidence. Archived equivalent → write a fresh active entry citing the archived id.
-- IDs are sequential across both files: highest L-NNN in this file or `ARCHIVE.md`, plus 1.
-- If a write would take the active count past 25, warn that `/evolve` is needed.
+- Before appending, grep for an equivalent entry; if found, increment its Evidence instead.
+- IDs are sequential; find the highest existing L-NNN and add 1.
 
 Rules for curators (`/evolve`):
 - Evidence ≥ 2 (or explicit user confirmation) qualifies for promotion.
 - Rule-shaped → CLAUDE.md `janus:rules` block. Procedure-shaped → a skill via /add-skill.
-- Mark resolved entries (`promoted:<target>` / `retired`), then MOVE them to `ARCHIVE.md` — never delete. Keep this file ≤25 active entries; the overflow policy lives in the evolve skill.
+- Mark promoted entries `Status: promoted:<target>`; never delete them.
 
 ---
 
@@ -60,6 +57,13 @@ Rules for curators (`/evolve`):
 - Scope: portable
 - Evidence: 1
 - Status: candidate
+
+## L-005 · 2026-07-06 · Treat aggregator claims and fetch summaries as leads, never evidence
+- Trigger: an aggregator site mixed verified practices with unverifiable feature claims — only primary-source-corroborated claims were encoded (janus refinement session); the withheld /goal claim was later confirmed by the official loops post (round-3 research); merged with L-011: a fetch-summary of the workspace paper attributed claims the paper never makes, caught by demanding verbatim quotes
+- Rule: treat aggregator claims and fetch summaries as leads, never evidence — confirm any specific claim verbatim against a primary source before adopting or citing it
+- Scope: portable
+- Evidence: 3
+- Status: promoted:CLAUDE.md
 
 ## L-006 · 2026-07-07 · Distinguish context bloat from dependency bloat when judging a tool
 - Trigger: user corrected the "keep Graphify optional" recommendation — offloading structure to an external queryable store REDUCES the bloat the workspace budget guards; only the install dependency is a cost (janus refinement session)
@@ -95,6 +99,13 @@ Rules for curators (`/evolve`):
 - Scope: portable
 - Evidence: 1
 - Status: candidate
+
+## L-011 · 2026-07-06 · Verify a source's specific claims as verbatim quotes before citing them
+- Trigger: a first fetch-summary of the transformer-circuits workspace paper attributed capacity limits and RAG recommendations to it that the paper never makes; a re-fetch demanding verbatim quotes caught the embellishment (janus round-3 session)
+- Rule: before citing a source for a specific claim, re-verify the claim as a verbatim quote from the source itself — summarization layers embellish; kin to L-005, a summary is a lead, not evidence
+- Scope: portable
+- Evidence: 1
+- Status: retired (merged into L-005)
 
 ## L-012 · 2026-07-06 · Propose the maintenance heartbeat at the end of /bootstrap
 - Trigger: user asked why the weekly heartbeat isn't on by default for every project; auto-creating a billed cloud routine silently would violate the escalation-is-proposed rule, but the end of session zero is the natural moment to offer it (janus round-3 evolve session)

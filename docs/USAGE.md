@@ -92,28 +92,25 @@ You mostly don't have to think about this — the hooks do:
 - **When the session-start line says learnings are ripe** ("N with
   Evidence ≥ 2"), Claude proposes `/evolve` between tasks. It promotes stable
   lessons into `CLAUDE.md` rules or new skills, retires contradicted rules,
-  archives resolved entries, and enforces the budgets — asking you before it
-  touches CLAUDE.md. This is how corrections compound instead of repeating.
+  and enforces the budgets — asking you before it touches CLAUDE.md. This is
+  how corrections compound instead of repeating.
 
 You can also run `/reflect` manually any time something surprising happened —
 don't wait for the nudge.
 
 ## Memory operations
 
-- **The active ledger** at `.claude/memory/LEARNINGS.md` is a bounded working
-  set (≤25 entries). Entries are marked, never deleted: `candidate` →
-  `promoted:*` / `retired`, plus `inherited` in children — and resolved
-  entries move to `.claude/memory/ARCHIVE.md`, where history stays queryable
-  (graph or targeted grep) without ever re-entering context wholesale.
+- **Read the ledger** at `.claude/memory/LEARNINGS.md`. Entries are
+  append-only and marked, never deleted: `candidate` → `promoted:*` /
+  `retired`, plus `inherited` in children.
 - **Nothing promotes on one occurrence.** Evidence ≥ 2 (or your explicit
   confirmation) is the bar. If you *know* a lesson is right after one
   occurrence, say so and `/evolve` will take your word as evidence.
 - **`Scope: portable` is a promise** — true in any repository. These entries
   are what `/replicate` carries into children. Judge harshly.
 - **The budgets are load-bearing**: CLAUDE.md ≤20 concepts, ≤12 learned
-  rules; ≤25 active ledger entries; ≤15 skills. When `/evolve` refuses to add
-  without retiring, that's the design working, not a limitation to remove
-  (rationale in
+  rules; ≤15 skills. When `/evolve` refuses to add without retiring, that's
+  the design working, not a limitation to remove (rationale in
   [ARCHITECTURE.md](ARCHITECTURE.md#the-global-workspace-rationale)).
 - **Recalibration keeps encoded practices honest**: `/recalibrate` re-verifies
   the scaffold's conventions against primary sources (Anthropic docs,
@@ -165,10 +162,9 @@ Two design points make this safe:
 ## Replication and lineage
 
 - `/replicate <name>` stamps a child repo (GitHub template path or local
-  fallback), copies portable rules and ledger entries — from the active
-  ledger *and* the archive — in as `Status: inherited`, rewrites identity,
-  resets the child's recalibration clock, and hands off to the child's
-  `/bootstrap`. The child's archive starts empty.
+  fallback), copies portable rules and ledger entries in as
+  `Status: inherited`, rewrites identity, resets the child's recalibration
+  clock, and hands off to the child's `/bootstrap`.
 - Children **re-earn** promotion: inherited entries need fresh evidence in
   the child before `/evolve` promotes them there.
 - Children do **not** auto-update from the template. To backport a template

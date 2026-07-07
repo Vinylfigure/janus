@@ -42,7 +42,7 @@ else
   for t in $(grep -ohE '[A-Za-z0-9_.-]+\.sh' "$ROOT"/docs/*.md | sort -u); do
     if [ -f "$ROOT/scripts/$t" ] || [ -f "$ROOT/.claude/hooks/$t" ]; then pass "docs script ref $t exists"; else fail "docs reference $t but no such file in scripts/ or .claude/hooks/"; fi
   done
-  for p in .github/workflows/verify.yml .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/ARCHIVE.md .claude/memory/recalibrated-at; do
+  for p in .github/workflows/verify.yml .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/recalibrated-at; do
     if [ -e "$ROOT/$p" ]; then pass "component-map path $p exists"; else fail "component-map path $p missing from tree"; fi
   done
   n=$(ls "$ROOT"/.claude/hooks/*.sh 2>/dev/null | wc -l | tr -d ' ')
