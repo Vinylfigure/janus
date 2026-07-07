@@ -111,6 +111,19 @@ echo "$out" | grep -q "consider /evolve" && fail "clean ledger -> no memory line
 printf '\n## L-900 · 2026-01-01 · Fixture entry\n- Trigger: fixture\n- Rule: fixture rule\n- Scope: project\n- Evidence: 2\n- Status: candidate\n' >> "$SANDBOX/.claude/memory/LEARNINGS.md"
 out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -q "1 with Evidence >= 2" && pass "ripe learning counted (spec text not miscounted)" || fail "ripe learning counted (got: $out)"
+# Regression: multi-digit Evidence must count as ripe (numeric >=, not a [2-9] first-digit match).
+awk '{print} /<!-- entries below this line -->/{exit}' "$SANDBOX/.claude/memory/LEARNINGS.md" > "$SANDBOX/.claude/memory/LEARNINGS.md.tmp" \
+  && mv "$SANDBOX/.claude/memory/LEARNINGS.md.tmp" "$SANDBOX/.claude/memory/LEARNINGS.md"
+printf '\n## L-901 · 2026-01-01 · Double-digit evidence fixture\n- Trigger: fixture\n- Rule: fixture rule\n- Scope: project\n- Evidence: 10\n- Status: candidate\n' >> "$SANDBOX/.claude/memory/LEARNINGS.md"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "1 candidate learnings, 1 with Evidence >= 2" && pass "Evidence: 10 counts as ripe" || fail "Evidence: 10 counts as ripe (got: $out)"
+# Regression: a non-candidate entry's Evidence must not leak into the next entry
+# (replicated children start with high-Evidence 'inherited' entries).
+awk '{print} /<!-- entries below this line -->/{exit}' "$SANDBOX/.claude/memory/LEARNINGS.md" > "$SANDBOX/.claude/memory/LEARNINGS.md.tmp" \
+  && mv "$SANDBOX/.claude/memory/LEARNINGS.md.tmp" "$SANDBOX/.claude/memory/LEARNINGS.md"
+printf '\n## L-902 · 2026-01-01 · Inherited high-evidence fixture\n- Trigger: fixture\n- Rule: fixture rule\n- Scope: portable\n- Evidence: 3\n- Status: inherited\n\n## L-903 · 2026-01-01 · Fresh candidate fixture\n- Trigger: fixture\n- Rule: fixture rule\n- Scope: project\n- Evidence: 1\n- Status: candidate\n' >> "$SANDBOX/.claude/memory/LEARNINGS.md"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "consider /evolve" && fail "non-candidate Evidence must not leak to next entry (got: $out)" || pass "non-candidate Evidence must not leak to next entry"
 out=$(echo '{"source":"compact"}' | "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -qi "compacted" && pass "compact source -> workspace-rescue line" || fail "compact source -> workspace-rescue line (got: $out)"
 

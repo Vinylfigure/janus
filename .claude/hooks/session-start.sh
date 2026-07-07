@@ -28,7 +28,7 @@ fi
 if [ -f "$LEDGER" ]; then
   # Count only real entries (below the marker), not the format spec above it.
   candidates=$(awk '/<!-- entries below this line -->/{in_entries=1; next} in_entries && /^- Status: candidate/{n++} END{print n+0}' "$LEDGER" 2>/dev/null || echo 0)
-  ripe=$(awk '/<!-- entries below this line -->/{in_entries=1; next} !in_entries{next} /^- Evidence: [2-9]/{e=1} /^- Status: candidate/{if(e)n++; e=0} END{print n+0}' "$LEDGER" 2>/dev/null || echo 0)
+  ripe=$(awk '/<!-- entries below this line -->/{in_entries=1; next} !in_entries{next} /^## /{e=0} /^- Evidence: /{if($3+0 >= 2) e=1} /^- Status: candidate/{if(e)n++; e=0} END{print n+0}' "$LEDGER" 2>/dev/null || echo 0)
   if [ "${ripe:-0}" -gt 0 ]; then
     lines+=("Memory: ${candidates:-0} candidate learnings, $ripe with Evidence >= 2 — consider /evolve.")
   fi
