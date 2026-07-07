@@ -30,11 +30,11 @@ Rules for curators (`/evolve`):
 
 <!-- entries below this line -->
 
-## L-001 · 2026-07-07 · Fixture-test every hook with sample JSON before committing
-- Trigger: session-start.sh shipped a counting bug that only surfaced when tested against a seeded fixture ledger (janus build session)
+## L-001 · 2026-07-06 · Fixture-test every hook with sample JSON before committing
+- Trigger: session-start.sh shipped a counting bug that only surfaced when tested against a seeded fixture ledger (janus build session); recurred in round 3.5 — the ripe-counter awk carried two more counting bugs (Evidence >= 10 missed, state leaking across entries) that only red-first regression fixtures exposed
 - Rule: before committing a hook script, pipe fixture JSON through it and assert exit code and output for the pass, fail, and repeat cases
 - Scope: portable
-- Evidence: 1
+- Evidence: 2
 - Status: candidate
 
 ## L-002 · 2026-07-07 · Scope pattern-counts below the content marker in self-documenting files
@@ -112,4 +112,25 @@ Rules for curators (`/evolve`):
 - Rule: when a project finishes bootstrapping, propose creating the maintenance heartbeat (one yes, PR-delivery only) instead of waiting for the user to discover it
 - Scope: portable
 - Evidence: 1
+- Status: candidate
+
+## L-013 · 2026-07-06 · Absence from one environment is not deprecation — confirm drift against the primary source
+- Trigger: a maintenance audit flagged the scaffold's /goal references as drift because the command was absent from the auditing session's surface; the official best-practices page documents /goal as a real feature, and the planned "fix" was withdrawn before landing (janus round-3.5 session)
+- Rule: before declaring an encoded reference drifted, confirm the claim against the product's primary documentation — a feature missing from the current environment's surface may still exist in the product
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-014 · 2026-07-06 · Mechanisms enter the template only after dogfooding evidence demonstrates the need
+- Trigger: round-3.5 subtraction removed Graphify (never built here), the ARCHIVE.md + ≤25 cap (ledger held 12 entries), and staged expiry policies — all machinery added for problems no session had hit, against the repo's own Evidence >= 2 discipline (janus round-3.5 session)
+- Rule: disciplines can be designed up front, but a mechanism (tool, file, cap, fallback) enters the scaffold only after real use demonstrates the need it serves
+- Scope: portable
+- Evidence: 3
+- Status: candidate
+
+## L-015 · 2026-07-06 · Platform owns mechanisms; the template keeps only the disciplines it adds
+- Trigger: the explorer/planner agents duplicated native exploration/planning subagents, and scripts/new-worktree.sh duplicated native claude --worktree; both were removed with their embedded disciplines consolidated into plan-feature and worktree-parallel (janus round-3.5 session)
+- Rule: before encoding a mechanism, check whether the platform provides it natively; encode only the discipline the scaffold adds on top, and let the platform's mechanism carry it
+- Scope: portable
+- Evidence: 2
 - Status: candidate
