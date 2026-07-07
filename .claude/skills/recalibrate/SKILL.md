@@ -13,7 +13,7 @@ weeks after `claude --worktree` made it the fallback rather than the path.
 
 1. Primary sources only: Anthropic docs/changelog and the practitioners' own posts. Aggregator and blog claims are leads to verify, never evidence.
 2. Propose, never edit: your only outputs are `Status: candidate` ledger entries and the run stamp — `/evolve` keeps promotion authority, and the evidence discipline survives.
-3. Absence of confirmation is not deprecation: flag a convention only when a primary source contradicts or supersedes it, not when you simply can't find it mentioned.
+3. Verify drift in both directions: absence of confirmation is not deprecation — flag a convention only when a primary source contradicts or supersedes it — and presence in the scaffold is not currency — an encoded practice is a claim about a moving target, so re-verify it against primary sources before relying on it or "fixing" it.
 4. Ledger rules apply: one concept per entry, dedupe by Evidence-bump, entries below the marker, source URL in the Trigger line.
 
 ## Steps

@@ -27,6 +27,9 @@ load on demand; this file is always in context, so every line must earn it.
 <!-- janus:rules:start -->
 <!-- Populated only by /evolve. Cap: 12 rules. Each cites a LEARNINGS.md id. -->
 - Aggregator claims and fetch summaries are leads, never evidence — confirm claims verbatim against a primary source before adopting or citing. (L-005)
+- After changing a convention, grep the whole repo for the old wording and reconcile every hit before claiming consistency. (L-007)
+- Disciplines may be designed up front, but a mechanism — tool, file, cap, fallback — enters the scaffold only after dogfooded use demonstrates the need. (L-014)
+- Before encoding a mechanism, check whether the platform provides it natively; encode only the discipline the scaffold adds on top. (L-015)
 <!-- janus:rules:end -->
 
 ## Map

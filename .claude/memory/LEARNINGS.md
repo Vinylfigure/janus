@@ -35,7 +35,7 @@ Rules for curators (`/evolve`):
 - Rule: before committing a hook script, pipe fixture JSON through it and assert exit code and output for the pass, fail, and repeat cases
 - Scope: portable
 - Evidence: 2
-- Status: candidate
+- Status: promoted:rules/hooks
 
 ## L-002 · 2026-07-07 · Scope pattern-counts below the content marker in self-documenting files
 - Trigger: grep counted the format-spec example at the top of LEARNINGS.md as a real entry, inflating the session-start summary (janus build session)
@@ -52,11 +52,11 @@ Rules for curators (`/evolve`):
 - Status: candidate
 
 ## L-004 · 2026-07-07 · Re-verify encoded practices against primary sources before trusting them
-- Trigger: the worktree-parallel skill shipped using a manual script while `claude --worktree` already existed natively; found by re-checking Cherny's own posts (https://x.com/bcherny/status/2017742743125299476) when the user asked if terminal-tab advice was stale (janus refinement session)
-- Rule: a practice encoded in scaffold files is a claim about a moving target — re-verify it against primary sources before relying on or extending it
+- Trigger: the worktree-parallel skill shipped using a manual script while `claude --worktree` already existed natively; found by re-checking Cherny's own posts (https://x.com/bcherny/status/2017742743125299476) when the user asked if terminal-tab advice was stale (janus refinement session); merged with L-013: a maintenance audit flagged /goal references as drift because the command was absent from the auditing surface, while primary docs confirmed the feature real — the same claim-about-a-moving-target rule, failing in the opposite direction
+- Rule: an encoded reference is a claim about a moving target — confirm both staleness and validity against the primary source before relying on it or "fixing" drift
 - Scope: portable
-- Evidence: 1
-- Status: candidate
+- Evidence: 2
+- Status: promoted:skill/recalibrate
 
 ## L-005 · 2026-07-06 · Treat aggregator claims and fetch summaries as leads, never evidence
 - Trigger: an aggregator site mixed verified practices with unverifiable feature claims — only primary-source-corroborated claims were encoded (janus refinement session); the withheld /goal claim was later confirmed by the official loops post (round-3 research); merged with L-011: a fetch-summary of the workspace paper attributed claims the paper never makes, caught by demanding verbatim quotes; recurred in round 3.5: a subagent report claimed a branch was "up to date with its origin" — the remote had no such branch, and a PR create failed until `git ls-remote` settled it
@@ -77,7 +77,7 @@ Rules for curators (`/evolve`):
 - Rule: after changing a convention, grep the whole repo for the old wording and reconcile every hit before claiming consistency
 - Scope: portable
 - Evidence: 2
-- Status: candidate
+- Status: promoted:CLAUDE.md
 
 ## L-008 · 2026-07-06 · Stress-test a plan against scale, concurrency, and headless modes before presenting it
 - Trigger: user rejected the round-3 plan approval asking "will this perform under stress and scaling?"; the resulting review found 4 real design bugs the plan had missed — ledger cap deadlock, worktree ID collisions, headless gates with no user, mtime loss across clones (janus round-3 session)
@@ -119,21 +119,21 @@ Rules for curators (`/evolve`):
 - Rule: before declaring an encoded reference drifted, confirm the claim against the product's primary documentation — a feature missing from the current environment's surface may still exist in the product
 - Scope: portable
 - Evidence: 1
-- Status: candidate
+- Status: retired (merged into L-004)
 
 ## L-014 · 2026-07-06 · Mechanisms enter the template only after dogfooding evidence demonstrates the need
 - Trigger: round-3.5 subtraction removed Graphify (never built here), the ARCHIVE.md + ≤25 cap (ledger held 12 entries), and staged expiry policies — all machinery added for problems no session had hit, against the repo's own Evidence >= 2 discipline (janus round-3.5 session)
 - Rule: disciplines can be designed up front, but a mechanism (tool, file, cap, fallback) enters the scaffold only after real use demonstrates the need it serves
 - Scope: portable
 - Evidence: 3
-- Status: candidate
+- Status: promoted:CLAUDE.md
 
 ## L-015 · 2026-07-06 · Platform owns mechanisms; the template keeps only the disciplines it adds
 - Trigger: the explorer/planner agents duplicated native exploration/planning subagents, and scripts/new-worktree.sh duplicated native claude --worktree; both were removed with their embedded disciplines consolidated into plan-feature and worktree-parallel (janus round-3.5 session)
 - Rule: before encoding a mechanism, check whether the platform provides it natively; encode only the discipline the scaffold adds on top, and let the platform's mechanism carry it
 - Scope: portable
 - Evidence: 2
-- Status: candidate
+- Status: promoted:CLAUDE.md
 
 ## L-016 · 2026-07-06 · Weigh subtraction as seriously as addition when reviewing for improvement
 - Trigger: asked "any enhancements?", the audit proposed only fixes and additions; the owner's redirect ("consider features we should remove") produced the round's highest-value changes — four feature removals (janus round-3.5 session)
