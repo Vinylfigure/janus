@@ -53,8 +53,10 @@ and side-effect skills confirm with you before acting. Typing the
 | `/replicate` | Stamp a child project; carry portable learnings forward |
 | `/reflect` | Distill this session's lessons into the learnings ledger |
 | `/evolve` | Promote stable lessons into CLAUDE.md or new skills; enforce the budget |
+| `/recalibrate` | Re-verify encoded practices against primary sources; file drift as learnings |
 | `/plan-feature` | Plan-first workflow with explicit "done means" criteria |
 | `/verify-loop` | Iterate a change to green against a runnable check |
+| `/ship` | Verify green, commit, push, PR, then babysit CI and reviews until merged |
 | `/worktree-parallel` | Fan out parallel sessions in git worktrees |
 | `/add-skill` | Author new skills in the canonical shape |
 | `verifier`, `memory-curator` | Subagents: the skeptic and the librarian (scouting and design use Claude Code's native subagents) |

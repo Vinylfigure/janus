@@ -96,6 +96,25 @@ echo '{"tool_input":{"file_path":"'"$SANDBOX"'/.claude/memory/LEARNINGS.md"}}' |
 [ $? -eq 0 ] && pass "memory files exempt from the loop" || fail "memory files exempt from the loop"
 rm -f "$SIGNALS"
 
+echo "== verify.sh dispatcher (template contract) =="
+# Runs the REAL repo dispatcher (the sandbox copy is a stub). Asserts only
+# what survives /bootstrap: the *.sh/*.json arms, the usage exit, and the
+# sentinel markers. Never runs `full` here (recursion) or the *) fallback
+# (bootstrap replaces it).
+mkdir -p "$SANDBOX/fixtures"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$SANDBOX/fixtures/good.sh"
+printf '#!/usr/bin/env bash\nif true; then\n' > "$SANDBOX/fixtures/bad.sh"
+printf '{ "unterminated":\n' > "$SANDBOX/fixtures/bad.json"
+"$ROOT/scripts/verify.sh" quick "$SANDBOX/fixtures/good.sh" >/dev/null 2>&1 && pass "quick: valid .sh -> exit 0" || fail "quick: valid .sh -> exit 0"
+"$ROOT/scripts/verify.sh" quick "$SANDBOX/fixtures/bad.sh" >/dev/null 2>&1 && fail "quick: broken .sh -> nonzero" || pass "quick: broken .sh -> nonzero"
+"$ROOT/scripts/verify.sh" quick "$SANDBOX/fixtures/bad.json" >/dev/null 2>&1 && fail "quick: broken .json -> nonzero" || pass "quick: broken .json -> nonzero"
+"$ROOT/scripts/verify.sh" bogus >/dev/null 2>&1
+rc=$?
+[ "$rc" -eq 64 ] && pass "unknown mode -> exit 64" || fail "unknown mode -> exit 64 (got $rc)"
+for m in quick:start quick:end full:start full:end; do
+  grep -q "janus:bootstrap:$m" "$ROOT/scripts/verify.sh" && pass "sentinel janus:bootstrap:$m present" || fail "sentinel janus:bootstrap:$m present"
+done
+
 echo "== session-start.sh =="
 # Seed controlled CLAUDE.md state (L-009): these fixtures must pass in bootstrapped
 # children too, so never depend on the live repo's facts block.

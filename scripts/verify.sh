@@ -10,8 +10,9 @@
 #   with useful output on failure (the agent sees stderr and iterates).
 # - `full` is the closed loop for /verify-loop and the verifier agent: exit 0
 #   means the project is genuinely healthy.
-# - Until /bootstrap runs, both modes are silent no-ops so the template stays
-#   quiet out of the box.
+# - Until /bootstrap runs, quick checks only the scaffold's own plumbing
+#   (*.sh syntax, *.json validity) and full runs the fixture suite; app code
+#   passes untouched, so the template stays quiet out of the box.
 set -uo pipefail
 
 MODE="${1:-full}"
@@ -27,7 +28,7 @@ case "$MODE" in
     # Keep the *.sh/*.json arms — hook scripts exist in every child.
     case "$FILE" in
       *.sh) bash -n "$FILE" ;;
-      *.json) command -v jq >/dev/null 2>&1 && jq . "$FILE" >/dev/null ;;
+      *.json) if command -v jq >/dev/null 2>&1; then jq . "$FILE" >/dev/null; fi ;;
       *) exit 0 ;;
     esac
     # janus:bootstrap:quick:end
