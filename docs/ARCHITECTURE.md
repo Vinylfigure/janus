@@ -11,7 +11,7 @@ CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked 
 .claude/
   settings.json               hook wiring + safe-command permissions
   hooks/                      4 shell hooks (protocol below)
-  skills/                     9 skills — load on demand (progressive disclosure)
+  skills/                     10 skills — load on demand (progressive disclosure)
   agents/                     4 subagents — run in their own context windows
   memory/LEARNINGS.md         append-only learnings ledger (git-tracked)
 scripts/
@@ -76,7 +76,7 @@ Janus turns each finding into an enforced convention:
 |---|---|
 | ~10–25 active-concept capacity | CLAUDE.md hard budget: 1 bullet = 1 concept, ≤20 total, ≤12 learned rules; hooks inject ≤2 lines; `/evolve` asserts the counts every run |
 | Verbalization activates workspace representations | Every skill opens with **Hold in mind** — 3–5 invariants the agent restates before acting |
-| Articulated intermediate reasoning drives conclusions | Skills end with **Before finishing** (state what was verified + evidence); `/verify-loop` requires a one-sentence failure diagnosis before each fix; the verifier demands pasted output |
+| Articulated intermediate reasoning drives conclusions | Skills end with **Before finishing** (state what was verified + evidence); `/verify-loop` requires a one-sentence failure diagnosis before each fix; the verifier demands pasted output and must articulate a counterfactual — one way green could still be wrong — before any PASS |
 | Workspace representations generalize across tasks | Learnings are distilled as one-concept imperative *rules*, not narratives, so they transfer between tasks and (via `Scope: portable`) between repositories |
 | Routine work happens outside the workspace | Progressive disclosure: skill bodies load only on use; clean sessions get no Stop-hook ceremony; exploration and verification are delegated to subagents so their context never enters the main thread |
 
@@ -93,16 +93,24 @@ refuses to add a rule without retiring one, that is the design working.
 | CLAUDE.md as compounding memory — "any time Claude does something wrong, add a note" | The session loop: signals → `/reflect` → ledger → `/evolve` → CLAUDE.md, with evidence thresholds so notes compound instead of accumulating |
 | Closed feedback loops — "if Claude can close the loop on its own, it will iterate until the output is right" | PostToolUse hook (inner loop) + `/verify-loop` + the verifier agent |
 | Subagents for focused work | explorer / planner / verifier / memory-curator, each read-only or evidence-bound |
-| Parallel sessions in worktrees | `/worktree-parallel` + `scripts/new-worktree.sh`; `.claude/` is in-tree so every worktree gets the full scaffold |
+| Parallel sessions in worktrees — 3–5 at once, one task per session | `/worktree-parallel`: native `claude --worktree` (script fallback), `claude agents` as the fleet view; `.claude/` is in-tree so every worktree gets the full scaffold |
 | Team-shared configuration | `.claude/settings.json` is committed; `settings.local.json` is gitignored |
+| Encoded practices drift as tools evolve | `/recalibrate` re-verifies conventions against primary sources and files drift as candidate learnings; `/evolve` keeps promotion authority |
 
-## The knowledge-graph layer (optional)
+## The external-memory layer (default-on, gracefully degrading)
 
 [Graphify](https://github.com/Graphify-Labs/graphify) builds a local
 tree-sitter knowledge graph (`graph.json`, `graph.html`, `GRAPH_REPORT.md` —
-all gitignored as regenerable). `/bootstrap` offers the install; when the
-graph exists, explorer and planner query it (`graphify query "…"`) before
-grepping. The fit is deliberate: a graph query returns entities and
-relationships — concepts — where a grep returns file dumps, so exploration
-spends less of the workspace budget. `verify.sh full` regenerates the graph
-so it never goes stale; no extra hook needed.
+all gitignored as regenerable). It is the project's **random-access memory**:
+the workspace (context) is a small, expensive working set, so codebase
+structure is offloaded to an external queryable store and fetched one
+concept at a time. A graph query returns entities and relationships —
+concepts — where a grep returns file dumps.
+
+`/bootstrap` installs it and builds the graph **by default** (greenfield
+included; the graph grows with the code); when the graph exists, explorer
+and planner query it (`graphify query "…"`) before grepping; `verify.sh
+full` regenerates it so it never goes stale — no extra hook needed. It is
+deliberately **not a hard requirement**: if the user declines or `uv` is
+unavailable, agents fall back to grep and everything still works. RAM by
+default, never load-bearing.

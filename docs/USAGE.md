@@ -13,11 +13,12 @@ system; this document is *how you drive it*, day to day.
 2. **Open a session.** `cd` into the clone, run `claude`. The session-start
    hook will tell you the scaffold is not bootstrapped.
 3. **Run `/bootstrap`.** It detects your stack (or interviews you for one),
-   wires `scripts/verify.sh` to your real formatter/linter/tests, offers the
-   optional [Graphify](https://github.com/Graphify-Labs/graphify) knowledge
-   graph, and *proves* the loop closes — you'll see a passing full run and a
-   deliberately-broken edit get caught. From this moment every edit you or
-   Claude makes is checked automatically.
+   wires `scripts/verify.sh` to your real formatter/linter/tests, sets up the
+   [Graphify](https://github.com/Graphify-Labs/graphify) knowledge graph by
+   default (the project's external random-access memory — skippable, and the
+   scaffold degrades gracefully without it), and *proves* the loop closes —
+   you'll see a passing full run and a deliberately-broken edit get caught.
+   From this moment every edit you or Claude makes is checked automatically.
 4. **Build your first feature with `/plan-feature`.** It will explore via
    subagents, write a plan with explicit "done means" criteria, and drive the
    implementation through the verification loop.
@@ -71,14 +72,22 @@ don't wait for the nudge.
   rules. When `/evolve` refuses to add without retiring, that's the design
   working, not a limitation to remove (rationale in
   [ARCHITECTURE.md](ARCHITECTURE.md#the-global-workspace-rationale)).
+- **Run `/recalibrate` periodically** (roughly monthly): it re-verifies the
+  scaffold's encoded practices against primary sources (Anthropic docs,
+  changelog, the Claude Code team's posts) and files drift as candidate
+  ledger entries — `/evolve` still decides what changes.
 
 ## Scaling up
 
 - **Parallel workstreams**: `/worktree-parallel` splits a task into
-  independent tracks, gives each its own git worktree and branch, and prints
-  kickoff prompts for parallel `claude` sessions. Every worktree carries the
-  full scaffold (`.claude/` is in-tree). Merge only tracks that verified
-  green; clean worktrees after.
+  independent tracks and launches each with native worktrees:
+  `claude --worktree <name>` (add `--tmux` for its own tmux session);
+  `scripts/new-worktree.sh` remains as the fallback and cleanup helper.
+  Run 3–5 sessions, **one task per session** — never multiplex tracks in one
+  conversation. Number your terminal tabs, enable system notifications, and
+  use `claude agents` from the root directory as the fleet view. Every
+  worktree carries the full scaffold (`.claude/` is in-tree). Merge only
+  tracks that verified green; clean worktrees after.
 - **Delegate to subagents by habit**: `explorer` to scout before you plan,
   `planner` for an independent design, `verifier` before you believe "done",
   `memory-curator` inside `/evolve`. Delegation keeps the main thread's

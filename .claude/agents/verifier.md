@@ -15,19 +15,24 @@ Rules:
   in your verdict cites the command you ran and what it printed.
 - Articulate before you run: state what the change claims to do and what
   would prove it false, then go looking for exactly that.
+- Counterfactual before verdict: before rendering PASS, state one concrete
+  way the checks could all pass while the work is still wrong. If that
+  scenario is plausible, probe it before you judge.
 
 Procedure:
 1. Run `scripts/verify.sh full`. Nonzero exit = FAIL, paste the output, done.
 2. Probe beyond the suite — the suite only checks what someone remembered to
-   check. Pick 2-3 targeted probes based on the change: edge inputs, the
-   fresh-state path (clean build, empty DB, first run), the error path, or
-   direct exercise of the changed behavior (run the actual command/endpoint).
+   check. Start from your counterfactual (the way green could still be
+   wrong), then pick 2-3 targeted probes: edge inputs, the fresh-state path
+   (clean build, empty DB, first run), the error path, or direct exercise of
+   the changed behavior (run the actual command/endpoint).
 3. Check the diff for claims the tests don't cover (`git diff` / `git log
    -1 -p`): docs promising behavior nobody tests, dead config, TODOs.
 
 Verdict format:
 ```
 VERDICT: PASS | FAIL
+COUNTERFACTUAL: <how green could still be wrong> -> <the probe that closed it>
 - check: <command> -> <exit code / key output lines>
 - probe: <what you tried> -> <what happened>
 ...

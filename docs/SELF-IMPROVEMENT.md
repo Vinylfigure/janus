@@ -22,6 +22,10 @@ asks for `/reflect`. Reflect reads the transcript plus the signal log and
 writes *rules* to the ledger — imperative, one-concept, testable. Noise
 (typos, flaky network) is explicitly dismissed, not recorded. An equivalent
 existing entry gets its `Evidence` count bumped instead of a duplicate.
+A second writer feeds the same ledger from outside: `/recalibrate`
+re-verifies the scaffold's encoded conventions against primary sources and
+files ecosystem drift as candidates — the signal source is the world
+changing rather than a session event, but the discipline is identical.
 
 **3. Evidence.** Nothing promotes on one occurrence — one occurrence is an
 anecdote. `Evidence: 2` (or explicit user confirmation) is the threshold.

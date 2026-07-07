@@ -11,7 +11,7 @@ load on demand; this file is always in context, so every line must earn it.
 - When corrected, or when verification fails, a lesson exists — run `/reflect` before the session ends.
 - Before any complex task, verbalize the 3–5 invariants you must hold in mind.
 - Delegate exploration and verification to subagents; keep this thread's workspace clean.
-- Parallel experiments go in git worktrees (`/worktree-parallel`), never on the main checkout.
+- One task per session: parallel work goes to separate worktree sessions (`/worktree-parallel`), never the main checkout.
 - Keep this file concept-dense; procedures belong in skills, facts belong here.
 
 ## Project facts
@@ -29,6 +29,6 @@ load on demand; this file is always in context, so every line must earn it.
 
 ## Map
 
-- Skills: `.claude/skills/` — bootstrap, replicate, reflect, evolve, plan-feature, verify-loop, worktree-parallel, add-skill, ship
+- Skills: `.claude/skills/` — bootstrap, replicate, reflect, evolve, recalibrate, plan-feature, verify-loop, worktree-parallel, add-skill, ship
 - Agents: `.claude/agents/` — explorer, planner, verifier, memory-curator
 - Memory: `.claude/memory/LEARNINGS.md` · Verify: `scripts/verify.sh` · Docs: `docs/`
