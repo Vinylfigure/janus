@@ -15,6 +15,7 @@ CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked 
   agents/                     2 subagents — run in their own context windows
   memory/LEARNINGS.md         append-only learnings ledger (git-tracked)
   memory/recalibrated-at      committed epoch stamp of the last /recalibrate run
+  memory/sources-seen.md      committed watermark of what /recalibrate has read
 scripts/
   verify.sh                   quick|full dispatcher; /bootstrap fills the case arms
   test-hooks.sh               fixture suite for the scaffold plumbing — hooks + docs cross-refs (verify.sh full + CI)
@@ -82,8 +83,8 @@ Janus turns each finding into an enforced convention:
 
 | Finding | Janus mechanism |
 |---|---|
-| ~10–25 active-concept capacity | CLAUDE.md hard budget: 1 bullet = 1 concept, ≤20 total, ≤12 learned rules; hooks inject ≤2 lines; `/evolve` asserts the counts every run |
-| Verbalization activates workspace representations | Every skill opens with **Hold in mind** — 3–5 invariants the agent restates before acting |
+| ~10–25 active-concept capacity | CLAUDE.md hard budget: 1 bullet = 1 concept, ≤20 total, ≤12 learned rules; hooks inject ≤3 lines; `/evolve` asserts the counts every run |
+| Verbalization activates workspace representations | Every skill opens with **Hold in mind** — the invariants the agent restates before acting |
 | Articulated intermediate reasoning drives conclusions | Skills end with **Before finishing** (state what was verified + evidence); `/verify-loop` requires a one-sentence failure diagnosis before each fix; the verifier demands pasted output and must articulate a counterfactual — one way green could still be wrong — before any PASS |
 | Workspace representations generalize across tasks | Learnings are distilled as one-concept imperative *rules*, not narratives, so they transfer between tasks and (via `Scope: portable`) between repositories |
 | Routine work happens outside the workspace | Progressive disclosure: skill bodies load only on use; clean sessions get no Stop-hook ceremony; exploration and verification are delegated to subagents so their context never enters the main thread |
@@ -110,6 +111,11 @@ tier: indexes load, bodies are pulled when relevant.
 | Genome | `LEARNINGS.md` ledger (reflect → evolve → replicate) | git-shared | only by the memory skills |
 | Ambient | native auto memory (`MEMORY.md` index + topic files) | machine-local | index each session; topic files on demand |
 
+The ambient tier does not cross machines: auto-memory files are "not shared
+across machines or cloud environments". So the headless heartbeat, cloud
+sessions, and a teammate's clone all start with it empty — anything the
+automation depends on has to live in the git-tracked tiers above it.
+
 Capture is ambient (auto memory notes things as work happens, zero
 ceremony), consolidation is deliberate (`/reflect` harvests shareable
 repo-truths from auto memory and the session into evidence-gated ledger
@@ -131,10 +137,17 @@ Always-loaded context = CLAUDE.md (≤20 concepts) + every skill's
 `description` + ≤3 hook status lines. Everything else is on-demand: skill
 bodies load on invocation, the ledger is opened by exactly three skills,
 exploration and verification run in subagents that return conclusions. This
-is why skill descriptions are capped at ≤50 words and the skill count at
-≤15: since the model-invocation flip, every skill's description rides in
-every session forever — a skill is a permanent tax, so the budget mirrors
+is why skill descriptions are capped at ≤50 words (with `when_to_use`
+counted in): since the model-invocation flip, every skill's description rides
+in every session forever — a skill is a permanent tax, so the budget mirrors
 CLAUDE.md's.
+
+The platform truncates the combined `description` + `when_to_use` listing at
+1,536 characters and reports the post-budget size in `/context`'s Skills row.
+That number is a *failure threshold*, not a target — adopting it as the budget
+would license roughly five times today's always-loaded description text. The
+≤50-word rule is the discipline this scaffold adds on top; the count cap was
+retired in favour of "retire before adding", because it never once bound.
 
 ## The methodology mapping (Boris Cherny / Anthropic practice)
 
@@ -145,7 +158,45 @@ CLAUDE.md's.
 | CLAUDE.md as compounding memory — "any time Claude does something wrong, add a note" | The session loop: signals → `/reflect` → ledger → `/evolve` → CLAUDE.md, with evidence thresholds so notes compound instead of accumulating |
 | Closed feedback loops — "if Claude can close the loop on its own, it will iterate until the output is right" | PostToolUse hook (inner loop) + `/verify-loop` + the verifier agent |
 | Subagents for focused work | Custom: verifier (evidence-bound judge) and memory-curator (proposal-only librarian). Scouting and independent design use Claude Code's native exploration/planning subagents — the platform owns the mechanism; the template keeps only the disciplines it adds |
-| Parallel sessions in worktrees — 3–5 at once, one task per session | `/worktree-parallel`: native `claude --worktree` (script fallback), `claude agents` as the fleet view; `.claude/` is in-tree so every worktree gets the full scaffold |
+| Parallel sessions in worktrees — 3–5 at once, one task per session | `/worktree-parallel`: native `claude --worktree`, `claude agents` as the fleet view; `.claude/` is in-tree so every worktree gets the full scaffold |
 | Team-shared configuration | `.claude/settings.json` is committed; `settings.local.json` is gitignored |
-| Encoded practices drift as tools evolve | `/recalibrate` re-verifies conventions against primary sources and files drift as candidate learnings; `/evolve` keeps promotion authority; the session-start staleness nudge and the heartbeat routine keep it running |
+| Encoded practices drift as tools evolve | `/recalibrate` re-verifies conventions against primary sources and files drift as candidate learnings; `/evolve` keeps promotion authority; `memory/sources-seen.md` separates living sources (always re-read) from dated ones (read once); the session-start staleness nudge and the heartbeat routine keep it running |
 | Loops trigger; skills encode quality | Skills auto-invoke from their trigger descriptions (the conductor directive routes goals to skills + modality); side-effect skills carry in-body gates that degrade to PR-delivery when headless; `/goal`-style loops and the weekly heartbeat only decide *when* |
+
+## Claude 5 context-engineering alignment (sources read 2026-07-24)
+
+This was a targeted read of one batch of sources, not a full `/recalibrate`
+run: step 1's enumeration of every encoded convention was not performed, so
+`recalibrated-at` was deliberately **not** stamped and the 30-day nudge still
+stands. The next full run starts from `memory/sources-seen.md`.
+
+Anthropic's [new rules of context engineering](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models)
+reports removing "over 80% of Claude Code's system prompt" for Claude 5
+generation models "with no measurable loss on our coding evaluations", and
+[Agent Harness Design](https://claude.com/blog/harnessing-claudes-intelligence)
+makes stripping the harness down a first-class pattern. Both are subtraction
+arguments, and a scaffold whose response is to grow has misread them. Where
+Janus landed:
+
+| Shift | Janus position |
+|---|---|
+| Give rules → **let Claude use judgement** | Skill bodies encode what *this repo* does differently — gotchas, sentinels, irreversible steps — and leave general competence alone. Ceremony counts (`3-5 items, hard cap`) retired; the practice kept |
+| Give examples → **design interfaces** | Skills carry `when_to_use` rather than cramming triggers into `description`; `allowed-tools` is reserved for read-only skills, since the grant clears at the next user message |
+| Upfront → **progressive disclosure** | Already the design: skill bodies load on invocation, the ledger opens for three skills, subagents return conclusions |
+| Repeat yourself → **simple descriptions** | ≤50 words per skill, `when_to_use` counted in |
+| CLAUDE.md memory → **auto-memory** | Both, deliberately: auto memory captures ambiently, but it never leaves the machine, so the git-tracked ledger remains the tier automation depends on |
+| Simple specs → **rich references** | Open. The ledger is prose; nothing yet earns a richer reference format |
+
+Two native limits are cited above and neither is adopted as a budget: the
+1,536-character listing truncation is a failure threshold, and `/doctor`
+rightsizes independently of `/evolve`'s counts. The distinction matters —
+substituting a platform's ceiling for a scaffold's discipline loosens the
+constraint while looking like modernisation.
+
+Rejected on the repo's own evidence rules: pinning `model:` into a
+stack-agnostic template (L-004 — a moving target the scaffold would then
+babysit), an adversarial reviewer trio (L-017 — copying an org chart as a
+starting shape, when propose/dispose separation already exists in
+`memory-curator` and `/recalibrate` → `/evolve`), and a `/security-review`
+step (L-015 — a platform built-in, and this template has no stack to review
+until `/bootstrap` runs).

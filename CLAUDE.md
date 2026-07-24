@@ -1,15 +1,18 @@
 # Janus (template)
 
-Concept budget: 1 bullet = 1 concept, ≤20 concepts in this file. `/evolve` must
-merge or retire a rule before adding past the cap. Details live in skills — they
-load on demand; this file is always in context, so every line must earn it.
+Concept budget: 1 bullet = 1 concept, ≤20 concepts in this file — a workspace
+heuristic well inside the platform's own <200-line target, not a substitute for
+it. `/evolve` must merge or retire a rule before adding past the cap; `/doctor`
+rightsizes independently. Details live in skills — they load on demand; this
+file is always in context, so every line must earn it, and a line the codebase
+already shows earns nothing.
 
 ## Prime directives
 
 - Plan before code: for non-trivial work, use plan mode or `/plan-feature`.
 - Never claim done without a closed loop: run `/verify-loop` or the `verifier` agent.
 - When corrected, or when verification fails, a lesson exists — run `/reflect` before the session ends.
-- Before any complex task, verbalize the 3–5 invariants and the most likely failure mode you must hold in mind — a wrong prediction is `/reflect` material.
+- Before any complex task, verbalize the invariants at stake and the most likely failure mode — a wrong prediction is `/reflect` material.
 - Delegate exploration and verification to subagents; keep this thread's workspace clean.
 - One task per session: parallel work goes to separate worktree sessions (`/worktree-parallel`), never the main checkout.
 - Conduct, don't wait: act on the session-start status; when the user states a goal, propose the route — skills, order, and modality (inline / plan / worktrees / loop / heartbeat). Escalation is proposed, never silent; slash commands are shortcuts, never prerequisites.
@@ -32,8 +35,7 @@ load on demand; this file is always in context, so every line must earn it.
 - Before encoding a mechanism, check whether the platform provides it natively; encode only the discipline the scaffold adds on top. (L-015)
 <!-- janus:rules:end -->
 
-## Map
+## Gotchas
 
-- Skills: `.claude/skills/` — bootstrap, replicate, reflect, evolve, recalibrate, plan-feature, verify-loop, worktree-parallel, add-skill, ship
-- Agents: `.claude/agents/` — verifier, memory-curator (scouting/design use native subagents)
-- Memory: `.claude/memory/LEARNINGS.md` · Verify: `scripts/verify.sh` · Docs: `docs/`
+- `scripts/test-hooks.sh` asserts *literal* component-map counts in `docs/ARCHITECTURE.md` and that every `*.sh` named anywhere in `docs/*.md` exists — adding a skill, hook, or agent, or naming a hypothetical script in prose, fails CI unless the docs change in the same commit.
+- Auto memory never leaves the machine that wrote it, so the headless heartbeat and every cloud session start with an empty ambient tier — only the git-tracked ledger travels.

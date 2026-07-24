@@ -1,6 +1,7 @@
 ---
 name: bootstrap
-description: Specialize this Janus scaffold to a real tech stack - detect or ask for the stack, wire scripts/verify.sh to real lint/test commands, update the project facts in CLAUDE.md, and prove the verification loop closes. Use when the project facts say NOT BOOTSTRAPPED or when adopting Janus into an existing codebase.
+description: Specialize this Janus scaffold to a real tech stack - detect or ask for the stack, wire scripts/verify.sh to real lint/test commands, update the project facts in CLAUDE.md, and prove the verification loop closes.
+when_to_use: Use when the project facts say NOT BOOTSTRAPPED or when adopting Janus into an existing codebase.
 argument-hint: [optional stack hint, e.g. "python uv" or "node pnpm"]
 ---
 

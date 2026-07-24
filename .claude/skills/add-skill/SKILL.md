@@ -1,6 +1,7 @@
 ---
 name: add-skill
-description: Author a new skill for this repository using the canonical Janus SKILL.md shape (Hold in mind, Steps, Before finishing) and workspace-priming rules. Use when a procedure has been repeated or explained more than once, when the user describes a workflow worth keeping, or when /evolve promotes a procedure-shaped learning.
+description: Author a new skill for this repository using the canonical Janus SKILL.md shape (Hold in mind, Steps, Before finishing) and workspace-priming rules.
+when_to_use: Use when a procedure has been repeated or explained more than once, when the user describes a workflow worth keeping, or when /evolve promotes a procedure-shaped learning.
 argument-hint: [skill name and purpose]
 ---
 
@@ -10,30 +11,30 @@ procedure-shaped.
 
 ## Hold in mind
 
-1. Skill bodies load on demand — they may be long. Priming blocks may not: 3-5 items, hard cap.
-2. The `description` frontmatter is the only always-loaded part and the model's trigger surface: *what it does + when to use it* — action first, then explicit "Use when …" trigger situations, ≤50 words — every description taxes every future session.
-3. Scaffold weight must match task complexity: heavy checklists for complex/risky procedures, near-zero ceremony for simple ones.
-4. Don't shadow built-ins (`init`, `review`, `verify`, `run`) or existing janus skills.
-5. Skill budget: ≤15 skills in this repo. At the cap, merge or retire one first — the mirror of the CLAUDE.md concept budget.
+1. Skill bodies load on demand and may be long (the platform's own guidance: keep `SKILL.md` under 500 lines). Priming blocks may not — a handful of invariants, not a syllabus.
+2. `description` + `when_to_use` are the only always-loaded parts and the model's trigger surface: action first, then the "Use when …" situations — ≤50 words total. The platform truncates the listing at 1,536 characters, but that is where rendering stops, not a target: every description taxes every future session.
+3. Write for a model with judgment. Encode what this repo does differently — its gotchas, conventions, and irreversible steps — and leave general competence alone; an instruction that describes how to think is the first thing to cut.
+4. Don't shadow built-ins (`init`, `review`, `verify`, `run`, `code-review`, `security-review`) or existing janus skills — the platform owns those mechanisms.
+5. A skill is a permanent tax on every future session. Retire before adding; `/context`'s Skills row reports what the listing actually costs.
 
 ## Steps
 
-1. Confirm the skill deserves to exist: it's a *procedure* (multi-step, repeatable), not a *fact* (belongs in CLAUDE.md), not a *path-local rule* (belongs in `.claude/rules/<topic>.md` with `paths:` frontmatter), and not a one-off. Check the public agent-skills library (github.com/anthropics/skills) before authoring from scratch — adapt rather than reinvent; its `spec/agent-skills-spec.md` is the authority on frontmatter fields.
+1. Confirm the skill deserves to exist: it's a *procedure* (multi-step, repeatable), not a *fact* (belongs in CLAUDE.md), not a *path-local rule* (belongs in `.claude/rules/<topic>.md` with `paths:` frontmatter), and not a one-off. Check the public agent-skills library (github.com/anthropics/skills) before authoring from scratch — adapt rather than reinvent; its `spec/agent-skills-spec.md` and the Claude Code skills docs are the authority on frontmatter fields, and `scripts/test-hooks.sh` enforces the field set this repo knows about.
 2. Choose the name (kebab-case directory under `.claude/skills/<name>/SKILL.md`) after checking existing skills and built-ins.
 3. Write frontmatter:
-   - `description`: what it does, then "Use when …" triggers, ≤50 words (this is the only part always in context).
-   - Side-effect skills get **no invocation lock**: instead of `disable-model-invocation`, write an in-body gate — one step that confirms with the user immediately before the irreversible action (push, repo creation, CLAUDE.md edit). In headless runs the gate degrades to delivering via PR.
-   - `argument-hint` if it takes arguments.
+   - `description`: what it does, in one action-first line. Put the "Use when …" triggers in `when_to_use` — the platform has a field for them, so stop crowding one string. ≤50 words across both; this is the only part always in context.
+   - Side-effect skills get an **in-body gate**: one step that confirms with the user immediately before the irreversible action (push, repo creation, CLAUDE.md edit), degrading to PR delivery when headless. Reach for `disable-model-invocation` only to stop Claude triggering the skill at all — it controls *who invokes*, which is not the same as *confirm before acting*.
+   - `argument-hint` if it takes arguments; `allowed-tools` only for read-only skills, since it clears at the next user message and a writer skill silently loses the tools its later steps need.
 4. Write the body in the canonical shape:
 
    ```markdown
    ## Hold in mind
-   3-5 invariants the agent must restate in its own words before step 1.
-   These are the concepts to hold active while working — not background info.
+   The few invariants worth restating before step 1 — the ones that are
+   costly to violate and not obvious from the task. Not background info.
 
    ## Steps
-   Numbered, imperative. Complex/risky steps get explicit checks; simple
-   steps stay terse.
+   Numbered, imperative. Irreversible or repo-specific steps get explicit
+   checks; anything the model would do correctly anyway stays terse or goes.
 
    ## Before finishing
    Forced articulation: what was verified, what evidence was seen. The agent
@@ -44,6 +45,6 @@ procedure-shaped.
 
 ## Before finishing
 
-State: the new skill's name, its description line (≤50 words), where its gate
-sits if it has side effects, the repo's skill count against the 15 cap, and
-confirm the body follows the canonical shape with a priming block of <= 5 items.
+State: the new skill's name, its description and `when_to_use` (≤50 words
+together), where its gate sits if it has side effects, what you retired or why
+nothing needed retiring, and confirm the body follows the canonical shape.

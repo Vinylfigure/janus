@@ -18,7 +18,7 @@ lines=()
 if [ "$source" = "compact" ]; then
   pending=0
   [ -s "$SIGNALS" ] && pending=$(wc -l < "$SIGNALS" | tr -d ' ')
-  lines+=("Context was just compacted — re-verbalize your working set: restate the current task's 3-5 invariants and its 'done means' check before continuing. Learning signals pending: $pending.")
+  lines+=("Context was just compacted — re-verbalize your working set: restate the current task's invariants and its 'done means' check before continuing. Learning signals pending: $pending.")
 fi
 
 if [ -f "$CLAUDE_MD" ] && grep -q "NOT BOOTSTRAPPED" "$CLAUDE_MD"; then

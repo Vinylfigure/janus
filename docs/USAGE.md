@@ -49,7 +49,7 @@ goal. What fires when:
 | `/ship` | a verified change is ready to leave the machine | — | **branch + remote** before first push (headless: PR only) |
 | `/worktree-parallel` | work splits into independent tracks | — | **track table** before any worktree |
 | `/replicate` | you want a new project from this scaffold | — | **name/visibility/path** before creation |
-| `/add-skill` | a procedure got repeated or explained twice | `/evolve` promotes procedure-shaped lessons | — (budget check: ≤15 skills) |
+| `/add-skill` | a procedure got repeated or explained twice | `/evolve` promotes procedure-shaped lessons | — (retire before adding) |
 
 **The modality ladder** — Claude proposes the level that fits the observable
 shape of the work, and escalation is always proposed, never silent:
@@ -113,16 +113,20 @@ don't wait for the nudge.
 - **`Scope: portable` is a promise** — true in any repository. These entries
   are what `/replicate` carries into children. Judge harshly.
 - **The budgets are load-bearing**: CLAUDE.md ≤20 concepts, ≤12 learned
-  rules; ≤15 skills. When `/evolve` refuses to add without retiring, that's
+  rules, and skills retired before new ones are added. When `/evolve` refuses to add without retiring, that's
   the design working, not a limitation to remove (rationale in
   [ARCHITECTURE.md](ARCHITECTURE.md#the-global-workspace-rationale)).
 - **Recalibration keeps encoded practices honest**: `/recalibrate` re-verifies
-  the scaffold's conventions against primary sources (Anthropic docs,
-  changelog, the Claude Code team's posts) and files drift as candidate
-  ledger entries — `/evolve` still decides what changes. You don't schedule
-  it in your head: the session-start line nudges when the last run
-  (`.claude/memory/recalibrated-at`, committed) is more than 30 days old, and
-  the heartbeat can run it for you.
+  the scaffold's conventions against primary sources — the Claude Code docs
+  and changelog, `claude.com/blog`, Anthropic's engineering blog, the
+  agent-skills spec — and files drift as candidate ledger entries; `/evolve`
+  still decides what changes. The gate is method, not publisher: a claim
+  counts when you have read the verbatim quote, and a fetch summary never
+  does. `.claude/memory/sources-seen.md` records what was read and when, so
+  dated articles are read once while docs pages are re-read every run. You
+  don't schedule it in your head: the session-start line nudges when the last
+  run (`.claude/memory/recalibrated-at`, committed) is more than 30 days old,
+  and the heartbeat can run it for you.
 
 ## The heartbeat (autonomous maintenance)
 
@@ -159,8 +163,8 @@ Two design points make this safe:
   inside `/evolve`. Delegation keeps the main thread's context clean for
   actual decisions.
 - **New procedures become skills**: when you catch yourself giving the same
-  multi-step instructions twice, Claude should propose `/add-skill` — within
-  the 15-skill budget. Rules go to CLAUDE.md; procedures become skills.
+  multi-step instructions twice, Claude should propose `/add-skill` — paying
+  for it by retiring something. Rules go to CLAUDE.md; procedures become skills.
 
 ## Replication and lineage
 
