@@ -13,7 +13,6 @@ load on demand; this file is always in context, so every line must earn it.
 - Delegate exploration and verification to subagents; keep this thread's workspace clean.
 - One task per session: parallel work goes to separate worktree sessions (`/worktree-parallel`), never the main checkout.
 - Conduct, don't wait: act on the session-start status; when the user states a goal, propose the route — skills, order, and modality (inline / plan / worktrees / loop / heartbeat). Escalation is proposed, never silent; slash commands are shortcuts, never prerequisites.
-- Keep this file concept-dense; procedures belong in skills, facts belong here.
 
 ## Project facts
 
@@ -26,11 +25,12 @@ load on demand; this file is always in context, so every line must earn it.
 
 <!-- janus:rules:start -->
 <!-- Populated only by /evolve. Cap: 12 rules. Each cites a LEARNINGS.md id. -->
-- Aggregator claims and fetch summaries are leads, never evidence — confirm claims verbatim against a primary source before adopting or citing. (L-005)
+- Aggregator claims, fetch summaries, and subagent reports are leads, never evidence — confirm verbatim against a primary source before adopting, citing, or declaring an encoded practice drifted. (L-005, L-004)
+- After changing a convention, grep the whole repo for the old wording and reconcile every hit before claiming consistency. (L-007)
+- Encode a mechanism only when the platform lacks it and real use has proved the need — otherwise the discipline is enough. (L-014, L-015)
+- Before presenting a plan, run an adversarial pass over scale, concurrency, and headless/no-user behavior, and pair every failure found with a fix, not a risk note. (L-008)
 <!-- janus:rules:end -->
 
 ## Map
 
-- Skills: `.claude/skills/` — bootstrap, replicate, reflect, evolve, recalibrate, plan-feature, verify-loop, worktree-parallel, add-skill, ship
-- Agents: `.claude/agents/` — verifier, memory-curator (scouting/design use native subagents)
-- Memory: `.claude/memory/LEARNINGS.md` · Verify: `scripts/verify.sh` · Docs: `docs/`
+- Skills: `.claude/skills/` · Agents: `.claude/agents/` · Rules: `.claude/rules/` · Memory: `.claude/memory/LEARNINGS.md` · Verify: `scripts/verify.sh` · Docs: `docs/`
