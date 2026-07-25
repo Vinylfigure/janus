@@ -14,7 +14,6 @@ CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked 
   skills/                     10 skills — load on demand (progressive disclosure)
   agents/                     2 subagents — run in their own context windows
   memory/LEARNINGS.md         append-only learnings ledger (git-tracked)
-  memory/recalibrated-at      committed epoch stamp of the last /recalibrate run
   memory/sources-seen.md      committed watermark of what /recalibrate has read
 scripts/
   verify.sh                   quick|full dispatcher; /bootstrap fills the case arms
@@ -61,9 +60,13 @@ Stop              stop-reflect-nudge.sh → if .session-signals is non-empty AND
 Marker files (both gitignored): `.session-signals` is the per-session event
 log, deleted by `/reflect`; `.nudged-<session_id>` is the once-per-session
 guard, so an ignored nudge never becomes an infinite loop. By contrast,
-`recalibrated-at` is **committed**: it is provenance, not runtime state — a
-headless heartbeat recalibrating in a cloud clone must be able to reset the
-staleness signal everywhere via its PR.
+`memory/recalibrated-at` is **committed** when it exists: it is provenance,
+not runtime state — a headless heartbeat recalibrating in a cloud clone must
+be able to reset the staleness signal everywhere via its PR. It is written
+ONLY by a completed `/recalibrate` run, so a fresh clone (and this repo,
+until its first full run) has no stamp and the staleness nudge fires — the
+prior stamp was written by a design commit, never a run, and read as a false
+green for weeks (L-020).
 
 Deliberately unused events: `PreToolUse`, `PreCompact`, `Notification`,
 `SubagentStop` — nothing in the template earns them yet. Add hooks only with
