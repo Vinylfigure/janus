@@ -48,7 +48,7 @@ agent) moves qualifying lessons up:
   retired, and the CLAUDE.md caps (≤20 concepts, ≤12 rules) are asserted at
   the end of every run. **Adding requires room; room comes from merging or
   retiring.** The budget rationale is in
-  [ARCHITECTURE.md](ARCHITECTURE.md#the-global-workspace-rationale).
+  [ARCHITECTURE.md](ARCHITECTURE.md#the-capacity-budget-rationale).
 - Editing CLAUDE.md is gated: in an interactive session `/evolve` asks the
   user first; in a headless run (the heartbeat) it delivers via PR — the
   review is the confirmation. This is the general convention for every

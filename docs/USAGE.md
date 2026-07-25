@@ -115,7 +115,7 @@ don't wait for the nudge.
 - **The budgets are load-bearing**: CLAUDE.md ≤20 concepts, ≤12 learned
   rules, and skills retired before new ones are added. When `/evolve` refuses to add without retiring, that's
   the design working, not a limitation to remove (rationale in
-  [ARCHITECTURE.md](ARCHITECTURE.md#the-global-workspace-rationale)).
+  [ARCHITECTURE.md](ARCHITECTURE.md#the-capacity-budget-rationale)).
 - **Recalibration keeps encoded practices honest**: `/recalibrate` re-verifies
   the scaffold's conventions against primary sources — the Claude Code docs
   and changelog, `claude.com/blog`, Anthropic's engineering blog, the

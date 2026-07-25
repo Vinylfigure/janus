@@ -20,14 +20,14 @@ weeks after `claude --worktree` made it the fallback rather than the path.
 
 ## Steps
 
-1. Enumerate the conventions this repo encodes: read each `.claude/skills/*/SKILL.md` (the practices its steps assume), the CLAUDE.md prime directives, and the claims in `docs/ARCHITECTURE.md`'s methodology and workspace tables. Include the load-bearing ones by name: the concept and skill budgets and the workspace paper they rest on, the `Hold in mind` shape itself, the hook protocol's "deliberately unused events" list, and the manual reflect → evolve pipeline. List them as short checkable claims.
+1. Enumerate the conventions this repo encodes: read each `.claude/skills/*/SKILL.md` (the practices its steps assume), the CLAUDE.md prime directives, and the claims in `docs/ARCHITECTURE.md`'s methodology and workspace tables. Include the load-bearing ones by name: the concept and skill budgets and their operational grounding (the docs' 200-line guidance; the workspace paper is convergent context only, never the derivation), the `Hold in mind` shape itself, the hook protocol's "deliberately unused events" list, and the manual reflect → evolve pipeline. List them as short checkable claims.
 2. Read `.claude/memory/sources-seen.md` and split the work: **living** sources (docs pages, changelog, blog index) are re-read every run — a stable URL says nothing about stable content; **one-shot** sources (dated articles already logged) are skipped.
 3. Fetch, starting from the indexes so new material surfaces without being named in advance:
    - `code.claude.com/docs` — `llms.txt` index and the changelog
    - `claude.com/blog` — the post index, then anything dated after the newest entry in the manifest
    - `anthropic.com/engineering`
    - `github.com/anthropics/skills` — `spec/agent-skills-spec.md`, the authority on frontmatter fields
-   - `transformer-circuits.pub/2026/workspace/index.html` — the citation every cap in this repo rests on
+   - `transformer-circuits.pub/2026/workspace/index.html` — convergent context for the budgets; if its framing shifts, the honesty note in ARCHITECTURE must follow
 
    If a source is unreachable, record nothing for the claims it covers — a failed fetch is "no data", never a confirmation.
 4. Diff and classify each claim: **confirmed** (still current), **drifted** (a primary source contradicts or supersedes it — cite where), or **newly-available** (a capability the scaffold predates and could use). For a native limit, check whether the number is a target or a failure threshold before treating it as a budget.
