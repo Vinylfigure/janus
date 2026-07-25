@@ -84,7 +84,7 @@ Rules for curators (`/evolve`):
 - Rule: before presenting a plan, run an adversarial pass over its behavior at scale, under concurrent use, and with no user present — and pair every failure found with a fix, not just a risk note
 - Scope: portable
 - Evidence: 1
-- Status: candidate
+- Status: promoted:CLAUDE.md (Evidence 1 — promoted on explicit user confirmation)
 
 ## L-009 · 2026-07-06 · Seed behavioral fixtures with controlled data, never the repo's live content
 - Trigger: bumping L-005 to Evidence 2 broke two session-start fixtures that asserted against the shipped ledger's real entry counts (janus round-3 session)
