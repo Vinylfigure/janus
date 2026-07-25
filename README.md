@@ -48,7 +48,7 @@ and side-effect skills confirm with you before acting. Typing the
 
 | Piece | Purpose |
 |---|---|
-| `CLAUDE.md` | Always-loaded memory, hard-capped at 20 concepts (see [why](docs/ARCHITECTURE.md#the-global-workspace-rationale)) |
+| `CLAUDE.md` | Always-loaded memory, hard-capped at 20 concepts (see [why](docs/ARCHITECTURE.md#the-capacity-budget-rationale)) |
 | `/bootstrap` | Specialize the scaffold to a real stack; wire real verify commands |
 | `/replicate` | Stamp a child project; carry portable learnings forward |
 | `/reflect` | Distill this session's lessons into the learnings ledger |

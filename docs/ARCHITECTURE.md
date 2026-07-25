@@ -14,7 +14,6 @@ CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked 
   skills/                     10 skills — load on demand (progressive disclosure)
   agents/                     2 subagents — run in their own context windows
   memory/LEARNINGS.md         append-only learnings ledger (git-tracked)
-  memory/recalibrated-at      committed epoch stamp of the last /recalibrate run
   memory/sources-seen.md      committed watermark of what /recalibrate has read
 scripts/
   verify.sh                   quick|full dispatcher; /bootstrap fills the case arms
@@ -61,43 +60,63 @@ Stop              stop-reflect-nudge.sh → if .session-signals is non-empty AND
 Marker files (both gitignored): `.session-signals` is the per-session event
 log, deleted by `/reflect`; `.nudged-<session_id>` is the once-per-session
 guard, so an ignored nudge never becomes an infinite loop. By contrast,
-`recalibrated-at` is **committed**: it is provenance, not runtime state — a
-headless heartbeat recalibrating in a cloud clone must be able to reset the
-staleness signal everywhere via its PR.
+`memory/recalibrated-at` is **committed** when it exists: it is provenance,
+not runtime state — a headless heartbeat recalibrating in a cloud clone must
+be able to reset the staleness signal everywhere via its PR. It is written
+ONLY by a completed `/recalibrate` run, so a fresh clone (and this repo,
+until its first full run) has no stamp and the staleness nudge fires — the
+prior stamp was written by a design commit, never a run, and read as a false
+green for weeks (L-020).
 
 Deliberately unused events: `PreToolUse`, `PreCompact`, `Notification`,
 `SubagentStop` — nothing in the template earns them yet. Add hooks only with
 a purpose, and keep their output inside the budget.
 
-## The global-workspace rationale
+## The capacity-budget rationale
 
-Anthropic's interpretability research on the [global workspace in language
-models](https://transformer-circuits.pub/2026/workspace/index.html) found
-that models maintain a limited-capacity workspace of ~10–25 simultaneously
-active concepts used for deliberate reasoning, that *verbalizing* a concept
-activates its workspace representation, and that intermediate articulated
-reasoning causally drives conclusions — while routine processing happens
-outside the workspace entirely.
+The caps — ≤20 concepts in CLAUDE.md, ≤12 learned rules, ≤50-word skill
+descriptions, ≤3 hook lines — are operational discipline, grounded in
+Anthropic's product guidance and this repo's own dogfooding, not derived
+from interpretability research:
 
-Janus turns each finding into an enforced convention:
+- The memory docs: "target under 200 lines per CLAUDE.md file. Longer
+  files consume more context and reduce adherence", and "shorter files
+  produce better adherence" (code.claude.com/docs/en/memory, verbatim,
+  read 2026-07-24). The concept budget keeps this file an order of
+  magnitude inside that line, where adherence is best.
+- The Claude 5 context-engineering post: "over 80% of Claude Code's
+  system prompt" removed "with no measurable loss on our coding
+  evaluations" — instruction budgets earn their keep under deletion
+  tested against outcomes, not by accumulation.
+- Dogfooding: `/evolve` must merge or retire before adding past the cap,
+  and the constraint has bound in practice — the forced merges and
+  retirements are in the ledger, which is the evidence the cap does work.
 
-| Finding | Janus mechanism |
+Convergent context, nothing more: Anthropic's interpretability paper on a
+[global workspace in language models](https://transformer-circuits.pub/2026/workspace/index.html)
+reports that a small subset of verbalizable representations behaves
+workspace-like. Its number is not a measured capacity: the researchers
+"typically choose it to be no more than 25" — a hyperparameter of a lens
+the paper itself calls "an imperfect tool", covering under 10% of
+activation variance and single-token concepts only. The paper makes no
+claims about prompts, instruction files, or agent harnesses. It is
+suggestive company for small-budget discipline; it cannot justify any
+particular number, and the cap must never be cited as derived from it.
+
+The practices the old research-mapping table credited to the paper stand
+on their own operational grounding:
+
+| Practice | Actual grounding |
 |---|---|
-| ~10–25 active-concept capacity | CLAUDE.md hard budget: 1 bullet = 1 concept, ≤20 total, ≤12 learned rules; hooks inject ≤3 lines; `/evolve` asserts the counts every run |
-| Verbalization activates workspace representations | Every skill opens with **Hold in mind** — the invariants the agent restates before acting |
-| Articulated intermediate reasoning drives conclusions | Skills end with **Before finishing** (state what was verified + evidence); `/verify-loop` requires a one-sentence failure diagnosis before each fix; the verifier demands pasted output and must articulate a counterfactual — one way green could still be wrong — before any PASS |
-| Workspace representations generalize across tasks | Learnings are distilled as one-concept imperative *rules*, not narratives, so they transfer between tasks and (via `Scope: portable`) between repositories |
-| Routine work happens outside the workspace | Progressive disclosure: skill bodies load only on use; clean sessions get no Stop-hook ceremony; exploration and verification are delegated to subagents so their context never enters the main thread |
+| **Hold in mind** (restate invariants before acting) and **Before finishing** (evidence before done) | Kept because they observably catch failures here — L-008's trigger records one stress pass finding 4 real design bugs; the verifier must articulate a counterfactual before any PASS. Dogfooding, not neuroscience |
+| 1 bullet = 1 concept rule format | Dedup and transfer ergonomics: one-concept entries can be grepped, merged, and evidence-counted; narratives cannot |
+| Cross-repo portability of rules | An earned property, judged per rule and confirmed at `/replicate`'s review gate — not a consequence of any research claim about internal representations generalizing |
+| Progressive disclosure (skill bodies on demand, subagents return conclusions) | "Context, therefore, must be treated as a finite resource with diminishing marginal returns" (effective-context-engineering) — product guidance |
 
-Honesty note: the paper is interpretability research about *internal*
-representations. It makes no claims about agent harnesses, external memory,
-RAG, or knowledge graphs — the mapping above is Janus's inference, and the
-paper is convergent evidence for the small-active-set bounds, not a
-prescription. Treat it accordingly when citing it.
-
-This is why the caps are hard: every concept added to CLAUDE.md competes for
-the same limited workspace the model needs for the actual task. When `/evolve`
-refuses to add a rule without retiring one, that is the design working.
+Treat ≤20 as a tunable heuristic, not a constant of nature. If evidence
+ever shows a different number works better, change the number — the
+discipline worth keeping is that *some* budget binds, so adding requires
+retiring.
 
 ## The memory pipeline (J-brain)
 

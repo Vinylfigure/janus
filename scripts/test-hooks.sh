@@ -75,7 +75,9 @@ else
   for t in $(grep -ohE '[A-Za-z0-9_.-]+\.sh' "$ROOT"/docs/*.md | sort -u); do
     if [ -f "$ROOT/scripts/$t" ] || [ -f "$ROOT/.claude/hooks/$t" ]; then pass "docs script ref $t exists"; else fail "docs reference $t but no such file in scripts/ or .claude/hooks/"; fi
   done
-  for p in .github/workflows/verify.yml .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/recalibrated-at .claude/memory/sources-seen.md; do
+  # recalibrated-at is deliberately absent from this list: it is written only
+  # by a completed /recalibrate run (L-020), so its absence is a valid state.
+  for p in .github/workflows/verify.yml .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/sources-seen.md; do
     if [ -e "$ROOT/$p" ]; then pass "component-map path $p exists"; else fail "component-map path $p missing from tree"; fi
   done
   n=$(ls "$ROOT"/.claude/hooks/*.sh 2>/dev/null | wc -l | tr -d ' ')
@@ -105,6 +107,17 @@ echo '{"prompt":"please add a login page"}' | "$SANDBOX/.claude/hooks/prompt-sig
 [ ! -f "$SIGNALS" ] && pass "normal prompt logs nothing" || fail "normal prompt logs nothing"
 echo '{"prompt":"no, that is wrong, undo that"}' | "$SANDBOX/.claude/hooks/prompt-signal.sh"
 grep -q '^correction:' "$SIGNALS" 2>/dev/null && pass "correction prompt logs a signal" || fail "correction prompt logs a signal"
+# Enriched signal: keyword and excerpt travel with the timestamp, so a later
+# session can tell WHY it fired (a bare timestamp forced guessing — L-031).
+line=$(grep '^correction:' "$SIGNALS" 2>/dev/null | tail -1)
+printf '%s' "$line" | grep -qi ':no,:' && pass "correction signal carries matched keyword" || fail "correction signal carries matched keyword (got: $line)"
+printf '%s' "$line" | grep -qi 'no, that is wrong' && pass "correction signal carries prompt excerpt" || fail "correction signal carries prompt excerpt (got: $line)"
+rm -f "$SIGNALS"
+long=$(printf 'wrong %.0s' $(seq 1 40))
+echo "{\"prompt\":\"$long\"}" | "$SANDBOX/.claude/hooks/prompt-signal.sh"
+line=$(grep '^correction:' "$SIGNALS" 2>/dev/null | tail -1)
+[ -n "$line" ] && [ "${#line}" -le 130 ] && pass "excerpt truncated to a bounded line" || fail "excerpt truncated to a bounded line (len ${#line})"
+[ "$(wc -l < "$SIGNALS")" -eq 1 ] && pass "multiline-safe: one signal = one line" || fail "multiline-safe: one signal = one line"
 
 echo "== stop-reflect-nudge.sh =="
 out=$(echo '{"session_id":"t1"}' | "$SANDBOX/.claude/hooks/stop-reflect-nudge.sh")
