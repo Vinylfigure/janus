@@ -155,3 +155,24 @@ Rules for curators (`/evolve`):
 - Scope: portable
 - Evidence: 1
 - Status: candidate
+
+## L-019 · 2026-07-24 · Refresh remote-tracking refs before reasoning about what has already landed
+- Trigger: `git log --oneline origin/main..HEAD` ran without a prior fetch and reported 12 unmerged commits; all 12 were already on main via PRs #4-#6. A scope decision was put to the user on that count, and the resulting PR opened CONFLICTING against a main that had since landed its own /evolve round, forcing the PR to be closed and rebuilt (janus doctor+evolve session). Distinct from L-005's round-3.5 branch incident: there the remote branch never existed and a report asserted it unverified (a trust-the-summary failure); here the ref existed but the local cache was stale — the primary-source command itself lied
+- Rule: run `git fetch` before any command that reads a remote-tracking ref — `origin/*` is a local cache, and a comparison against an unfetched one returns a confidently stale answer, not a visibly wrong one
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-020 · 2026-07-24 · Audit a delegated report's premises, not only its citations
+- Trigger: the memory-curator agent's promotion proposal was checked line by line against LEARNINGS.md and every Evidence count held — yet four of its five proposed promotions were already merged on main, because its unstated premise (that the working tree reflected the shared branch) was never tested; the agent was scoped to the local tree and could not have known (janus doctor+evolve session)
+- Rule: when auditing a subagent's report, name and test its unstated premises and the scope it could actually observe — correctly verified citations under a false premise still yield a wrong conclusion
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-021 · 2026-07-24 · Pass multi-line command bodies through a file, never inline command substitution
+- Trigger: `gh pr create --body "$(cat <<'BODY' ...)"` failed with `unexpected EOF while looking for matching quote`; writing the identical body to a file and passing `--body-file` succeeded unchanged. A heredoc piped directly to stdin (`git commit -F -`) was unaffected — only the nesting inside command substitution broke (janus doctor+evolve session)
+- Rule: write multi-line text — PR and issue bodies, JSON payloads, config blocks — to a file and pass it by path; never nest a heredoc inside command substitution inside a quoted argument
+- Scope: portable
+- Evidence: 1
+- Status: candidate
