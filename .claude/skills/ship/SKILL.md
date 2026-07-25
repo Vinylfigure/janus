@@ -1,6 +1,7 @@
 ---
 name: ship
-description: Close the delivery loop - verify green, commit, push, open a PR, then babysit CI and review feedback until merged or closed. Use when a verified change is ready to leave the machine or the user asks to ship, land, or PR; confirms branch and remote before the first push.
+description: Close the delivery loop - verify green, commit, push, open a PR, then babysit CI and review feedback until merged or closed. Confirms branch and remote before the first push.
+when_to_use: Use when a verified change is ready to leave the machine or the user asks to ship, land, or PR.
 argument-hint: [optional PR title]
 ---
 

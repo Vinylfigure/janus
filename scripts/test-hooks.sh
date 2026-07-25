@@ -21,6 +21,39 @@ for f in "$ROOT"/.claude/hooks/*.sh "$ROOT"/scripts/*.sh; do
 done
 if jq . "$ROOT/.claude/settings.json" >/dev/null 2>&1; then pass "settings.json is valid JSON"; else fail "settings.json is valid JSON"; fi
 
+echo "== frontmatter (skills + agents) =="
+# The quick dispatcher's *) arm exits 0 for every .md, so nothing else in the
+# repo would catch a malformed or misspelled frontmatter block. Field sets are
+# claims about a moving target — /recalibrate re-verifies them against
+# code.claude.com/docs/en/skills and the anthropics/skills spec.
+SKILL_FIELDS=" name description when_to_use argument-hint arguments disable-model-invocation user-invocable allowed-tools disallowed-tools model effort context agent background hooks paths shell "
+AGENT_FIELDS=" name description tools disallowedTools model permissionMode maxTurns skills mcpServers hooks memory background effort isolation color initialPrompt "
+check_frontmatter() {
+  local file=$1 allowed=$2 expect=$3 label=$4
+  if [ "$(head -1 "$file")" != "---" ]; then fail "$label: no frontmatter opening ---"; return; fi
+  local end; end=$(awk 'NR>1 && /^---[[:space:]]*$/{print NR; exit}' "$file")
+  if [ -z "$end" ]; then fail "$label: unterminated frontmatter block"; return; fi
+  # A stray `---` rule in the body would otherwise pose as the closer and turn
+  # prose into "fields", so require the whole region to be frontmatter-shaped:
+  # a key, an indented continuation, or a list item.
+  local stray; stray=$(sed -n "2,$((end - 1))p" "$file" \
+    | grep -vE '^[[:space:]]*$|^[[:space:]]|^-[[:space:]]|^[a-zA-Z][a-zA-Z0-9_-]*:' | head -1)
+  if [ -n "$stray" ]; then fail "$label: unterminated frontmatter block (body text before closing ---: '${stray:0:40}')"; return; fi
+  local bad=""
+  while IFS= read -r key; do
+    case "$allowed" in *" $key "*) ;; *) bad="$bad $key" ;; esac
+  done < <(sed -n "2,$((end - 1))p" "$file" | grep -oE '^[a-zA-Z][a-zA-Z0-9_-]*:' | tr -d ':')
+  if [ -n "$bad" ]; then fail "$label: unknown frontmatter field(s):$bad"; else pass "$label: frontmatter fields known"; fi
+  local declared; declared=$(sed -n "2,$((end - 1))p" "$file" | sed -n 's/^name:[[:space:]]*//p' | tr -d '"'"'"' ')
+  if [ -z "$declared" ] || [ "$declared" = "$expect" ]; then pass "$label: name matches path"; else fail "$label: name '$declared' != '$expect'"; fi
+}
+for d in "$ROOT"/.claude/skills/*/; do
+  check_frontmatter "$d/SKILL.md" "$SKILL_FIELDS" "$(basename "$d")" "skill $(basename "$d")"
+done
+for f in "$ROOT"/.claude/agents/*.md; do
+  check_frontmatter "$f" "$AGENT_FIELDS" "$(basename "$f" .md)" "agent $(basename "$f" .md)"
+done
+
 echo "== docs consistency (name-level) =="
 # Keeps docs/ honest about the tree: names, paths, and counts only — semantic
 # accuracy stays on SELF-IMPROVEMENT.md rule 1 and /recalibrate.
@@ -42,7 +75,7 @@ else
   for t in $(grep -ohE '[A-Za-z0-9_.-]+\.sh' "$ROOT"/docs/*.md | sort -u); do
     if [ -f "$ROOT/scripts/$t" ] || [ -f "$ROOT/.claude/hooks/$t" ]; then pass "docs script ref $t exists"; else fail "docs reference $t but no such file in scripts/ or .claude/hooks/"; fi
   done
-  for p in .github/workflows/verify.yml .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/recalibrated-at; do
+  for p in .github/workflows/verify.yml .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/recalibrated-at .claude/memory/sources-seen.md; do
     if [ -e "$ROOT/$p" ]; then pass "component-map path $p exists"; else fail "component-map path $p missing from tree"; fi
   done
   n=$(ls "$ROOT"/.claude/hooks/*.sh 2>/dev/null | wc -l | tr -d ' ')

@@ -1,6 +1,7 @@
 ---
 name: worktree-parallel
-description: Fan a task out into parallel Claude Code sessions, each in its own git worktree, then merge tracks after each verifies green. Use when work splits into genuinely independent tracks (refactor + feature + bugfix) or the user asks to parallelize; confirms the track plan before creating worktrees.
+description: Fan a task out into parallel Claude Code sessions, each in its own git worktree, then merge tracks after each verifies green. Confirms the track plan before creating worktrees.
+when_to_use: Use when work splits into genuinely independent tracks (refactor + feature + bugfix) or the user asks to parallelize.
 argument-hint: [task to parallelize]
 ---
 

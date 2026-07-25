@@ -1,6 +1,7 @@
 ---
 name: verify-loop
-description: Close the feedback loop on a change - define a runnable success check, run it, articulate each failure before fixing, iterate to green (max 5 rounds). Use before claiming any work is done.
+description: Close the feedback loop on a change - define a runnable success check, run it, articulate each failure before fixing, iterate to green (max 5 rounds).
+when_to_use: Use before claiming any work is done.
 argument-hint: [success command or observable criterion]
 ---
 
