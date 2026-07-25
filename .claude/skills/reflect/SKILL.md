@@ -1,6 +1,7 @@
 ---
 name: reflect
-description: Distill this session's lessons (corrections, verification failures, surprises, wasted paths) into structured entries in .claude/memory/LEARNINGS.md. Use at session end, after a correction, or when the Stop hook asks for it.
+description: Distill this session's lessons (corrections, verification failures, surprises, wasted paths) into structured entries in .claude/memory/LEARNINGS.md.
+when_to_use: Use at session end, after a correction, or when the Stop hook asks for it.
 ---
 
 Runs in the main thread only — never delegate this to a subagent. Only this
@@ -8,13 +9,12 @@ thread holds the session transcript, and the transcript is the raw material.
 
 ## Hold in mind
 
-Restate these in your own words before step 1:
-
 1. A lesson is an imperative *rule* — one concept, testable — not a story about what happened.
 2. Capture the trigger (the concrete event), because future readers need to know when the rule applies.
 3. Duplicates strengthen, not multiply: an existing equivalent entry gets its Evidence bumped, never a twin.
 4. `Scope: portable` means the rule is true in any repository, not just this one — judge honestly; portable entries are inherited by every child project.
 5. Auto memory (Claude Code's native per-repo memory directory) is ambient machine-local capture; the ledger is the git-shared genome — this skill is the bridge between them.
+6. A lesson learned from vendor behaviour gets the durable discipline in the Rule and the dated fact in the Trigger. Entries are inherited forever and never deleted, so a rule phrased around today's platform state rots in every child.
 
 ## Steps
 

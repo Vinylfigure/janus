@@ -156,21 +156,77 @@ Rules for curators (`/evolve`):
 - Evidence: 1
 - Status: candidate
 
-## L-019 · 2026-07-24 · Refresh remote-tracking refs before reasoning about what has already landed
+## L-019 · 2026-07-24 · Name concrete source URLs in an encoded source list, never a category
+- Trigger: five new Anthropic posts (claude.com/blog, 2026-07-16..24) had to be hand-delivered by the user because /recalibrate never reached them; the skill names "Anthropic's engineering blog" at SKILL.md:22 but its Hold-in-mind #1 at :14 says "Aggregator and blog claims are leads to verify, never evidence" — the skill contradicts itself, and line 14 silently downgraded L-005's *method* rule (confirm verbatim against a primary source) into a *source-class* rule (blogs are second-class)
+- Rule: a source list is executable only if it names concrete URLs; gate credibility on method (verbatim confirmation) rather than on the publisher's format, or whole publications go unread
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-020 · 2026-07-24 · A provenance stamp written by anything but a real run is a false green
+- Trigger: .claude/memory/recalibrated-at holds 1783394187 (2026-07-07) written by design commit 539a12e, not by a run — `git log` on the file shows exactly one commit, so /recalibrate has never actually completed in this repo, yet the 30-day staleness nudge reads as satisfied (janus claude-5 realignment session)
+- Rule: write a run stamp only from the run it certifies; a stamp set by the commit that designed the mechanism records provenance that never happened and suppresses the very nudge meant to catch it
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-021 · 2026-07-24 · Verify which memory tiers survive the environments you actually run in
+- Trigger: code.claude.com/docs/en/memory states verbatim "Auto memory is machine-local. All worktrees and subdirectories within the same git repository share one auto memory directory. Files are not shared across machines or cloud environments" — so this scaffold's headless heartbeat routine and every cloud session start with an empty ambient tier, a consequence the memory-pipeline design never accounted for (janus claude-5 realignment session)
+- Rule: for each memory tier a design depends on, confirm which execution environments it actually reaches; a tier that is absent headless or in the cloud cannot carry anything the automation relies on
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-022 · 2026-07-24 · Keep volatile platform facts out of inherited memory, or state their expiry
+- Trigger: the claude-5 findings include vendor state that will rot (auto-memory locality, a 1,536-char listing truncation, the current frontmatter field set); /replicate copies every `Scope: portable` entry into every child forever and entries are never deleted, so filing them portable would breed claims with no expiry and no deletion path (janus claude-5 realignment session)
+- Rule: file the durable discipline as the portable rule and keep the vendor fact in the Trigger line as dated evidence — an inherited entry must stay true when the platform changes under it
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-023 · 2026-07-24 · A platform's truncation ceiling is not a budget — don't swap a binding discipline for it
+- Trigger: this session's own plan proposed replacing the repo's ≤50-word skill-description cap with the docs' "truncated at 1,536 characters in the skill listing"; an adversarial pass caught that the ceiling is where rendering stops, not a target — adopting it would license ~15,360 chars of always-loaded description against ~2,816 today, a 5.5x increase, while quoting "every token added depletes Claude's attention budget" as the warrant (janus claude-5 realignment session)
+- Rule: when replacing a scaffold cap with a native limit, check whether the native number is a target or a failure threshold; substituting a ceiling for a binding discipline loosens the constraint while appearing to modernize it
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-024 · 2026-07-24 · Aim a recalibration at the conventions it would be most costly to lose
+- Trigger: the claude-5 context-engineering post ("Give Claude rules" -> "Let Claude use judgement", "Repeat yourself" -> "Simple tool descriptions", "Memory in CLAUDE.md files" -> "Auto-memory") challenges this scaffold's own signature mechanisms — the Hold-in-mind ritual, the prime directives, and the manual reflect/evolve pipeline — and the first draft of the realignment plan proposed changes everywhere except there (janus claude-5 realignment session)
+- Rule: a recalibration that returns only comfortable findings has not recalibrated — enumerate the conventions the scaffold is proudest of and file the evidence against them by name
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-025 · 2026-07-24 · Spend always-loaded memory on gotchas, not on what the codebase already shows
+- Trigger: claude.com/blog's claude-5 context-engineering post says verbatim "Keep your CLAUDE.md lightweight and briefly describe what your repo is for, but spend most of the tokens on gotchas inside of the codebase", and the /doctor trim check "cuts content Claude can derive from the codebase, such as directory layouts, dependency lists, and architecture overviews"; this repo's CLAUDE.md carried a ## Map section of exactly that derivable content and no gotchas at all (janus claude-5 realignment session)
+- Rule: in an always-loaded memory file, a line that restates the directory tree is paying permanent rent for something a single `ls` recovers — spend the budget on traps that bite and are invisible from the code
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-026 · 2026-07-24 · Derive a validator's allowlist from the primary source, not from what you just read
+- Trigger: the new frontmatter fixture's field sets were written from the fields this session happened to have quoted — it then rejected documented-valid input (`shell:` on a skill; `color:`/`skills:`/`isolation:` on an agent, where 5 of 16 documented fields were known) and its lowercase-only regex made every camelCase field invisible to validation, including misspellings; the adversarial verifier caught all of it against the docs (janus claude-5 realignment session)
+- Rule: when a check encodes a set of valid values, build the set by enumerating the primary source in that moment — a validator written from recall is a claim about a moving target that fails in both directions, rejecting what is valid and silently passing what is not
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-027 · 2026-07-24 · Refresh remote-tracking refs before reasoning about what has already landed
 - Trigger: `git log --oneline origin/main..HEAD` ran without a prior fetch and reported 12 unmerged commits; all 12 were already on main via PRs #4-#6. A scope decision was put to the user on that count, and the resulting PR opened CONFLICTING against a main that had since landed its own /evolve round, forcing the PR to be closed and rebuilt (janus doctor+evolve session). Distinct from L-005's round-3.5 branch incident: there the remote branch never existed and a report asserted it unverified (a trust-the-summary failure); here the ref existed but the local cache was stale — the primary-source command itself lied
 - Rule: run `git fetch` before any command that reads a remote-tracking ref — `origin/*` is a local cache, and a comparison against an unfetched one returns a confidently stale answer, not a visibly wrong one
 - Scope: portable
 - Evidence: 1
 - Status: candidate
 
-## L-020 · 2026-07-24 · Audit a delegated report's premises, not only its citations
+## L-028 · 2026-07-24 · Audit a delegated report's premises, not only its citations
 - Trigger: the memory-curator agent's promotion proposal was checked line by line against LEARNINGS.md and every Evidence count held — yet four of its five proposed promotions were already merged on main, because its unstated premise (that the working tree reflected the shared branch) was never tested; the agent was scoped to the local tree and could not have known (janus doctor+evolve session)
 - Rule: when auditing a subagent's report, name and test its unstated premises and the scope it could actually observe — correctly verified citations under a false premise still yield a wrong conclusion
 - Scope: portable
 - Evidence: 1
 - Status: candidate
 
-## L-021 · 2026-07-24 · Pass multi-line command bodies through a file, never inline command substitution
+## L-029 · 2026-07-24 · Pass multi-line command bodies through a file, never inline command substitution
 - Trigger: `gh pr create --body "$(cat <<'BODY' ...)"` failed with `unexpected EOF while looking for matching quote`; writing the identical body to a file and passing `--body-file` succeeded unchanged. A heredoc piped directly to stdin (`git commit -F -`) was unaffected — only the nesting inside command substitution broke (janus doctor+evolve session)
 - Rule: write multi-line text — PR and issue bodies, JSON payloads, config blocks — to a file and pass it by path; never nest a heredoc inside command substitution inside a quoted argument
 - Scope: portable

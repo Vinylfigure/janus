@@ -1,6 +1,7 @@
 ---
 name: evolve
-description: Promote stable learnings (Evidence >= 2) from LEARNINGS.md into CLAUDE.md rules or new skills, retire contradicted rules, and enforce the concept budget. Use between tasks when the session-start status reports ripe learnings - never mid-implementation. Confirms with the user before editing CLAUDE.md.
+description: Promote stable learnings (Evidence >= 2) from LEARNINGS.md into CLAUDE.md rules or new skills, retire contradicted rules, and enforce the concept budget. Confirms with the user before editing CLAUDE.md.
+when_to_use: Use between tasks when the session-start status reports ripe learnings - never mid-implementation.
 ---
 
 The garbage collector and promoter of Janus's memory. `/reflect` writes raw
@@ -24,9 +25,9 @@ lessons; this skill decides what graduates into always-loaded context.
    - **Rule-shaped, path-local** (only true for part of the codebase) → write `.claude/rules/<topic>.md` with `paths:` glob frontmatter and the rule as its body, citing the ledger id; mark the entry `promoted:rules/<topic>`.
    - **Procedure-shaped** → create or update a skill via `/add-skill`, then note the skill in the ledger entry.
    - **Stack-specific while this repo is still the template** → leave as candidate; children promote it after `/replicate`.
-5. Apply retirements: rules contradicted by newer, better-evidenced entries get removed from CLAUDE.md and their ledger entry marked `Status: retired` with a one-line reason. Entries merged into another become `retired` with reason "merged into L-NNN". This authority extends to skills: an obsolete skill (or one blocking the 15-skill cap) gets a retirement proposal — deleting it still needs the user's yes.
+5. Apply retirements: rules contradicted by newer, better-evidenced entries get removed from CLAUDE.md and their ledger entry marked `Status: retired` with a one-line reason. Entries merged into another become `retired` with reason "merged into L-NNN". This authority extends to skills: an obsolete skill, or one no longer earning its permanent listing cost, gets a retirement proposal — deleting it still needs the user's yes.
 6. Update ledger statuses: `promoted:CLAUDE.md` or `promoted:skill/<name>`.
-7. Count concepts in CLAUDE.md (bullets across all sections) and the rules block (bullets inside sentinels).
+7. Count concepts in CLAUDE.md (bullets across all sections) and the rules block (bullets inside sentinels). The counts are this repo's discipline, not the platform's: `/doctor` rightsizes independently and will propose trimming anything the codebase already shows — run it when the file feels heavy, and treat what it proposes as a lead to judge, not an instruction to apply.
 
 ## Before finishing
 

@@ -1,6 +1,7 @@
 ---
 name: plan-feature
-description: The plan-first workflow for any non-trivial change - explore with subagents, write a plan with explicit "done means" verification criteria, get sign-off, implement, verify. Use for features, refactors, or any change touching more than a couple of files.
+description: The plan-first workflow for any non-trivial change - explore with subagents, write a plan with explicit "done means" verification criteria, get sign-off, implement, verify.
+when_to_use: Use for features, refactors, or any change touching more than a couple of files.
 argument-hint: [what to build or change]
 ---
 
@@ -17,7 +18,7 @@ the actual reasoning.
 
 ## Steps
 
-1. Restate the requirement in <= 3 sentences, then list the 3-5 invariants at stake (what must not break, what must remain true). This is your working set — refer back to it.
+1. Restate the requirement in <= 3 sentences, then list the invariants at stake (what must not break, what must remain true). This is your working set — refer back to it.
 2. Classify the known unknowns — everything the plan depends on that you don't yet know — and route each to its resolution: codebase question → an exploration subagent; requirement or preference → interview the user; feasibility → a small prototype or probe. In an unfamiliar domain, add a blind-spot pass: "what would an expert check that I haven't thought to?" — route those too. An unrouted unknown is a silent assumption.
 3. Explore via subagents, in parallel where independent: a read-only exploration subagent to map the relevant code, and for large features a second subagent drafting an approach independently. Subagents return conclusions; file dumps stay out of this thread.
 4. Write the plan: **Approach** (the design, the key tradeoff you made, and the alternative you rejected — one line on why), files to touch, sequencing, **Predicted failure modes:** 2–3 falsifiable predictions ranked by likelihood, drawn from ledger history and the task's shape ("the merge will conflict in X", never "merges are risky"), **Unknowns:** anything still open and the route that resolves it, and **Done means:** the exact command(s)/observation(s) that prove success.
