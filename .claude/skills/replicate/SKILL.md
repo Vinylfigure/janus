@@ -12,7 +12,7 @@ repository has learned that is true anywhere — heredity, not just copying.
 
 1. Only `Scope: portable` knowledge crosses repositories — project-specific rules in a child are noise that erodes trust in the whole memory system.
 2. Knowledge is inherited; verification state is not. Ledger entries cross; run stamps and source watermarks reset.
-3. Inherited entries arrive as `Status: inherited`, not `candidate`: the child re-earns promotion with its own evidence.
+3. Inherited entries arrive as `Status: inherited`, not `candidate`: the child re-earns promotion with its own evidence. Rules entering the child's CLAUDE.md are the one exception — they arrive active, so each one is gated on the user's explicit yes at replicate time: the generation boundary is a review gate, because persisted rules files are an injection channel and a poisoned rule would otherwise propagate to every descendant unreviewed.
 4. The child must not keep the template's identity: name, facts block, and README head must be rewritten before first commit.
 5. The child's first session should run `/bootstrap` — say so explicitly in the handoff.
 
@@ -23,7 +23,7 @@ repository has learned that is true anywhere — heredity, not just copying.
    - **GitHub path** (preferred): `gh repo create <name> --template <owner>/<template-repo> --<visibility> --clone`
    - **Local fallback**: `git clone --depth 1 <template> <name> && rm -rf <name>/.git && git -C <name> init -b main`
 3. Apply heredity, in the child:
-   - From the parent's CLAUDE.md `janus:rules` block, copy rules whose ledger entries are `Scope: portable` into the child's rules block (keep the `(L-NNN)` citations).
+   - From the parent's CLAUDE.md `janus:rules` block, present each rule whose ledger entry is `Scope: portable` and copy it into the child's rules block only on the user's explicit yes (keep the `(L-NNN)` citations). A declined rule is not lost — its ledger entry still crosses as `inherited` below.
    - From the parent's `LEARNINGS.md`, copy every `Scope: portable` entry (any Status except `retired`) into the child's ledger, re-marking each `Status: inherited`.
    - Copy nothing project-scoped. When in doubt, leave it behind — heredity is selective.
    - Reset the child's recalibration clock: `date +%s > .claude/memory/recalibrated-at` in the child.

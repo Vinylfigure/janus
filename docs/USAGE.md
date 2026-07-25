@@ -173,7 +173,11 @@ Two design points make this safe:
   `Status: inherited`, rewrites identity, resets the child's recalibration
   clock, and hands off to the child's `/bootstrap`.
 - Children **re-earn** promotion: inherited entries need fresh evidence in
-  the child before `/evolve` promotes them there.
+  the child before `/evolve` promotes them there. The parent's
+  already-promoted rules are the one exception — they arrive active in the
+  child's rules block, and for exactly that reason each one needs your
+  explicit yes during `/replicate`: the generation boundary is a review
+  gate against inheriting a bad (or poisoned) rule unreviewed.
 - Children do **not** auto-update from the template. To backport a template
   improvement into an existing child, cherry-pick the commit.
 - Improving Janus itself is just feature work — the template runs its own

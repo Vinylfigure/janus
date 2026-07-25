@@ -57,7 +57,11 @@ agent) moves qualifying lessons up:
 
 **5. Inheritance.** `/replicate` copies `Scope: portable` entries (and their
 promoted rules) into child repositories, re-marked `Status: inherited`.
-Children re-earn promotion with their own evidence. Ledger entries are never
+Children re-earn promotion with their own evidence; promoted rules are the
+one exception — they land active in the child's CLAUDE.md, so each needs the
+user's explicit yes at replicate time. The generation boundary is a review
+gate: persisted rules files are an injection channel, and a bad rule would
+otherwise propagate to every descendant unreviewed. Ledger entries are never
 deleted — `promoted`/`retired`/`inherited` markings keep the full lineage
 history, which is what makes the ledger a genome rather than a notebook.
 
