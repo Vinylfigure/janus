@@ -155,3 +155,17 @@ Rules for curators (`/evolve`):
 - Scope: portable
 - Evidence: 1
 - Status: candidate
+
+## L-019 · 2026-07-27 · Write the minimum code that solves the stated problem
+- Trigger: evaluation of forrestchang/andrej-karpathy-skills ("Simplicity First", derived from Karpathy's LLM-pitfalls post) found Janus applies this discipline to the scaffold (L-014) but not to application code written post-bootstrap (external lead, karpathy-skills evaluation session)
+- Rule: when writing application code, implement only what was asked — no speculative abstractions, configurability, or error handling for scenarios that cannot occur; refactor when the need actually arrives
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-020 · 2026-07-27 · Every changed line must trace to the request
+- Trigger: same evaluation ("Surgical Changes") — neither Janus nor the platform encodes diff minimalism: don't improve adjacent code, comments, or formatting while editing; the platform covers style-matching natively but not scope-of-diff (external lead, karpathy-skills evaluation session)
+- Rule: when editing existing code, change only lines the request requires and remove only orphans your own change created; mention pre-existing dead code, don't delete it
+- Scope: portable
+- Evidence: 1
+- Status: candidate
