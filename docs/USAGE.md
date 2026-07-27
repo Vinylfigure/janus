@@ -169,7 +169,7 @@ Two design points make this safe:
 ## Conducting a portfolio (multiple repos)
 
 When several work streams each live in their own repo, the shape is a
-pyramid: you talk to one **conductor** ("overlord"), and it dispatches goals
+pyramid: you talk to one **conductor**, and it dispatches goals
 down to each stream's repo, where that repo's own scaffold decides plan
 mode, worktrees, and subagents. Two rules keep this honest:
 

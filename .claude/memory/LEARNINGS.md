@@ -86,7 +86,7 @@ Rules for curators (`/evolve`):
 - Status: promoted:CLAUDE.md
 
 ## L-008 · 2026-07-06 · Stress-test a plan against scale, concurrency, and headless modes before presenting it
-- Trigger: user rejected the round-3 plan approval asking "will this perform under stress and scaling?"; the resulting review found 4 real design bugs the plan had missed — ledger cap deadlock, worktree ID collisions, headless gates with no user, mtime loss across clones (janus round-3 session); observed: 2026-07-27 — the orchestration plan's adversarial pass surfaced the heartbeat-burst, session-attribution, and un-bootstrapped-dispatch failures, and their fixes (staggering, one-repo-owns-a-session, verify-green precondition) shipped in the docs and overlord skills
+- Trigger: user rejected the round-3 plan approval asking "will this perform under stress and scaling?"; the resulting review found 4 real design bugs the plan had missed — ledger cap deadlock, worktree ID collisions, headless gates with no user, mtime loss across clones (janus round-3 session); observed: 2026-07-27 — the orchestration plan's adversarial pass surfaced the heartbeat-burst, session-attribution, and un-bootstrapped-dispatch failures, and their fixes (staggering, one-repo-owns-a-session, verify-green precondition) shipped in the docs and the conductor child's skills
 - Rule: before presenting a plan, run an adversarial pass over its behavior at scale, under concurrent use, and with no user present — and pair every failure found with a fix, not just a risk note
 - Scope: portable
 - Evidence: 1
