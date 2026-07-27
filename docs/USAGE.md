@@ -182,6 +182,10 @@ mode, worktrees, and subagents. Two rules keep this honest:
   new dispatches via PR.
 - **Children answer only by PR.** The conductor subscribes to each child's
   PR activity; it never pushes to a child directly.
+- **Children ship dispatch-ready.** The template carries an @claude-gated
+  workflow (subscription auth); at onboarding, add the shared
+  `CLAUDE_CODE_OAUTH_TOKEN` secret (generated once with `claude setup-token`)
+  to the child repo and it can receive work orders.
 
 Disciplines that make it survive scale: dispatch only into repos that have
 bootstrapped and verified green (an unverifiable stream produces
