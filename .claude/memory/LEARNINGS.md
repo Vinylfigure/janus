@@ -65,7 +65,7 @@ Rules for curators (`/evolve`):
 - Status: promoted:skill/recalibrate
 
 ## L-005 · 2026-07-06 · Treat aggregator claims and fetch summaries as leads, never evidence
-- Trigger: an aggregator site mixed verified practices with unverifiable feature claims — only primary-source-corroborated claims were encoded (janus refinement session); the withheld /goal claim was later confirmed by the official loops post (round-3 research); merged with L-011: a fetch-summary of the workspace paper attributed claims the paper never makes, caught by demanding verbatim quotes; recurred in round 3.5: a subagent report claimed a branch was "up to date with its origin" — the remote had no such branch, and a PR create failed until `git ls-remote` settled it; recurred 2026-07-24 (methodology review): a delegated verifier reported two Anthropic quotes as FABRICATIONS — main-thread raw-HTML fetch showed both sentences real, the refutation itself being the false summary-layer claim (origin: subagent report, falsified by own observation)
+- Trigger: an aggregator site mixed verified practices with unverifiable feature claims — only primary-source-corroborated claims were encoded (janus refinement session); the withheld /goal claim was later confirmed by the official loops post (round-3 research); merged with L-011: a fetch-summary of the workspace paper attributed claims the paper never makes, caught by demanding verbatim quotes; recurred in round 3.5: a subagent report claimed a branch was "up to date with its origin" — the remote had no such branch, and a PR create failed until `git ls-remote` settled it; recurred 2026-07-24 (methodology review): a delegated verifier reported two Anthropic quotes as FABRICATIONS — main-thread raw-HTML fetch showed both sentences real, the refutation itself being the false summary-layer claim (origin: subagent report, falsified by own observation); observed: 2026-07-27 — a research subagent claimed cloud cross-repo session triggers don't exist; checked against the session's own toolset, which exposes exactly that mechanism, so the claim was corrected before entering the plan
 - Rule: treat aggregator claims and fetch summaries as leads, never evidence — confirm any specific claim verbatim against a primary source before adopting or citing it
 - Scope: portable
 - Evidence: 5
@@ -86,7 +86,7 @@ Rules for curators (`/evolve`):
 - Status: promoted:CLAUDE.md
 
 ## L-008 · 2026-07-06 · Stress-test a plan against scale, concurrency, and headless modes before presenting it
-- Trigger: user rejected the round-3 plan approval asking "will this perform under stress and scaling?"; the resulting review found 4 real design bugs the plan had missed — ledger cap deadlock, worktree ID collisions, headless gates with no user, mtime loss across clones (janus round-3 session)
+- Trigger: user rejected the round-3 plan approval asking "will this perform under stress and scaling?"; the resulting review found 4 real design bugs the plan had missed — ledger cap deadlock, worktree ID collisions, headless gates with no user, mtime loss across clones (janus round-3 session); observed: 2026-07-27 — the orchestration plan's adversarial pass surfaced the heartbeat-burst, session-attribution, and un-bootstrapped-dispatch failures, and their fixes (staggering, one-repo-owns-a-session, verify-green precondition) shipped in the docs and overlord skills
 - Rule: before presenting a plan, run an adversarial pass over its behavior at scale, under concurrent use, and with no user present — and pair every failure found with a fix, not just a risk note
 - Scope: portable
 - Evidence: 1
@@ -298,6 +298,13 @@ Rules for curators (`/evolve`):
 ## L-038 · 2026-07-24 · Gate the commit on the verifier's exit in the same command chain
 - Trigger: a commit ran as an unconditional statement after the verify invocation in one compound command; the suite was red (a component-map fixture) and the red commit landed, needing an amend after the fix (origin: verify failure, own observation, this session)
 - Rule: when a commit depends on verification passing, chain it with && on the verify exit status — sequential statements commit red results
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-039 · 2026-07-27 · Restraint rules bind the template's machinery, not the user's product ask
+- Trigger: user correction — a docs-only plan deferred a requested multi-repo conductor on L-014 grounds and was rejected ("regardless of L-014, is there anything I can do?"); the capability was then built as a new specialized child repo with the template untouched, satisfying both the ask and the rule (janus multi-repo orchestration session)
+- Rule: when a requested capability appears forbidden by the scaffold's restraint rules, scope it into its own repo or product instead of recommending deferral — restraint rules govern what enters the always-on scaffold, never whether the user's ask gets built
 - Scope: portable
 - Evidence: 1
 - Status: candidate
