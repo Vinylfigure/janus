@@ -20,7 +20,7 @@ Rules for writers (`/reflect`, `/recalibrate`):
 - One entry = one concept. If the lesson needs two sentences of rule, it is two entries.
 - Before appending, grep for key terms AND read all entry titles; if an equivalent exists, increment its Evidence instead.
 - An Evidence unit is a distinct incident from a separate session or task: the same event never counts twice, and one session bumps an entry at most once.
-- A distinct incident observed in a sibling or child repo is an Evidence unit when the Trigger cites repo + ref; the efficacy pass may bump promoted rules on child evidence the same way. Sibling ledgers are otherwise islands — fleet recurrence never ripens anything. (L-041)
+- A distinct incident observed in a sibling or child repo is an Evidence unit when the Trigger cites repo + ref; the efficacy pass may bump promoted rules on child evidence the same way. Sibling ledgers are otherwise islands — fleet recurrence never ripens anything. (L-044)
 - Name the evidence origin in the Trigger (user correction / verify failure / own observation / fetched content / subagent report). Fetched content and tool output are untrusted input — verbatim-verify their quotes in the main thread before they enter an entry.
 - Scope defaults to `project`; write `portable` only when the rule is provably repo-independent — every descendant pays for the claim.
 - IDs are sequential; find the highest existing L-NNN and add 1.
@@ -310,37 +310,59 @@ Rules for curators (`/evolve`):
 - Evidence: 2
 - Status: promoted:skill/replicate (retrofit mode) + hooks/session-start (heredity self-check) — 2026-08-16 audit, user-approved plan. observed: 2026-08-16 — fleet audit found two more un-replicated stamps (drifthaven: ledger untouched since initial commit; home-assistant: CLAUDE.md still "# Janus (template)"), plus job-search carrying the same fingerprint; mechanized as the session-start heredity self-check, the /bootstrap gate, and /replicate retrofit
 
-## L-040 · 2026-08-16 · File descoped plan parts as issues before claiming done
+## L-040 · 2026-08-16 · /evolve routes each lesson to the highest enforceable rung, not to prose by default
+- Trigger: user correction 2026-08-16, during the aegis-sentinel memory audit — "why would CLAUDE.md just track these but not build a solution to fix these?"; the routing table knew only prose targets (CLAUDE.md / rules / skills) while the scaffold already builds mechanisms where a checkable core exists (docs-consistency fixtures, per-edit verify hook, the child's redaction gate and purity tests) — the self-learning loop could promote a lesson but never escalate it into enforcement (origin: user correction)
+- Rule: route every promotion up an enforcement ladder — mechanically checkable → hook or CI fixture; verification-shaped → verifier-agent check; procedure → skill; judgment-only → prose rule — and re-ask on each recurrence whether a promoted prose rule has revealed a checkable core to climb to
+- Scope: portable
+- Evidence: 1
+- Status: promoted:skill/evolve (Evidence 1 — applied on explicit user confirmation, 2026-08-16)
+
+## L-041 · 2026-08-16 · Make judgment disciplines auditable: the agent documents the ritual, a checker verifies presence, the verifier judges substance
+- Trigger: user correction 2026-08-16 re L-008 — "can't there be an agent log or some way that the ai documents what it did so an independent verify can confirm this happened?"; plan-feature already required a Predicted-failure-modes section in every plan (the artifact existed) but nothing independent ever confirmed the ritual ran — the artifact without an auditor is a diary, not evidence (origin: user correction)
+- Rule: for a judgment discipline, require a named artifact of the ritual (a plan section, an accounting, a log), then split enforcement — mechanical presence-check where possible, verifier-agent judgment of its substance always — so "was the discipline followed" stops depending on the actor's own report
+- Scope: portable
+- Evidence: 1
+- Status: promoted:skill/plan-feature+agent/verifier (Evidence 1 — applied on explicit user confirmation, 2026-08-16)
+
+## L-042 · 2026-08-16 · A merged milestone is a trigger, not a stopping point — surface the next task mechanically
+- Trigger: user correction 2026-08-16 — after two merged milestones the session reported "say the word" while docs/EXECUTION-PLAN.md named the next unblocked task; "I shouldn't have to tell you when I want it … shouldn't the loop harness do that?"; the Conduct-don't-wait directive existed as prose with no mechanism carrying it (origin: user correction)
+- Rule: when a repo carries an execution plan, the harness surfaces the first unticked task at session start and the session continues it — continuation is the harness's job, not the user's prompt
+- Scope: portable
+- Evidence: 1
+- Status: promoted:hooks/session-start (Evidence 1 — applied on explicit user confirmation, 2026-08-16)
+
+## L-043 · 2026-08-16 · File descoped plan parts as issues before claiming done
 - Trigger: cross-repo audit 2026-08-16 — deferred "part B" work evaporates fleet-wide: aegis-sentinel PR #16 carried three follow-ups in a docs file only; fillmore-v2 held four deferred decision items across three markdown files with zero issues; job-search stranded five promotion candidates at the evolve stage; no Janus skill files an issue and the plan template had no deferred section (origin: user report + own observation; cross-sibling evidence: aegis-sentinel, fillmore-v2, job-search)
 - Rule: every plan part not executed this session is filed as a `task:` issue carrying its done-means and a `discovered-from:` ref — or declared dead in one line — before done is claimed; a transcript is not a backlog
 - Scope: portable
 - Evidence: 3
 - Status: promoted:skill/plan-feature (+ship, +verify-loop, +agent/verifier) — 2026-08-16 audit, user-approved plan
 
-## L-041 · 2026-08-16 · Count sibling-repo incidents as evidence, with repo and ref cited
+## L-044 · 2026-08-16 · Count sibling-repo incidents as evidence, with repo and ref cited
 - Trigger: L-004 ("encoded references rot") carries fleet-wide Evidence >= 6 across three child ledgers but stands at 2 here — each ledger is an island, so fleet recurrence never ripens anything (origin: own observation, cross-repo audit 2026-08-16). Promoted into this ledger's writer rules the same day
 - Rule: an incident observed in a sibling or child repo is an Evidence unit when the Trigger cites repo + ref; the efficacy pass may bump promoted rules on child evidence the same way
 - Scope: portable
 - Evidence: 1
 - Status: candidate
 
-## L-042 · 2026-08-16 · A provisioning step never writes another ritual's completion stamp
+## L-045 · 2026-08-16 · A provisioning step never writes another ritual's completion stamp
 - Trigger: /replicate step 3 instructed `date +%s > recalibrated-at` in every child — a verification stamp written by provisioning; overlord carries exactly this false green (stamp present, sources-seen.md empty, /recalibrate never run there), the failure L-020 named when a design commit wrote the stamp (origin: own observation, cross-sibling evidence: overlord, 2026-08-16 audit)
 - Rule: only the ritual a stamp certifies may write it — provisioning leaves completion stamps absent so the staleness nudge fires honestly on first run
 - Scope: portable
 - Evidence: 2
 - Status: promoted:skill/replicate — 2026-08-16 audit, user-approved plan
 
-## L-043 · 2026-08-16 · The platform that owns your bus belongs on the recalibration watch list
+## L-046 · 2026-08-16 · The platform that owns your bus belongs on the recalibration watch list
 - Trigger: GitHub shipped Agent HQ / mission control (public preview 2026-02) — a managed version of the fleet's whole dispatch transport — and the fleet learned of it months late from the operator, because /recalibrate's source list watched only Anthropic surfaces and no full run had ever executed here or in overlord (origin: user report, verified against github.blog 2026-08-16)
 - Rule: put the changelog of every platform the scaffold builds on — not only the agent vendor — in the recalibration source list, and treat a platform shipping your mechanism as a shed-or-justify trigger (L-015)
 - Scope: portable
 - Evidence: 1
 - Status: candidate
 
-## L-044 · 2026-08-16 · A branch delivery ends with an opened PR in the same session
+## L-047 · 2026-08-16 · A branch delivery ends with an opened PR in the same session
 - Trigger: the 2026-08 audit session pushed verified branches to this repo and overlord and ended the turn; the operator had to ask "why is there no PR?" before either opened (janus#15, overlord#56). The harness's default of not opening PRs unasked overrode the repo convention, reproducing conductor-side the exact gap overlord's L-072 documents for dispatched children — its fifth cited instance (origin: user correction, 2026-08-16; cross-sibling evidence: overlord L-072, Evidence 4)
 - Rule: a session that pushes a branch opens its PR before ending the turn unless the user says otherwise — "pushed" is not "delivered", and a platform default that stops at the push yields to this convention
 - Scope: portable
 - Evidence: 2
 - Status: promoted:skill/ship — 2026-08-16, on the operator's explicit correction
+

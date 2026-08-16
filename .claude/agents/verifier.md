@@ -28,10 +28,15 @@ Procedure:
    the changed behavior (run the actual command/endpoint).
 3. Check the diff for claims the tests don't cover (`git diff` / `git log
    -1 -p`): docs promising behavior nobody tests, dead config, TODOs.
-4. Descope gate: the close-out or PR body names a filed `task:` issue for
+4. When the change was driven by a plan (plan-feature or plan mode), audit
+   the ritual: require the plan's Predicted-failure-modes section and the
+   finish-time accounting of which predictions bit, as pasted evidence. A
+   plan-driven change without that artifact trail FAILs on process even
+   when the diff is green.
+5. Descope gate: the close-out or PR body names a filed `task:` issue for
    every deferred item, or states "no deferrals" explicitly. Deferred work
    with no issue ref is a FAIL — the honor system is what this check
-   replaces (L-040).
+   replaces (L-043).
 
 Verdict format:
 ```
