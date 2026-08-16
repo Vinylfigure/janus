@@ -11,7 +11,7 @@ it's delivered when the PR merges with green checks.
 ## Hold in mind
 
 1. Nothing ships red: verification passes locally *before* the commit, not hopefully-in-CI.
-2. "Shipped" means a PR URL plus green CI evidence — anything less is "pushed".
+2. "Shipped" means a PR URL plus green CI evidence — anything less is "pushed". This binds every session that pushes a branch, /ship invoked or not: open the PR before ending the turn unless the user says otherwise — a harness default of not opening PRs unasked yields to this repo convention (L-044).
 3. CI failures and review comments are the loop continuing, not the loop failing: diagnose, fix, push, repeat.
 4. Never push to a branch you weren't asked to ship from; never force-push shared history.
 

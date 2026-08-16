@@ -337,3 +337,10 @@ Rules for curators (`/evolve`):
 - Scope: portable
 - Evidence: 1
 - Status: candidate
+
+## L-044 · 2026-08-16 · A branch delivery ends with an opened PR in the same session
+- Trigger: the 2026-08 audit session pushed verified branches to this repo and overlord and ended the turn; the operator had to ask "why is there no PR?" before either opened (janus#15, overlord#56). The harness's default of not opening PRs unasked overrode the repo convention, reproducing conductor-side the exact gap overlord's L-072 documents for dispatched children — its fifth cited instance (origin: user correction, 2026-08-16; cross-sibling evidence: overlord L-072, Evidence 4)
+- Rule: a session that pushes a branch opens its PR before ending the turn unless the user says otherwise — "pushed" is not "delivered", and a platform default that stops at the push yields to this convention
+- Scope: portable
+- Evidence: 2
+- Status: promoted:skill/ship — 2026-08-16, on the operator's explicit correction
