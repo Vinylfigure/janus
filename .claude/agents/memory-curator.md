@@ -18,10 +18,14 @@ Before analyzing, state the four invariants you are protecting:
 Procedure:
 1. Read `.claude/memory/LEARNINGS.md`, `CLAUDE.md`, and list `.claude/skills/`.
 2. Cluster candidate entries: flag near-duplicates that should merge (same rule, different words). A merged entry takes the max of the constituent Evidence counts, never the sum — two anecdotes are not a recurrence. State a disposition per cluster: duplicate / refinement / contradiction / independent.
-3. For each qualifying entry (Evidence >= 2, Status: candidate), classify it:
-   - rule-shaped (one imperative sentence), global → propose `promote → CLAUDE.md rules block`
-   - rule-shaped but path-local (only true for part of the codebase) → propose `promote → rules/<topic>` with the `paths:` globs it should carry
+3. For each qualifying entry (Evidence >= 2, Status: candidate), classify it,
+   proposing the highest enforceable rung (hook/CI fixture > verifier brief >
+   skill > path rule > CLAUDE.md prose — prose is the rung of last resort):
+   - mechanically checkable → propose `promote → fixture(test-hooks.sh): "<assertion>"` or a hook change
+   - verification-shaped (a check a skeptic should run) → propose `promote → agent/verifier: "<check>"`
    - procedure-shaped (multi-step) → propose `promote → skill/<suggested-name>`
+   - rule-shaped but path-local (only true for part of the codebase) → propose `promote → rules/<topic>` with the `paths:` globs it should carry
+   - rule-shaped, global, judgment-only → propose `promote → CLAUDE.md rules block`
    - stack-specific in a not-yet-bootstrapped template → propose `hold for children`
 4. Check existing CLAUDE.md rules against the ledger: any rule contradicted by a newer, better-evidenced entry → propose `retire`, citing both ids.
 5. Count current CLAUDE.md concepts. If promotions would exceed the caps, you MUST pair each promotion with a merge or retirement so the budget balances.

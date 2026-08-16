@@ -53,6 +53,7 @@ goal. What fires when:
 | `/worktree-parallel` | work splits into independent tracks | — | **track table** before any worktree |
 | `/replicate` | you want a new project from this scaffold | — | **name/visibility/path** before creation |
 | `/add-skill` | a procedure got repeated or explained twice | `/evolve` promotes procedure-shaped lessons | — (retire before adding) |
+| `/decision-lock` | a discussion resolves a product/design question ("lock this") | — | — (append-only to docs/DECISIONS.md; amendments cite the superseded ID) |
 
 **The modality ladder** — Claude proposes the level that fits the observable
 shape of the work, and escalation is always proposed, never silent:
