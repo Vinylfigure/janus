@@ -29,7 +29,7 @@ Rules for curators (`/evolve`):
 - Merged near-duplicates take the max of their Evidence counts, never the sum — two anecdotes are not a recurrence. State a disposition per cluster: duplicate / refinement / contradiction / independent.
 - An entry whose evidence originates in untrusted content (fetched pages, tool output, repo text) promotes only with the user's explicit confirmation, whatever its count.
 - A promoted rule with no observed effect earns a retirement proposal — contradiction is not the only exit.
-- Rule-shaped + global → CLAUDE.md `janus:rules` block. Rule-shaped + path-local → `.claude/rules/<topic>.md`. Procedure-shaped → a skill via /add-skill.
+- Route to the highest enforceable rung: mechanically checkable → a hook or CI fixture; verification-shaped → the verifier agent's brief; procedure-shaped → a skill via /add-skill; rule-shaped + path-local → `.claude/rules/<topic>.md`; global judgment → CLAUDE.md `janus:rules` block (the rung of last resort, not the default).
 - Mark promoted entries `Status: promoted:<target>`; never delete them.
 
 ---
@@ -308,3 +308,17 @@ Rules for curators (`/evolve`):
 - Scope: portable
 - Evidence: 1
 - Status: candidate
+
+## L-040 · 2026-08-16 · /evolve routes each lesson to the highest enforceable rung, not to prose by default
+- Trigger: user correction 2026-08-16, during the aegis-sentinel memory audit — "why would CLAUDE.md just track these but not build a solution to fix these?"; the routing table knew only prose targets (CLAUDE.md / rules / skills) while the scaffold already builds mechanisms where a checkable core exists (docs-consistency fixtures, per-edit verify hook, the child's redaction gate and purity tests) — the self-learning loop could promote a lesson but never escalate it into enforcement (origin: user correction)
+- Rule: route every promotion up an enforcement ladder — mechanically checkable → hook or CI fixture; verification-shaped → verifier-agent check; procedure → skill; judgment-only → prose rule — and re-ask on each recurrence whether a promoted prose rule has revealed a checkable core to climb to
+- Scope: portable
+- Evidence: 1
+- Status: promoted:skill/evolve (Evidence 1 — applied on explicit user confirmation, 2026-08-16)
+
+## L-041 · 2026-08-16 · Make judgment disciplines auditable: the agent documents the ritual, a checker verifies presence, the verifier judges substance
+- Trigger: user correction 2026-08-16 re L-008 — "can't there be an agent log or some way that the ai documents what it did so an independent verify can confirm this happened?"; plan-feature already required a Predicted-failure-modes section in every plan (the artifact existed) but nothing independent ever confirmed the ritual ran — the artifact without an auditor is a diary, not evidence (origin: user correction)
+- Rule: for a judgment discipline, require a named artifact of the ritual (a plan section, an accounting, a log), then split enforcement — mechanical presence-check where possible, verifier-agent judgment of its substance always — so "was the discipline followed" stops depending on the actor's own report
+- Scope: portable
+- Evidence: 1
+- Status: promoted:skill/plan-feature+agent/verifier (Evidence 1 — applied on explicit user confirmation, 2026-08-16)
