@@ -27,6 +27,7 @@ commands — this skill wires that up and proves it.
    - Run `scripts/verify.sh full` — must exit 0 on the healthy project.
    - Make a deliberately bad edit to a real source file (e.g. introduce a syntax error), confirm `scripts/verify.sh quick <file>` exits nonzero with useful output, then revert the edit.
 5. If this project was replicated from a parent, review inherited entries in `.claude/memory/LEARNINGS.md` (`Status: inherited`): any that are stack-relevant here get re-marked `candidate` so `/evolve` can promote them.
+6. Propose the loops before closing (L-012, L-048 — a nudge is not a schedule, and a backlog without a consumer is a parking lot): offer to schedule, or hand the user the one-sentence instructions for, two routines — **work-loop** (daily-ish: run `/work-loop`, one ready `task:` per firing, PR delivery) and **maintenance** (weekly: `/evolve` when ripe, `/recalibrate` when stale, both delivering by PR). Record what was chosen; declining is a valid choice worth recording too.
 
 ## Before finishing
 

@@ -54,6 +54,7 @@ goal. What fires when:
 | `/replicate` | you want a new project from this scaffold | — | **name/visibility/path** before creation |
 | `/add-skill` | a procedure got repeated or explained twice | `/evolve` promotes procedure-shaped lessons | — (retire before adding) |
 | `/decision-lock` | a discussion resolves a product/design question ("lock this") | — | — (append-only to docs/DECISIONS.md; amendments cite the superseded ID) |
+| `/work-loop` | a scheduled firing (or the user) says to work the backlog | the routine `/bootstrap` proposes | — (one ready `task:` per firing, PR delivery; idle firings only propose) |
 
 **The modality ladder** — Claude proposes the level that fits the observable
 shape of the work, and escalation is always proposed, never silent:
@@ -142,6 +143,17 @@ works:
 
 > Run /recalibrate. If the ledger then reports entries at Evidence >= 2, run
 > /evolve. Deliver every change as a PR — never commit to the default branch.
+
+The heartbeat's sibling is the **work-loop routine** — the consumer of the
+`task:` backlog that descope capture fills. Same one-time setup ("schedule a
+daily work-loop routine"), prompt:
+
+> Run /work-loop: consume exactly one ready `task:` issue and deliver it by
+> PR, or if none is ready, file at most two proposal `task:` issues from an
+> idle evaluation. Never execute a proposal in the firing that created it.
+
+`/bootstrap` proposes both routines as its closing step, so every child
+leaves session zero with the loops offered rather than remembered.
 
 Two design points make this safe:
 
