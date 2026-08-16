@@ -289,7 +289,7 @@ Rules for curators (`/evolve`):
 - Status: candidate
 
 ## L-037 · 2026-07-24 · The self-learning claim is unproven until a bootstrapped child measures outcomes
-- Trigger: methodology review adopted the critique that nothing measures whether promoted rules reduce failures; the full baseline-vs-scaffold evaluation was deliberately deferred — the template has no real coding tasks to measure (origin: user-supplied critique, user decision 2026-07-24). Re-open trigger: the first bootstrapped child with real task history. Protocol sketch preserved: fixed task set; arms = plain Claude Code / verify-only / memory-only / full scaffold; measure task success, repeated-error rate, interventions, tokens; test longitudinally (task N benefits from lessons of tasks 1..N-1)
+- Trigger: methodology review adopted the critique that nothing measures whether promoted rules reduce failures; the full baseline-vs-scaffold evaluation was deliberately deferred — the template has no real coding tasks to measure (origin: user-supplied critique, user decision 2026-07-24). Re-open trigger: the first bootstrapped child with real task history. Protocol sketch preserved: fixed task set; arms = plain Claude Code / verify-only / memory-only / full scaffold; measure task success, repeated-error rate, interventions, tokens; test longitudinally (task N benefits from lessons of tasks 1..N-1). observed: 2026-08-16 — re-open trigger satisfied: aegis-sentinel is the first bootstrapped child with real task history (13 merged PRs), and its memory audit found the session loop never ran there (zero /reflect//evolve//recalibrate in 3 weeks; see L-039 for the cause); first interim data point is negative — the loop did not survive replication, so the baseline comparison now has a live subject
 - Rule: before claiming a learning loop improves outcomes, run the deferred baseline comparison in a bootstrapped child — efficacy notes on promoted rules are the interim signal, not the proof
 - Scope: portable
 - Evidence: 1
@@ -298,6 +298,13 @@ Rules for curators (`/evolve`):
 ## L-038 · 2026-07-24 · Gate the commit on the verifier's exit in the same command chain
 - Trigger: a commit ran as an unconditional statement after the verify invocation in one compound command; the suite was red (a component-map fixture) and the red commit landed, needing an amend after the fix (origin: verify failure, own observation, this session)
 - Rule: when a commit depends on verification passing, chain it with && on the verify exit status — sequential statements commit red results
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-039 · 2026-08-16 · A template copy is not a replication — the heredity transforms must run, even retroactively
+- Trigger: the first real child (aegis-sentinel, stamped 2026-07-27 via GitHub "Use this template" — the path this repo's own README recommends first) never got the /replicate transforms: parent statuses and 3 retired entries crossed, sources-seen.md kept the parent's watermark, CLAUDE.md stayed titled "Janus (template)", and the L-035 rules gate never ran; the child then did 13 PRs of real work with zero /reflect, /evolve, or /recalibrate despite the Stop-hook and session-start nudges firing every session — its real lessons landed as code comments instead of ledger entries (origin: own observation, cross-repo audit 2026-08-16; heredity applied retroactively in the child the same day)
+- Rule: treat an un-replicated stamp as a known failure mode — on first contact with a child that skipped /replicate, apply the heredity transforms retroactively before real work continues; nudges alone do not revive a loop that provisioning left dead
 - Scope: portable
 - Evidence: 1
 - Status: candidate
