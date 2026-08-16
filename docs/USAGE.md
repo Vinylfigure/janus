@@ -203,6 +203,34 @@ Two design points make this safe:
   multi-step instructions twice, Claude should propose `/add-skill` — paying
   for it by retiring something. Rules go to CLAUDE.md; procedures become skills.
 
+## Conducting a portfolio (multiple repos)
+
+When several work streams each live in their own repo, the shape is a
+pyramid: you talk to one **conductor**, and it dispatches goals
+down to each stream's repo, where that repo's own scaffold decides plan
+mode, worktrees, and subagents. Two rules keep this honest:
+
+- **The conductor is a replicated child, not a modified template.** Stamp it
+  with `/replicate` and bootstrap orchestration as its stack: a goals/status
+  registry file, a dispatch skill (goal → GitHub issue mentioning the coding
+  agent in the target repo, or a cloud trigger into that repo's
+  environment), a status skill (cross-repo rollup via the GitHub tools), and
+  a goal-review loop run by a weekly routine that proposes — never sends —
+  new dispatches via PR.
+- **Children answer only by PR.** The conductor subscribes to each child's
+  PR activity; it never pushes to a child directly.
+- **Children ship dispatch-ready.** The template carries an @claude-gated
+  workflow (subscription auth); at onboarding, add the shared
+  `CLAUDE_CODE_OAUTH_TOKEN` secret (generated once with `claude setup-token`)
+  to the child repo and it can receive work orders.
+
+Disciplines that make it survive scale: dispatch only into repos that have
+bootstrapped and verified green (an unverifiable stream produces
+unreviewable work); cap concurrent open work orders at 3–5 and leave the
+rest event-driven; stagger child heartbeats; and move a lesson between
+siblings only as a candidate ledger entry with your explicit yes — the same
+review gate `/replicate` applies at birth.
+
 ## Replication and lineage
 
 - `/replicate <name>` stamps a child repo (GitHub template path or local

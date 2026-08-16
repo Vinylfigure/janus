@@ -1,0 +1,63 @@
+name: Claude
+
+on:
+  issues:
+    types: [opened, assigned]
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+
+# Two @claude events on one issue never run simultaneously. This is a collision
+# control, not a dedup control — a duplicate event still queues and runs after
+# the first finishes. Dedup is handled one layer up by the
+# `overlord-work-order:` body-line check at dispatch time.
+concurrency:
+  group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  claude:
+    if: |
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude'))) ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude'))
+    runs-on: ubuntu-latest
+    # The primary cost bound. A stuck agent otherwise runs to GitHub's 6-hour
+    # default, burning the shared subscription quota that also feeds live
+    # sessions.
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      # Floating major includes the >= v1.0.94 bot-trigger security fix
+      # (CVE-2025-66032). Dispatch issues are NOT bot-authored — the overlord
+      # writes as `Vinylfigure` (type User) via the connector app; only this
+      # repo's own comments are `claude[bot]`. The pin is ordinary dependency
+      # hygiene, not a response to bot-authored dispatch.
+      # Echo-retrigger needs no actor guard: `allowed_bots` defaults to "",
+      # so no bot can trigger this workflow at all.
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # --max-turns is the runaway bound, not the effort budget; per-order
+          # effort budgets live in the work-order spec.
+          #
+          # --allowedTools: post-bootstrap tier — this repo's stack is the
+          # scaffold itself, so the grant mirrors .github/loops.yaml's declared
+          # allowed_tools exactly (the manifest and the channel must agree, or
+          # the dashboard's reconciliation reads a grant that isn't real).
+          # Without a Bash grant the action can run no shell command at all,
+          # so a dispatched order could only claim a verification loop, never
+          # close one (aegis-sentinel#1).
+          claude_args: --max-turns 50 --allowedTools "Read,Glob,Grep,Edit,Write,Bash(git *),Bash(gh *),Bash(scripts/*)"
