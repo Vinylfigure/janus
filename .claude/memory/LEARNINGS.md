@@ -373,3 +373,24 @@ Rules for curators (`/evolve`):
 - Scope: portable
 - Evidence: 1
 - Status: promoted:skill/work-loop — 2026-08-16, on the operator's correction
+
+## L-049 · 2026-08-16 · Declare the model tier at the skill, and pin down rather than up
+- Trigger: an audit found no skill or agent in this template or in its overlord descendant declaring model: or effort:, despite both fields being allowlisted by scripts/test-hooks.sh — every skill and subagent ran at whatever the session model happened to be, with /model typed by hand as the only control. Drafting the mapping surfaced the trap: pinning claude-opus-5 on plan-feature would have CAPPED a session the operator had deliberately escalated to the most capable model for a hard plan (origin: operator question plus own observation while implementing, 2026-08-16)
+- Rule: declare the tier in skill and agent frontmatter rather than at the session, and only ever pin downward — a gate declares effort and inherits the session's model, because a pinned model can only cap a deliberate escalation, while a cheap pin buys headroom by rubber-stamping the work it was meant to judge
+- Scope: portable
+- Evidence: 1
+- Status: promoted:docs/MODEL-TIERS + fixture/test-hooks — 2026-08-16, gates asserted in CI
+
+## L-050 · 2026-08-16 · Check a cheap tier's context window before calling its work mechanical
+- Trigger: assigning tiers, a portfolio survey skill looked like the obvious cheapest-model candidate — a mechanical sweep. Its actual input was a registry with ~1,900-word fields plus issues, PRs and branch lists across seven repos, against Haiku 4.5's 200K window where every other current tier carries 1M (origin: own observation against the claude-api model table, 2026-08-16)
+- Rule: a tier is disqualified by context before it is judged on quality — size the input first, and never assign the cheapest model to work that fans out across repos or reads a registry, however mechanical the task reads
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-051 · 2026-08-16 · A rejected design is reversed in place, with the objection that survives it
+- Trigger: docs/ARCHITECTURE.md carried a recorded rejection of pinning model: (L-004 — a moving target the scaffold would then babysit). Implementing tiers on the operator's request would have silently contradicted it; the objection also turned out to be right, and shaped the design (pin down only, so one model ID reaches frontmatter instead of one per gate) (origin: own observation while implementing against a documented decision, 2026-08-16)
+- Rule: when new evidence overturns a recorded rejection, edit that record in place — name the reversal, keep the part of the original objection that still binds, and say what evidence changed; a decision doc that silently disagrees with the tree teaches the next session the wrong thing twice
+- Scope: portable
+- Evidence: 1
+- Status: candidate

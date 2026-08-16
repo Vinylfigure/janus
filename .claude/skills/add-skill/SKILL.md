@@ -3,6 +3,8 @@ name: add-skill
 description: Author a new skill for this repository using the canonical Janus SKILL.md shape (Hold in mind, Steps, Before finishing) and workspace-priming rules.
 when_to_use: Use when a procedure has been repeated or explained more than once, when the user describes a workflow worth keeping, or when /evolve promotes a procedure-shaped learning.
 argument-hint: [skill name and purpose]
+model: claude-sonnet-5
+effort: high
 ---
 
 The meta-skill: it makes the repository's skill-authoring standard executable.
@@ -25,6 +27,7 @@ procedure-shaped.
    - `description`: what it does, in one action-first line. Put the "Use when …" triggers in `when_to_use` — the platform has a field for them, so stop crowding one string. ≤50 words across both; this is the only part always in context.
    - Side-effect skills get an **in-body gate**: one step that confirms with the user immediately before the irreversible action (push, repo creation, CLAUDE.md edit), degrading to PR delivery when headless. Reach for `disable-model-invocation` only to stop Claude triggering the skill at all — it controls *who invokes*, which is not the same as *confirm before acting*.
    - `argument-hint` if it takes arguments; `allowed-tools` only for read-only skills, since it clears at the next user message and a writer skill silently loses the tools its later steps need.
+   - `model:` / `effort:` per `docs/MODEL-TIERS.md` — a new skill declares its tier when it is written, or it silently inherits whatever the session happened to be. Pin **down, never up**: a gate (anything that judges whether other work is correct) declares `effort: xhigh` and no `model:`, so it inherits an escalated session instead of capping it.
 4. Write the body in the canonical shape:
 
    ```markdown

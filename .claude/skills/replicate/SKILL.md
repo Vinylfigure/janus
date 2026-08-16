@@ -3,6 +3,8 @@ name: replicate
 description: Stamp a new project from this Janus template - create the child repo, carry portable learnings forward as inheritance, rewrite identity, and hand off to /bootstrap. Confirms name, visibility, and location before creating anything.
 when_to_use: Use when the user wants to start a new project from this scaffold.
 argument-hint: [new project name | retrofit]
+model: claude-sonnet-5
+effort: high
 ---
 
 The lineage loop. Children start with the scaffold *plus* everything this

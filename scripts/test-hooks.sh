@@ -54,6 +54,35 @@ for f in "$ROOT"/.claude/agents/*.md; do
   check_frontmatter "$f" "$AGENT_FIELDS" "$(basename "$f" .md)" "agent $(basename "$f" .md)"
 done
 
+echo "== model tiers: gates are never cheapened =="
+# docs/MODEL-TIERS.md's load-bearing rule, at the top of the enforcement ladder
+# because prose asking nicely would not survive the next tidy-up. A gate judges
+# whether OTHER work is correct, so it must inherit the session's model: pinning
+# one can only cap a session the operator deliberately escalated (Fable 5 for a
+# hard plan), and pinning a cheap one buys headroom by rubber-stamping.
+gate_file() {
+  case $1 in
+    verifier) echo "$ROOT/.claude/agents/verifier.md" ;;
+    *) echo "$ROOT/.claude/skills/$1/SKILL.md" ;;
+  esac
+}
+for g in verify-loop plan-feature goal-review evolve dispatch verifier; do
+  f=$(gate_file "$g")
+  if [ ! -f "$f" ]; then pass "gate $g absent from this repo (skipped)"; continue; fi
+  end=$(awk 'NR>1 && /^---[[:space:]]*$/{print NR; exit}' "$f")
+  fm=$(sed -n "2,$((end - 1))p" "$f")
+  if printf '%s\n' "$fm" | grep -qE '^model:'; then
+    fail "gate $g pins a model — gates inherit the session model (docs/MODEL-TIERS.md)"
+  else
+    pass "gate $g inherits the session model"
+  fi
+  if printf '%s\n' "$fm" | grep -qE '^effort:[[:space:]]*xhigh[[:space:]]*$'; then
+    pass "gate $g declares effort: xhigh"
+  else
+    fail "gate $g must declare 'effort: xhigh' (docs/MODEL-TIERS.md)"
+  fi
+done
+
 echo "== docs consistency (name-level) =="
 # Keeps docs/ honest about the tree: names, paths, and counts only — semantic
 # accuracy stays on SELF-IMPROVEMENT.md rule 1 and /recalibrate.

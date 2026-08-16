@@ -217,10 +217,20 @@ rightsizes independently of `/evolve`'s counts. The distinction matters —
 substituting a platform's ceiling for a scaffold's discipline loosens the
 constraint while looking like modernisation.
 
-Rejected on the repo's own evidence rules: pinning `model:` into a
-stack-agnostic template (L-004 — a moving target the scaffold would then
-babysit), an adversarial reviewer trio (L-017 — copying an org chart as a
+Rejected on the repo's own evidence rules: an adversarial reviewer trio (L-017 — copying an org chart as a
 starting shape, when propose/dispose separation already exists in
 `memory-curator` and `/recalibrate` → `/evolve`), and a `/security-review`
 step (L-015 — a platform built-in, and this template has no stack to review
 until `/bootstrap` runs).
+
+Reversed 2026-08-16: pinning `model:` into a stack-agnostic template was
+rejected here on L-004 grounds — a moving target the scaffold would then
+babysit. The objection was right about model IDs, and is why
+`docs/MODEL-TIERS.md` pins **down, never up**: gates declare `effort:` only and
+inherit the session's model, so the sole model ID reaching a child's
+frontmatter is the cheap tier's, and a rename touches the working-tier files
+and one table rather than every gate in every descendant. What changed is the
+evidence — every skill and subagent was running at whatever the session model
+happened to be, with `/model` typed by hand as the only control, which is the
+dogfooded need L-014 asks for. The mapping's owner is `/recalibrate`, the same
+answer this file already gives for the frontmatter field sets.
