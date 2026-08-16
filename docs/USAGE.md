@@ -12,11 +12,14 @@ prerequisite.
 
 ## Session zero: starting a project
 
-1. **Create the repo.** Either click **Use this template** on GitHub, or — from
-   any existing Janus project — say you want to start a new project and let
-   `/replicate` interview you (it confirms name, visibility, and location
-   before creating anything). Replication is better once you have history:
-   portable learnings are inherited, so each generation starts smarter.
+1. **Create the repo.** From any existing Janus project, say you want to start
+   a new project and let `/replicate` interview you (it confirms name,
+   visibility, and location before creating anything) — portable learnings are
+   inherited, so each generation starts smarter. GitHub's **Use this template**
+   button also works but copies files only: none of the heredity transforms
+   run and the memory loop starts dead (L-039), so have the child's first
+   session run `/replicate retrofit` — the session-start status detects the
+   un-replicated copy and says so.
 2. **Open a session.** `cd` into the clone, run `claude`. The session-start
    status says the scaffold is not bootstrapped, and Claude proposes
    `/bootstrap`.
@@ -170,8 +173,10 @@ Two design points make this safe:
 
 - `/replicate <name>` stamps a child repo (GitHub template path or local
   fallback), copies portable rules and ledger entries in as
-  `Status: inherited`, rewrites identity, resets the child's recalibration
-  clock, and hands off to the child's `/bootstrap`.
+  `Status: inherited`, rewrites identity, leaves the child's recalibration
+  clock unset (the staleness nudge fires honestly once the child bootstraps),
+  and hands off to the child's `/bootstrap`. `/replicate retrofit` applies the
+  same transforms in place to a copy that skipped them.
 - Children **re-earn** promotion: inherited entries need fresh evidence in
   the child before `/evolve` promotes them there. The parent's
   already-promoted rules are the one exception — they arrive active in the
