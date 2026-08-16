@@ -22,7 +22,7 @@ firing starts fresh and can only learn what it can read.
 
 ## Steps
 
-1. Ready sweep: list open `task:` issues. Ready = carries a done-means, is within this environment's tool grant, and is not blocked on a `question:` or `loop:hold`. Take the oldest ready task unless one is explicitly marked priority.
+1. Ready sweep: consult the Status dashboard issue and the open PRs first — an unmerged `claude/` PR from a prior firing outranks starting new work when its checks are red. Then list open `task:` issues. Ready = carries a done-means, is within this environment's tool grant, and is not blocked on a `question:` or `loop:hold`. Take the oldest ready task unless one is explicitly marked priority.
 2. Consume (exactly one): run the normal delivery path — `/plan-feature` for non-trivial work (its own rule lets simple tasks skip ceremony) → implement → `/verify-loop` → the `verifier` agent's judgment → `/ship` as a PR whose body says `Closes #N`. Descoped remainders follow the descope gate: new `task:` issues with `discovered-from:` refs.
 3. Idle generation (only when NO task is ready): evaluate the repo against its stated purpose and objectives, the ledger's candidates and efficacy notes, and recent merged PRs; where the environment allows, add a bounded research pass on the repo's domain. File at most 2 proposal `task:` issues, each with a done-means and `discovered-from: work-loop idle evaluation`. Then stop — the next firing executes.
 4. Nothing ready and nothing worth proposing: say so in one line and exit. An empty firing is a healthy signal, not a failure.
