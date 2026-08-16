@@ -1,0 +1,58 @@
+# .github/loops.yaml — the loop manifest: the git source of truth for the
+# scheduled automations this repository EXPECTS to exist.
+#
+# Why a file: Routines and Action schedules otherwise live only in platform
+# state — invisible to clones, children, and reviewers. L-048's second
+# instance is the failure mode: a consumer skill merged with no schedule
+# armed, and nothing in the repo could say so. This manifest is the GitOps
+# declaration — declarative, versioned, reviewed like any other change.
+#
+# Reconciliation is DETECT-ONLY: nothing reads this file to create or delete
+# automations. `scripts/check-loops.sh` validates the schema (verify.sh full
+# + CI fixtures), and the fleet-status dashboard flags `enabled: false`
+# entries as "declared, not armed". Flipping an entry to `enabled: false` in
+# a PR is the declarative kill switch: the operator pauses the platform
+# routine and the manifest records that intent in the same review.
+#
+# Schema (enforced by scripts/check-loops.sh; keep every entry complete):
+#   name          unique loop id
+#   schedule      5-field cron, UTC — never minute 0: GitHub cron delay peaks at :00
+#   driver        routine | github-action | manual
+#   skill         what a routine firing runs (required for driver: routine)
+#   workflow      file under .github/workflows/ (required for driver: github-action)
+#   enabled       false until the automation is actually armed (kill switch)
+#   armed_by      who/when, filled at arming time ("" while unarmed)
+#   allowed_tools the tool grant the routine is armed with
+#   owner         the human answerable for the loop
+#   notes         free text: arming issue, veto path, cadence rationale
+
+loops:
+  - name: work-loop
+    schedule: "17 */6 * * *"
+    driver: routine
+    skill: work-loop
+    enabled: false
+    armed_by: ""
+    allowed_tools: ["Read", "Glob", "Grep", "Edit", "Write", "Bash(git *)", "Bash(gh *)", "Bash(scripts/*)"]
+    owner: Vinylfigure
+    notes: "backlog consumer — one ready task: issue per firing, PR delivery, proposals only when idle; arming tracked in issue #23"
+
+  - name: maintenance
+    schedule: "47 9 * * 1"
+    driver: routine
+    skill: recalibrate
+    enabled: false
+    armed_by: ""
+    allowed_tools: ["Read", "Glob", "Grep", "Edit", "Write", "Bash(git *)", "Bash(gh *)", "Bash(scripts/*)"]
+    owner: Vinylfigure
+    notes: "weekly heartbeat — /recalibrate, then /evolve when the ledger is ripe, both delivering by PR; arming tracked in issue #23"
+
+  - name: fleet-status
+    schedule: "17 */6 * * *"
+    driver: github-action
+    workflow: fleet-status.yml
+    enabled: true
+    armed_by: "committed workflow — merging fleet-status.yml is the arming"
+    allowed_tools: []
+    owner: Vinylfigure
+    notes: "dashboard + aging ladder + branch-without-PR detector; detect-only reconciliation of this manifest"

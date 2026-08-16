@@ -1,0 +1,5 @@
+# Machinery paths route to the operator. The gate-integrity workflow's
+# `machinery-change` label is only a meaningful escape hatch if changes to
+# these paths always cross a human owner's review.
+/.github/ @Vinylfigure
+/scripts/ @Vinylfigure

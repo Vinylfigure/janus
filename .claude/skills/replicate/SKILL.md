@@ -30,6 +30,7 @@ repository has learned that is true anywhere — heredity, not just copying.
    - Copy nothing project-scoped. When in doubt, leave it behind — heredity is selective.
    - Leave `.claude/memory/recalibrated-at` absent in the child: the stamp certifies a completed `/recalibrate` run, and a provisioning stamp is a false green (L-020) — absence makes the staleness nudge fire honestly once the child bootstraps.
    - Truncate the child's `.claude/memory/sources-seen.md` to its header and marker. A fresh repo has verified nothing; inheriting the parent's watermark would make it skip sources it has never read.
+   - Reset the child's `.github/` machinery so it is born with declared loops, never inherited arming: in `loops.yaml`, set every entry `enabled: false` and clear `armed_by` (the declaration crosses; the arming is re-earned at the child's `/bootstrap`, L-048); keep the issue forms and workflows as-is; rewrite `CODEOWNERS` to the child's owner.
 4. Rewrite identity in the child: CLAUDE.md title + facts block (project name, purpose, `Stack: NOT BOOTSTRAPPED — run /bootstrap`), README title and first paragraph.
 5. Commit in the child: `chore: replicate from janus template (N learnings inherited)`.
 6. Hand off: tell the user to open a session in the child and run `/bootstrap`, and list what was inherited.

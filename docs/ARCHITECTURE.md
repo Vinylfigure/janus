@@ -18,7 +18,15 @@ CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked 
 scripts/
   verify.sh                   quick|full dispatcher; /bootstrap fills the case arms
   test-hooks.sh               fixture suite for the scaffold plumbing — hooks + docs cross-refs (verify.sh full + CI)
-.github/workflows/verify.yml  CI: runs test-hooks.sh on every push/PR
+  check-loops.sh              loops.yaml schema check — 0 ok / 1 missing / 2 violation (verify.sh full + CI)
+  fleet-status.sh             dashboard + aging engine behind fleet-status.yml (--dry-run is fixture-smoked)
+.github/
+  loops.yaml                  declarative loop manifest: the automations this repo EXPECTS (detect-only reconciliation)
+  workflows/verify.yml        CI: runs test-hooks.sh on every push/PR
+  workflows/fleet-status.yml  6-hourly: regenerates the Status dashboard issue, ages operator-blocked items
+  workflows/gate-integrity.yml PR seatbelt: machinery paths require the operator's machinery-change label
+  ISSUE_TEMPLATE/             task:/question: issue forms — the label vocabulary and done-means field, in git
+  CODEOWNERS                  /.github/ and /scripts/ route to the operator
 ```
 
 Sentinel markers give skills deterministic edit targets:
@@ -36,7 +44,10 @@ little as possible — hook output lands in always-on context, which is a
 budgeted resource (see rationale below).
 
 ```
-SessionStart      session-start.sh      → ≤4 short lines: bootstrap status, build-plan next task
+SessionStart      session-start.sh      → ≤5 short lines: bootstrap status, GitHub work line
+                                          ("work: N task:, M question: (oldest Xd), K open PRs"
+                                          — only when gh, jq, and a github.com origin all
+                                          hold; every failure path silent), build-plan next task
                                           (first unticked box in docs/EXECUTION-PLAN.md,
                                           when that file exists), heredity retrofit nudge
                                           (template identity + foreign origin =
@@ -80,7 +91,7 @@ a purpose, and keep their output inside the budget.
 ## The capacity-budget rationale
 
 The caps — ≤20 concepts in CLAUDE.md, ≤12 learned rules, ≤50-word skill
-descriptions, ≤4 hook lines — are operational discipline, grounded in
+descriptions, ≤5 hook lines — are operational discipline, grounded in
 Anthropic's product guidance and this repo's own dogfooding, not derived
 from interpretability research:
 
@@ -158,7 +169,7 @@ option for the verifier — observe the need first, encode later.
 ## Context-budget accounting
 
 Always-loaded context = CLAUDE.md (≤20 concepts) + every skill's
-`description` + ≤4 hook status lines. Everything else is on-demand: skill
+`description` + ≤5 hook status lines. Everything else is on-demand: skill
 bodies load on invocation, the ledger is opened by exactly three skills,
 exploration and verification run in subagents that return conclusions. This
 is why skill descriptions are capped at ≤50 words (with `when_to_use`
