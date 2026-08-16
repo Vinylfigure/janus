@@ -202,6 +202,18 @@ echo "$out" | grep -q "consider /evolve" && fail "non-candidate Evidence must no
 out=$(echo '{"source":"compact"}' | "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -qi "compacted" && pass "compact source -> workspace-rescue line" || fail "compact source -> workspace-rescue line (got: $out)"
 
+echo "== session-start.sh: build-plan continuation =="
+mkdir -p "$SANDBOX/docs"
+printf -- '- [x] **T-DONE** — finished\n- [ ] **T-NEXT** — first open task\n- [ ] **T-LATER** — second open task\n' > "$SANDBOX/docs/EXECUTION-PLAN.md"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "next unblocked task is T-NEXT" && pass "plan present -> first unticked task surfaced" || fail "plan present -> first unticked task surfaced (got: $out)"
+printf -- '- [x] **T-DONE** — finished\n- [x] **T-NEXT** — also finished\n' > "$SANDBOX/docs/EXECUTION-PLAN.md"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "Build plan" && fail "all boxes ticked -> silent (got: $out)" || pass "all boxes ticked -> silent"
+rm -f "$SANDBOX/docs/EXECUTION-PLAN.md"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "Build plan" && fail "no plan file -> silent (got: $out)" || pass "no plan file -> silent"
+
 echo "== session-start.sh: recalibration staleness =="
 STAMPF="$SANDBOX/.claude/memory/recalibrated-at"
 # Bootstrapped sandbox: overwrite via printf (sed -i diverges BSD/GNU), restore via cp below.
