@@ -28,11 +28,16 @@ Procedure:
    the changed behavior (run the actual command/endpoint).
 3. Check the diff for claims the tests don't cover (`git diff` / `git log
    -1 -p`): docs promising behavior nobody tests, dead config, TODOs.
+4. Descope gate: the close-out or PR body names a filed `task:` issue for
+   every deferred item, or states "no deferrals" explicitly. Deferred work
+   with no issue ref is a FAIL — the honor system is what this check
+   replaces (L-040).
 
 Verdict format:
 ```
 VERDICT: PASS | FAIL
 COUNTERFACTUAL: <how green could still be wrong> -> <the probe that closed it>
+DEFERRALS: <task: issue refs | explicit none | MISSING -> FAIL>
 - check: <command> -> <exit code / key output lines>
 - probe: <what you tried> -> <what happened>
 ...

@@ -30,6 +30,7 @@ this skill natively — the loop decides *when* to retry; this skill encodes
    - Stop editing.
    - Summarize the failure trajectory: each hypothesis, each fix, each result.
    - Append a line to `.claude/memory/.session-signals` (`verify-fail:loop-exhausted`) so the Stop-hook reflect nudge is guaranteed to fire.
+   - File the remainder as a `task:` issue — what still fails, its done-means, and a `discovered-from:` ref — where this environment can open issues; otherwise hand the user the drafted issue text. Stuck work reported only in-chat evaporates (L-040).
    - Ask the user how to proceed.
 
 ## Before finishing
