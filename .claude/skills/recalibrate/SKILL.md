@@ -27,6 +27,7 @@ weeks after `claude --worktree` made it the fallback rather than the path.
    - `claude.com/blog` — the post index, then anything dated after the newest entry in the manifest
    - `anthropic.com/engineering`
    - `github.com/anthropics/skills` — `spec/agent-skills-spec.md`, the authority on frontmatter fields
+   - `github.blog/changelog` — the platform that owns the bus (issues, PRs, agent orchestration); a platform shipping a mechanism this scaffold encodes is a shed-or-justify trigger (L-015, L-046)
    - `transformer-circuits.pub/2026/workspace/index.html` — convergent context for the budgets; if its framing shifts, the honesty note in ARCHITECTURE must follow
 
    If a source is unreachable, record nothing for the claims it covers — a failed fetch is "no data", never a confirmation.

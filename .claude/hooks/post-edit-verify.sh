@@ -14,8 +14,10 @@ SIGNALS="$DIR/.claude/memory/.session-signals"
 
 [ -x "$VERIFY" ] || exit 0
 
-file=$(jq -r '.tool_input.file_path // empty' 2>/dev/null) || exit 0
+input=$(cat)
+file=$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty' 2>/dev/null) || exit 0
 [ -n "$file" ] || exit 0
+sid=$(printf '%s' "$input" | jq -r '.session_id // empty' 2>/dev/null || true)
 
 # Never verify-loop on Janus's own memory/plumbing.
 case "$file" in
@@ -24,7 +26,7 @@ esac
 
 if ! output=$("$VERIFY" quick "$file" 2>&1); then
   mkdir -p "$(dirname "$SIGNALS")"
-  printf 'verify-fail:%s\n' "$file" >> "$SIGNALS"
+  printf 'verify-fail:%s:%s\n' "$file" "${sid:--}" >> "$SIGNALS"
   printf 'verify.sh quick failed for %s:\n%s\n' "$file" "$output" >&2
   exit 2
 fi

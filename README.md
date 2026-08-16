@@ -14,8 +14,8 @@ one looks forward (stamping those lessons into the next project).
 
 1. Run `/replicate` from an existing Janus repo. (GitHub's **Use this
    template** button also works, but it copies files only — none of
-   `/replicate`'s heredity transforms run, so ask the child's first session
-   to apply them retroactively before real work starts.)
+   `/replicate`'s heredity transforms run, so have the child's first session
+   run `/replicate retrofit` before real work starts.)
 2. `cd` into the clone and start `claude`.
 3. Run `/bootstrap` — it detects (or asks for) your stack, wires
    `scripts/verify.sh` to your real lint/test commands, and proves the

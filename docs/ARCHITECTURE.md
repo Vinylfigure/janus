@@ -11,7 +11,7 @@ CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked 
 .claude/
   settings.json               hook wiring + safe-command permissions
   hooks/                      4 shell hooks (protocol below)
-  skills/                     10 skills — load on demand (progressive disclosure)
+  skills/                     11 skills — load on demand (progressive disclosure)
   agents/                     2 subagents — run in their own context windows
   memory/LEARNINGS.md         append-only learnings ledger (git-tracked)
   memory/sources-seen.md      committed watermark of what /recalibrate has read
@@ -38,7 +38,9 @@ budgeted resource (see rationale below).
 ```
 SessionStart      session-start.sh      → ≤4 short lines: bootstrap status, build-plan next task
                                           (first unticked box in docs/EXECUTION-PLAN.md,
-                                          when that file exists), leftover
+                                          when that file exists), heredity retrofit nudge
+                                          (template identity + foreign origin =
+                                          un-replicated copy, L-039), leftover
                                           unprocessed signals (→ consider /reflect), ripe-learnings
                                           count, recalibration staleness (only once
                                           bootstrapped; stale = recalibrated-at missing or
@@ -49,9 +51,10 @@ SessionStart      session-start.sh      → ≤4 short lines: bootstrap status, 
                                           "done means") — compaction is exactly when the
                                           workspace was disrupted
 UserPromptSubmit  prompt-signal.sh      → silent; correction-looking prompts append
-                                          "correction:<ts>" to .claude/memory/.session-signals
+                                          "correction:<ts>:<keyword>:<excerpt>:<session-id>"
+                                          to .claude/memory/.session-signals (L-031)
 PostToolUse       post-edit-verify.sh   → runs `verify.sh quick <file>`; on failure appends
-(Edit|Write)                              "verify-fail:<file>" to .session-signals and exits 2
+(Edit|Write)                              "verify-fail:<file>:<session-id>" to .session-signals and exits 2
                                           with the output on stderr → Claude iterates
 Stop              stop-reflect-nudge.sh → if .session-signals is non-empty AND no
                                           .nudged-<session_id> marker exists: touch the marker

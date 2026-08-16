@@ -2,7 +2,7 @@
 name: replicate
 description: Stamp a new project from this Janus template - create the child repo, carry portable learnings forward as inheritance, rewrite identity, and hand off to /bootstrap. Confirms name, visibility, and location before creating anything.
 when_to_use: Use when the user wants to start a new project from this scaffold.
-argument-hint: [new project name]
+argument-hint: [new project name | retrofit]
 ---
 
 The lineage loop. Children start with the scaffold *plus* everything this
@@ -26,11 +26,24 @@ repository has learned that is true anywhere — heredity, not just copying.
    - From the parent's CLAUDE.md `janus:rules` block, present each rule whose ledger entry is `Scope: portable` and copy it into the child's rules block only on the user's explicit yes (keep the `(L-NNN)` citations). A declined rule is not lost — its ledger entry still crosses as `inherited` below.
    - From the parent's `LEARNINGS.md`, copy every `Scope: portable` entry (any Status except `retired`) into the child's ledger, re-marking each `Status: inherited`.
    - Copy nothing project-scoped. When in doubt, leave it behind — heredity is selective.
-   - Reset the child's recalibration clock: `date +%s > .claude/memory/recalibrated-at` in the child.
+   - Leave `.claude/memory/recalibrated-at` absent in the child: the stamp certifies a completed `/recalibrate` run, and a provisioning stamp is a false green (L-020) — absence makes the staleness nudge fire honestly once the child bootstraps.
    - Truncate the child's `.claude/memory/sources-seen.md` to its header and marker. A fresh repo has verified nothing; inheriting the parent's watermark would make it skip sources it has never read.
 4. Rewrite identity in the child: CLAUDE.md title + facts block (project name, purpose, `Stack: NOT BOOTSTRAPPED — run /bootstrap`), README title and first paragraph.
 5. Commit in the child: `chore: replicate from janus template (N learnings inherited)`.
 6. Hand off: tell the user to open a session in the child and run `/bootstrap`, and list what was inherited.
+
+## Retrofit (a copy that skipped replication)
+
+The template-copy fingerprint: CLAUDE.md still titled `# Janus (template)`,
+a ledger carrying the parent's `promoted:*` and retired statuses, a non-empty
+`sources-seen.md`, and an origin that is not the template. GitHub's "Use this
+template" button produces exactly this — it copies files and runs none of the
+transforms above, leaving the memory loop wired but dead (L-039). On
+`retrofit`, apply steps 3–5 in place instead of creating anything: re-mark
+parent-authored entries `Status: inherited` (retired entries stay retired),
+run the rules-block review gate from step 3, truncate `sources-seen.md`,
+delete any `recalibrated-at` the copy carried, rewrite identity, and commit
+`chore: retrofit heredity from janus template (L-039)`.
 
 ## Before finishing
 

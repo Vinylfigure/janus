@@ -33,11 +33,16 @@ Procedure:
    finish-time accounting of which predictions bit, as pasted evidence. A
    plan-driven change without that artifact trail FAILs on process even
    when the diff is green.
+5. Descope gate: the close-out or PR body names a filed `task:` issue for
+   every deferred item, or states "no deferrals" explicitly. Deferred work
+   with no issue ref is a FAIL — the honor system is what this check
+   replaces (L-043).
 
 Verdict format:
 ```
 VERDICT: PASS | FAIL
 COUNTERFACTUAL: <how green could still be wrong> -> <the probe that closed it>
+DEFERRALS: <task: issue refs | explicit none | MISSING -> FAIL>
 - check: <command> -> <exit code / key output lines>
 - probe: <what you tried> -> <what happened>
 ...

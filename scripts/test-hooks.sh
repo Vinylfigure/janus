@@ -112,6 +112,16 @@ grep -q '^correction:' "$SIGNALS" 2>/dev/null && pass "correction prompt logs a 
 line=$(grep '^correction:' "$SIGNALS" 2>/dev/null | tail -1)
 printf '%s' "$line" | grep -qi ':no,:' && pass "correction signal carries matched keyword" || fail "correction signal carries matched keyword (got: $line)"
 printf '%s' "$line" | grep -qi 'no, that is wrong' && pass "correction signal carries prompt excerpt" || fail "correction signal carries prompt excerpt (got: $line)"
+# Author id rides as the LAST field, "-" when absent (L-031: a signal carries
+# its cause AND its author).
+rm -f "$SIGNALS"
+echo '{"session_id":"sess-fixture","prompt":"no, undo that"}' | "$SANDBOX/.claude/hooks/prompt-signal.sh"
+line=$(grep '^correction:' "$SIGNALS" 2>/dev/null | tail -1)
+printf '%s' "$line" | grep -q 'sess-fixture' && pass "correction signal carries author session id" || fail "correction signal carries author session id (got: $line)"
+rm -f "$SIGNALS"
+echo '{"prompt":"no, undo that"}' | "$SANDBOX/.claude/hooks/prompt-signal.sh"
+line=$(grep '^correction:' "$SIGNALS" 2>/dev/null | tail -1)
+printf '%s' "$line" | grep -q -- ':-$' && pass "missing session id -> '-' placeholder" || fail "missing session id -> '-' placeholder (got: $line)"
 rm -f "$SIGNALS"
 long=$(printf 'wrong %.0s' $(seq 1 40))
 echo "{\"prompt\":\"$long\"}" | "$SANDBOX/.claude/hooks/prompt-signal.sh"
@@ -138,6 +148,8 @@ rc=$?
 [ $rc -eq 2 ] && pass "failing verify -> exit 2" || fail "failing verify -> exit 2 (got $rc)"
 echo "$err" | grep -q "lint error" && pass "failure output reaches stderr" || fail "failure output reaches stderr"
 grep -q '^verify-fail:' "$SIGNALS" 2>/dev/null && pass "failure logs a signal" || fail "failure logs a signal"
+echo '{"session_id":"sess-fixture","tool_input":{"file_path":"'"$SANDBOX"'/src/app.py"}}' | "$SANDBOX/.claude/hooks/post-edit-verify.sh" 2>/dev/null
+grep '^verify-fail:' "$SIGNALS" 2>/dev/null | tail -1 | grep -q 'sess-fixture' && pass "verify-fail signal carries author session id" || fail "verify-fail signal carries author session id"
 echo '{"tool_input":{"file_path":"'"$SANDBOX"'/.claude/memory/LEARNINGS.md"}}' | "$SANDBOX/.claude/hooks/post-edit-verify.sh"
 [ $? -eq 0 ] && pass "memory files exempt from the loop" || fail "memory files exempt from the loop"
 rm -f "$SIGNALS"
@@ -234,6 +246,25 @@ printf '# Sandbox project\n\n- App stack: NOT BOOTSTRAPPED — run /bootstrap.\n
 rm -f "$STAMPF"
 out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -q "recalibrate" && fail "un-bootstrapped -> staleness gated off (got: $out)" || pass "un-bootstrapped -> staleness gated off"
+
+echo "== session-start.sh: heredity self-check =="
+# Template identity + foreign origin = un-replicated copy (L-039). The
+# template's own checkouts (no remote, or a remote named janus) stay silent.
+printf '# Janus (template)\n\n- App stack: NOT BOOTSTRAPPED — run /bootstrap.\n' > "$SANDBOX/CLAUDE.md"
+out=$(echo '{"source":"startup"}' | "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "retrofit" && fail "non-git dir -> no heredity nudge (got: $out)" || pass "non-git dir -> no heredity nudge"
+HER="$SANDBOX/heredity"
+git init -q -b main "$HER" 2>/dev/null || git init -q "$HER"
+git -C "$HER" config user.email t@t
+git -C "$HER" config user.name t
+mkdir -p "$HER/.claude/memory" "$HER/.claude/hooks"
+printf '# Janus (template)\n\n- App stack: NOT BOOTSTRAPPED — run /bootstrap.\n' > "$HER/CLAUDE.md"
+git -C "$HER" remote add origin https://github.com/example/some-child.git
+out=$(echo '{"source":"startup"}' | CLAUDE_PROJECT_DIR="$HER" "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "retrofit" && pass "template identity + foreign origin -> retrofit nudge" || fail "template identity + foreign origin -> retrofit nudge (got: $out)"
+git -C "$HER" remote set-url origin https://github.com/example/janus.git
+out=$(echo '{"source":"startup"}' | CLAUDE_PROJECT_DIR="$HER" "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "retrofit" && fail "template's own origin -> silent (got: $out)" || pass "template's own origin -> silent"
 
 echo
 if [ "$FAILS" -eq 0 ]; then
