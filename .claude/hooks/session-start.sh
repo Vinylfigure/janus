@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SessionStart hook: inject at most 4 short lines of status into the new session.
+# SessionStart hook: inject at most 5 short lines of status into the new session.
 # Workspace rule: hooks add concepts to always-on context, so keep it minimal.
 set -euo pipefail
 
@@ -63,6 +63,36 @@ if [ -f "$CLAUDE_MD" ] && ! grep -q "NOT BOOTSTRAPPED" "$CLAUDE_MD"; then
     lines+=("Recalibration is stale (never recorded or >30 days) — consider /recalibrate to re-verify encoded practices.")
   fi
 fi
+
+# Backlog visibility: one line of GitHub work state, only when gh can answer.
+# Every failure path is silent — no gh, no jq, no GitHub remote, no auth, no
+# network: a status line is never worth breaking session start over.
+work_line() {
+  command -v gh >/dev/null 2>&1 || return 0
+  command -v jq >/dev/null 2>&1 || return 0
+  case "$(git -C "$DIR" remote get-url origin 2>/dev/null)" in
+    *github.com*) : ;;
+    *) return 0 ;;
+  esac
+  local TMO="" t q qn prs oldest oe line
+  command -v timeout >/dev/null 2>&1 && TMO="timeout 5"
+  t=$( (cd "$DIR" && $TMO gh issue list --label 'task:' --state open --limit 100 --json number) 2>/dev/null | jq 'length' 2>/dev/null) || return 0
+  q=$( (cd "$DIR" && $TMO gh issue list --label 'question:' --state open --limit 100 --json createdAt) 2>/dev/null) || return 0
+  prs=$( (cd "$DIR" && $TMO gh pr list --state open --limit 100 --json number) 2>/dev/null | jq 'length' 2>/dev/null) || return 0
+  qn=$(printf '%s' "$q" | jq 'length' 2>/dev/null) || return 0
+  case "$t$qn$prs" in *[!0-9]*|"") return 0 ;; esac
+  line="work: $t task:, $qn question:"
+  if [ "$qn" -gt 0 ]; then
+    oldest=$(printf '%s' "$q" | jq -r 'map(.createdAt) | sort | .[0] // empty' 2>/dev/null)
+    if [ -n "$oldest" ]; then
+      oe=$(date -u -d "$oldest" +%s 2>/dev/null || true)
+      [ -n "$oe" ] && line="$line (oldest $(( ($(date +%s) - oe) / 86400 ))d)"
+    fi
+  fi
+  lines+=("$line, $prs open PRs")
+  return 0
+}
+work_line || true
 
 # Build-plan continuation: a merged milestone is a trigger, not a stop —
 # surface the next unticked task so sessions conduct instead of waiting (L-042).

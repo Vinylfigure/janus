@@ -264,6 +264,26 @@ done
 echo "$out" | grep -qF "declared, not armed" && pass "unarmed loops flagged" || fail "unarmed loops flagged"
 echo "$out" | grep -qF "regenerated in place" && pass "footer states in-place regeneration" || fail "footer states in-place regeneration"
 
+echo "== session-start.sh: work line (backlog visibility) =="
+# Renders only when gh + jq + a github.com origin all hold; every failure
+# path is silent. A gh that errors covers the no-gh guard behaviorally —
+# absence itself cannot be fixtured (PATH always carries the stub's dir).
+WORKD="$SANDBOX/workline"
+git init -q -b main "$WORKD" 2>/dev/null || git init -q "$WORKD"
+git -C "$WORKD" remote add origin https://github.com/example/child.git
+mkdir -p "$WORKD/.claude/memory"
+printf '# Sandbox project\n\n- App stack: wired (fixture)\n' > "$WORKD/CLAUDE.md"
+date +%s > "$WORKD/.claude/memory/recalibrated-at"
+out=$(echo '{"source":"startup"}' | CLAUDE_PROJECT_DIR="$WORKD" PATH="$SANDBOX/bin:$PATH" "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "work: 1 task:, 1 question:" && pass "gh available -> work line renders counts" || fail "gh available -> work line renders counts (got: $out)"
+echo "$out" | grep -q "1 open PRs" && pass "work line carries open-PR count" || fail "work line carries open-PR count (got: $out)"
+mkdir -p "$SANDBOX/badbin"
+printf '#!/usr/bin/env bash\nexit 1\n' > "$SANDBOX/badbin/gh"
+chmod +x "$SANDBOX/badbin/gh"
+out=$(echo '{"source":"startup"}' | CLAUDE_PROJECT_DIR="$WORKD" PATH="$SANDBOX/badbin:$PATH" "$SANDBOX/.claude/hooks/session-start.sh")
+echo "$out" | grep -q "work:" && fail "failing gh -> silent (got: $out)" || pass "failing gh -> silent"
+rm -rf "$WORKD"
+
 echo "== session-start.sh =="
 # Seed controlled CLAUDE.md state (L-009): these fixtures must pass in bootstrapped
 # children too, so never depend on the live repo's facts block.
