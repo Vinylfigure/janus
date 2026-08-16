@@ -25,6 +25,17 @@ if [ -f "$CLAUDE_MD" ] && grep -q "NOT BOOTSTRAPPED" "$CLAUDE_MD"; then
   lines+=("This scaffold is not bootstrapped: run /bootstrap to wire verification to a real stack.")
 fi
 
+# Heredity self-check: template identity plus a foreign origin means this copy
+# skipped /replicate — nudges alone don't revive a dead-provisioned loop (L-039).
+# The template's own checkouts (origin absent or named janus) stay silent.
+if [ -f "$CLAUDE_MD" ] && head -1 "$CLAUDE_MD" | grep -q '^# Janus (template)'; then
+  origin=$(git -C "$DIR" remote get-url origin 2>/dev/null || true)
+  case "$origin" in
+    ""|*/janus|*/janus.git) : ;;
+    *) lines+=("Un-replicated template copy detected (Janus identity, foreign origin) — run /replicate retrofit before real work.") ;;
+  esac
+fi
+
 # Leftover signals: a session that skipped the Stop nudge (or died) must not
 # lose its lessons. The compact branch above already reports the count.
 if [ "$source" != "compact" ] && [ -s "$SIGNALS" ]; then

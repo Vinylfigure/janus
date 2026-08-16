@@ -36,7 +36,9 @@ little as possible — hook output lands in always-on context, which is a
 budgeted resource (see rationale below).
 
 ```
-SessionStart      session-start.sh      → ≤3 short lines: bootstrap status, leftover
+SessionStart      session-start.sh      → ≤3 short lines: bootstrap status, heredity
+                                          retrofit nudge (template identity + foreign
+                                          origin = un-replicated copy, L-039), leftover
                                           unprocessed signals (→ consider /reflect), ripe-learnings
                                           count, recalibration staleness (only once
                                           bootstrapped; stale = recalibrated-at missing or
@@ -47,9 +49,10 @@ SessionStart      session-start.sh      → ≤3 short lines: bootstrap status, 
                                           "done means") — compaction is exactly when the
                                           workspace was disrupted
 UserPromptSubmit  prompt-signal.sh      → silent; correction-looking prompts append
-                                          "correction:<ts>" to .claude/memory/.session-signals
+                                          "correction:<ts>:<keyword>:<excerpt>:<session-id>"
+                                          to .claude/memory/.session-signals (L-031)
 PostToolUse       post-edit-verify.sh   → runs `verify.sh quick <file>`; on failure appends
-(Edit|Write)                              "verify-fail:<file>" to .session-signals and exits 2
+(Edit|Write)                              "verify-fail:<file>:<session-id>" to .session-signals and exits 2
                                           with the output on stderr → Claude iterates
 Stop              stop-reflect-nudge.sh → if .session-signals is non-empty AND no
                                           .nudged-<session_id> marker exists: touch the marker

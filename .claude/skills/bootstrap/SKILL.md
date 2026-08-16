@@ -18,7 +18,7 @@ commands — this skill wires that up and proves it.
 
 ## Steps
 
-1. Detect the stack: look for manifests (`package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `Gemfile`, `mix.exs`, `pom.xml`, `build.gradle`, `*.csproj`). Use the argument as a hint. If nothing is found (fresh project), interview the user: language, package manager, test framework, formatter/linter. Scaffold the minimal stack files they choose.
+1. Heredity gate first: if CLAUDE.md is still titled `# Janus (template)` and this repo's origin is not the template, stop — run `/replicate retrofit` before bootstrapping; wiring verification onto an un-replicated copy seeds a dead memory loop (L-039). Then detect the stack: look for manifests (`package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `Gemfile`, `mix.exs`, `pom.xml`, `build.gradle`, `*.csproj`). Use the argument as a hint. If nothing is found (fresh project), interview the user: language, package manager, test framework, formatter/linter. Scaffold the minimal stack files they choose.
 2. Wire `scripts/verify.sh`:
    - Replace the block between `# janus:bootstrap:quick:start` and `:end` with per-file checks keyed on file extension (format check, lint, typecheck of the changed file). Budget: <10s. Keep the template's `*.sh`/`*.json` arms — hook scripts exist in every child and deserve the same loop.
    - Replace the block between `# janus:bootstrap:full:start` and `:end` with the real suite: lint all, typecheck all, tests, build if applicable.
