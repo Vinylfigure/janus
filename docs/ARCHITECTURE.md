@@ -18,7 +18,15 @@ CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked 
 scripts/
   verify.sh                   quick|full dispatcher; /bootstrap fills the case arms
   test-hooks.sh               fixture suite for the scaffold plumbing — hooks + docs cross-refs (verify.sh full + CI)
-.github/workflows/verify.yml  CI: runs test-hooks.sh on every push/PR
+  check-loops.sh              loops.yaml schema check — 0 ok / 1 missing / 2 violation (verify.sh full + CI)
+  fleet-status.sh             dashboard + aging engine behind fleet-status.yml (--dry-run is fixture-smoked)
+.github/
+  loops.yaml                  declarative loop manifest: the automations this repo EXPECTS (detect-only reconciliation)
+  workflows/verify.yml        CI: runs test-hooks.sh on every push/PR
+  workflows/fleet-status.yml  6-hourly: regenerates the Status dashboard issue, ages operator-blocked items
+  workflows/gate-integrity.yml PR seatbelt: machinery paths require the operator's machinery-change label
+  ISSUE_TEMPLATE/             task:/question: issue forms — the label vocabulary and done-means field, in git
+  CODEOWNERS                  /.github/ and /scripts/ route to the operator
 ```
 
 Sentinel markers give skills deterministic edit targets:

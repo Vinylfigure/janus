@@ -1,0 +1,57 @@
+name: gate-integrity
+
+# The seatbelt: a PR that modifies the verification machinery — workflows or
+# the fixture suite — or deletes hook/script fixtures must carry the
+# `machinery-change` label. The label is the declared escape hatch, and it is
+# operator-controlled: CODEOWNERS routes /.github/ and /scripts/ to the
+# operator, so waiving the gate is always a deliberate human act.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gate-integrity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  seatbelt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check machinery paths against the machinery-change label
+        env:
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          case ",$LABELS," in
+            *,machinery-change,*)
+              echo "machinery-change label present — gate waived by the operator"
+              exit 0 ;;
+          esac
+          git fetch --quiet origin "$BASE_REF"
+          bad=0
+          while IFS=$'\t' read -r status path newpath; do
+            [ -n "$status" ] || continue
+            target="${newpath:-$path}"
+            case "$target" in
+              .github/workflows/*|scripts/test-hooks.sh)
+                echo "::error file=$target::machinery path modified without the machinery-change label"
+                bad=1 ;;
+            esac
+            if [ "${status:0:1}" = "D" ]; then
+              case "$path" in
+                scripts/*.sh|.claude/hooks/*.sh)
+                  echo "::error::fixture/hook script deleted without the machinery-change label: $path"
+                  bad=1 ;;
+              esac
+            fi
+          done < <(git diff --name-status -M "origin/$BASE_REF...HEAD")
+          [ "$bad" -eq 0 ] && echo "no machinery paths touched"
+          exit "$bad"

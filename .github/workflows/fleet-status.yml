@@ -1,0 +1,31 @@
+name: fleet-status
+
+# The git-visible scheduler: regenerates the "Status dashboard" issue in
+# place, runs the aging ladder over operator-blocked items, and turns silent
+# rot (a claude/* branch with no PR, a broken loop manifest) into a failing
+# run. The logic lives in scripts/fleet-status.sh so test-hooks.sh can smoke
+# it with a stubbed gh.
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"   # never :00 — GitHub cron delay peaks on the hour
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: read
+  contents: read
+
+concurrency:
+  group: fleet-status
+
+jobs:
+  dashboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Regenerate the status dashboard
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/fleet-status.sh

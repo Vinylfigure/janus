@@ -34,6 +34,9 @@ case "$MODE" in
     # janus:bootstrap:quick:end
     ;;
   full)
+    # Loop-manifest check: scaffold plumbing, not stack — it sits outside the
+    # bootstrap sentinels so children keep it after /bootstrap rewires full.
+    "$(dirname "$0")/check-loops.sh" || exit $?
     # janus:bootstrap:full:start
     # Template plumbing suite. /bootstrap replaces this block with the
     # project's real suite (lint all, typecheck, tests, build), e.g.:

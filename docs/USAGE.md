@@ -54,7 +54,7 @@ goal. What fires when:
 | `/replicate` | you want a new project from this scaffold | — | **name/visibility/path** before creation |
 | `/add-skill` | a procedure got repeated or explained twice | `/evolve` promotes procedure-shaped lessons | — (retire before adding) |
 | `/decision-lock` | a discussion resolves a product/design question ("lock this") | — | — (append-only to docs/DECISIONS.md; amendments cite the superseded ID) |
-| `/work-loop` | a scheduled firing (or the user) says to work the backlog | the routine `/bootstrap` proposes | — (one ready `task:` per firing, PR delivery; idle firings only propose) |
+| `/work-loop` | a scheduled firing (or the user) says to work the backlog | the routine declared in `.github/loops.yaml` (armed at `/bootstrap`) | — (one ready `task:` per firing, PR delivery; idle firings only propose) |
 
 **The modality ladder** — Claude proposes the level that fits the observable
 shape of the work, and escalation is always proposed, never silent:
@@ -152,8 +152,29 @@ daily work-loop routine"), prompt:
 > PR, or if none is ready, file at most two proposal `task:` issues from an
 > idle evaluation. Never execute a proposal in the firing that created it.
 
-`/bootstrap` proposes both routines as its closing step, so every child
-leaves session zero with the loops offered rather than remembered.
+`/bootstrap` records the loop decision as its closing step, so every child
+leaves session zero with the loops declared rather than remembered.
+
+**Every expected automation is declared in `.github/loops.yaml`** — the git
+source of truth the platform's routine state is compared against.
+Reconciliation is detect-only: `scripts/check-loops.sh` enforces the schema
+(in `verify.sh full` and CI), and the dashboard flags `enabled: false`
+entries as "declared, not armed". Arming a routine and flipping its entry to
+`enabled: true` + `armed_by` happen in the same session (L-048); flipping it
+back in a PR is the declarative kill switch. The `task:`/`question:` label
+vocabulary itself lives in git too, as issue forms under
+`.github/ISSUE_TEMPLATE/` — a Task requires its done-means, a Question
+requires the options considered.
+
+**The Status dashboard** is one GitHub issue (titled "Status dashboard",
+labeled `dashboard`) that `.github/workflows/fleet-status.yml` regenerates
+*in place* every six hours: open PRs with check state, `question:` issues
+blocked on you (the aging ladder adds `aging` after 3 quiet days and
+`overdue` after 7 — your reply clears both; nothing is ever auto-closed),
+the `task:` backlog, the loop manifest's armed/declared state, and red
+findings — a `claude/*` branch older than a day with no PR (L-047) or a
+broken manifest fails the run visibly. Comments and checkboxes there are
+your control surface.
 
 Two design points make this safe:
 

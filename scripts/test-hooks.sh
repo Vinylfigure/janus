@@ -20,6 +20,20 @@ for f in "$ROOT"/.claude/hooks/*.sh "$ROOT"/scripts/*.sh; do
   if bash -n "$f" 2>/dev/null; then pass "bash -n $(basename "$f")"; else fail "bash -n $(basename "$f")"; fi
 done
 if jq . "$ROOT/.claude/settings.json" >/dev/null 2>&1; then pass "settings.json is valid JSON"; else fail "settings.json is valid JSON"; fi
+# Workflow/manifest YAML must at least parse. Skips (never fails) without
+# python3+pyyaml — CI's ubuntu runner always has both, so rot cannot merge.
+if command -v python3 >/dev/null 2>&1 && python3 -c 'import yaml' 2>/dev/null; then
+  for f in "$ROOT"/.github/workflows/*.yml "$ROOT"/.github/loops.yaml "$ROOT"/.github/ISSUE_TEMPLATE/*.yml; do
+    [ -f "$f" ] || continue
+    if python3 -c 'import sys, yaml; yaml.safe_load(open(sys.argv[1]))' "$f" 2>/dev/null; then
+      pass "yaml parses: $(basename "$f")"
+    else
+      fail "yaml parses: $(basename "$f")"
+    fi
+  done
+else
+  echo "  skip: python3+pyyaml unavailable — YAML parse checks skipped"
+fi
 
 echo "== frontmatter (skills + agents) =="
 # The quick dispatcher's *) arm exits 0 for every .md, so nothing else in the
@@ -106,7 +120,11 @@ else
   done
   # recalibrated-at is deliberately absent from this list: it is written only
   # by a completed /recalibrate run (L-020), so its absence is a valid state.
-  for p in .github/workflows/verify.yml .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/sources-seen.md; do
+  for p in .github/workflows/verify.yml .github/workflows/fleet-status.yml \
+           .github/workflows/gate-integrity.yml .github/loops.yaml .github/CODEOWNERS \
+           .github/ISSUE_TEMPLATE/task.yml .github/ISSUE_TEMPLATE/question.yml \
+           .github/ISSUE_TEMPLATE/config.yml \
+           .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/sources-seen.md; do
     if [ -e "$ROOT/$p" ]; then pass "component-map path $p exists"; else fail "component-map path $p missing from tree"; fi
   done
   n=$(ls "$ROOT"/.claude/hooks/*.sh 2>/dev/null | wc -l | tr -d ' ')
@@ -201,6 +219,50 @@ rc=$?
 for m in quick:start quick:end full:start full:end; do
   grep -q "janus:bootstrap:$m" "$ROOT/scripts/verify.sh" && pass "sentinel janus:bootstrap:$m present" || fail "sentinel janus:bootstrap:$m present"
 done
+
+echo "== check-loops.sh (loop manifest) =="
+"$ROOT/scripts/check-loops.sh" >/dev/null 2>&1 && pass "repo manifest validates (exit 0)" || fail "repo manifest validates (exit 0)"
+printf 'loops:\n  - name: broken\n    driver: routine\n' > "$SANDBOX/loops-broken.yaml"
+"$ROOT/scripts/check-loops.sh" "$SANDBOX/loops-broken.yaml" >/dev/null 2>&1
+rc=$?
+[ "$rc" -eq 2 ] && pass "incomplete loop entry -> exit 2" || fail "incomplete loop entry -> exit 2 (got $rc)"
+err=$("$ROOT/scripts/check-loops.sh" "$SANDBOX/loops-broken.yaml" 2>&1 >/dev/null)
+echo "$err" | grep -q "missing schedule" && pass "schema violation names the missing key" || fail "schema violation names the missing key (got: $err)"
+"$ROOT/scripts/check-loops.sh" "$SANDBOX/no-such-loops.yaml" >/dev/null 2>&1
+rc=$?
+[ "$rc" -eq 1 ] && pass "missing manifest -> exit 1" || fail "missing manifest -> exit 1 (got $rc)"
+printf 'loops:\n  - name: ghost\n    schedule: "17 1 * * *"\n    driver: github-action\n    workflow: no-such.yml\n    enabled: true\n    owner: fixture\n' > "$SANDBOX/loops-ghost.yaml"
+"$ROOT/scripts/check-loops.sh" "$SANDBOX/loops-ghost.yaml" >/dev/null 2>&1
+rc=$?
+[ "$rc" -eq 2 ] && pass "ghost workflow reference -> exit 2" || fail "ghost workflow reference -> exit 2 (got $rc)"
+
+echo "== fleet-status.sh (stubbed gh, --dry-run) =="
+# The dashboard engine must render every section from stub data and mutate
+# nothing. The stub answers the exact gh shapes the script (and the
+# session-start work line) asks for; everything else degrades to [].
+mkdir -p "$SANDBOX/bin"
+cat > "$SANDBOX/bin/gh" <<'EOF'
+#!/usr/bin/env bash
+args="$*"
+case "$args" in
+  *"pr list"*) echo '[{"number":7,"title":"stub PR","createdAt":"2026-08-10T00:00:00Z","updatedAt":"2026-08-10T00:00:00Z","headRefName":"claude/stub-branch"}]' ;;
+  *"issue list"*"task:"*) echo '[{"number":3,"createdAt":"2026-08-01T00:00:00Z"}]' ;;
+  *"issue list"*"question:"*) echo '[{"number":4,"title":"stub question","createdAt":"2026-08-12T00:00:00Z","updatedAt":"2026-08-12T00:00:00Z"}]' ;;
+  *"pr checks"*) printf 'test\tpass\t1m\thttps://example.invalid\n' ;;
+  *"pr view"*|*"issue view"*) echo '{"comments":[]}' ;;
+  *"repo view"*) echo 'stub' ;;
+  *) echo '[]' ;;
+esac
+EOF
+chmod +x "$SANDBOX/bin/gh"
+out=$(PATH="$SANDBOX/bin:$PATH" "$ROOT/scripts/fleet-status.sh" --dry-run 2>/dev/null)
+rc=$?
+[ "$rc" -eq 0 ] && pass "dry-run with clean data -> exit 0" || fail "dry-run with clean data -> exit 0 (got $rc)"
+for h in "## Open PRs" "## Blocked on operator" "## Backlog" "## Loops" "## Red findings"; do
+  echo "$out" | grep -qF "$h" && pass "dashboard section: $h" || fail "dashboard section: $h"
+done
+echo "$out" | grep -qF "declared, not armed" && pass "unarmed loops flagged" || fail "unarmed loops flagged"
+echo "$out" | grep -qF "regenerated in place" && pass "footer states in-place regeneration" || fail "footer states in-place regeneration"
 
 echo "== session-start.sh =="
 # Seed controlled CLAUDE.md state (L-009): these fixtures must pass in bootstrapped
