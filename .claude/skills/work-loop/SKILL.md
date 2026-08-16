@@ -2,6 +2,8 @@
 name: work-loop
 description: One iteration of the continuous work loop - consume exactly one ready task: issue and deliver it by PR, or, when the backlog is empty, evaluate the repo and file at most two new task: proposals. A Routine, /loop, or goal loop drives repetition.
 when_to_use: Use when a scheduled firing (or the user) says to work the backlog, or to run one loop iteration by hand.
+model: claude-sonnet-5
+effort: high
 ---
 
 The consumer half of the work loop: descope capture fills the `task:` backlog

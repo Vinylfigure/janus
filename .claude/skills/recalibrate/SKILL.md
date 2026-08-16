@@ -2,6 +2,8 @@
 name: recalibrate
 description: Re-verify this repo's encoded conventions (skills, CLAUDE.md directives, ARCHITECTURE.md claims) against primary sources and file drift as candidate LEARNINGS.md entries.
 when_to_use: Use when the session-start status says recalibration is stale, a documented practice misbehaves, or on the maintenance heartbeat.
+model: claude-sonnet-5
+effort: high
 ---
 
 The ecosystem-learning loop. `/reflect` learns from what happened in sessions;
@@ -29,6 +31,7 @@ weeks after `claude --worktree` made it the fallback rather than the path.
    - `github.com/anthropics/skills` — `spec/agent-skills-spec.md`, the authority on frontmatter fields
    - `github.blog/changelog` — the platform that owns the bus (issues, PRs, agent orchestration); a platform shipping a mechanism this scaffold encodes is a shed-or-justify trigger (L-015, L-046)
    - `transformer-circuits.pub/2026/workspace/index.html` — convergent context for the budgets; if its framing shifts, the honesty note in ARCHITECTURE must follow
+   - `docs.claude.com` pricing and model pages — the owner of `docs/MODEL-TIERS.md`'s table. Model IDs, context windows, and rates are the moving target the tier mapping was allowed to encode *because* this run re-verifies it (ARCHITECTURE's reversed L-004 note): a retired ID pinned in working-tier frontmatter is drift, and a tier whose cheap model gained or lost context changes which skills may declare it
 
    If a source is unreachable, record nothing for the claims it covers — a failed fetch is "no data", never a confirmation.
 4. Diff and classify each claim: **confirmed** (still current), **drifted** (a primary source contradicts or supersedes it — cite where), or **newly-available** (a capability the scaffold predates and could use). For a native limit, check whether the number is a target or a failure threshold before treating it as a budget.

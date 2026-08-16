@@ -2,6 +2,8 @@
 name: reflect
 description: Distill this session's lessons (corrections, verification failures, surprises, wasted paths) into structured entries in .claude/memory/LEARNINGS.md.
 when_to_use: Use at session end, after a correction, or when the Stop hook asks for it.
+model: claude-sonnet-5
+effort: high
 ---
 
 Runs in the main thread only — never delegate this to a subagent. Only this

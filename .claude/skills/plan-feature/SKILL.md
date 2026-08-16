@@ -3,6 +3,7 @@ name: plan-feature
 description: The plan-first workflow for any non-trivial change - explore with subagents, write a plan with explicit "done means" verification criteria, get sign-off, implement, verify.
 when_to_use: Use for features, refactors, or any change touching more than a couple of files.
 argument-hint: [what to build or change]
+effort: xhigh
 ---
 
 The Cherny flow: plan mode first, code second, and a closed feedback loop at

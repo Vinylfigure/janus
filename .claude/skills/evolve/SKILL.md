@@ -2,6 +2,7 @@
 name: evolve
 description: Promote stable learnings (Evidence >= 2) from LEARNINGS.md to the highest enforceable rung - hook, fixture, verifier check, skill, or CLAUDE.md rule - and retire contradicted or inert rules. Confirms with the user before editing CLAUDE.md.
 when_to_use: Use between tasks when the session-start status reports ripe learnings - never mid-implementation.
+effort: xhigh
 ---
 
 The garbage collector and promoter of Janus's memory. `/reflect` writes raw
