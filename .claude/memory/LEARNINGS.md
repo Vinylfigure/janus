@@ -116,10 +116,10 @@ Rules for curators (`/evolve`):
 
 ## L-012 · 2026-07-06 · Propose the maintenance heartbeat at the end of /bootstrap
 - Trigger: user asked why the weekly heartbeat isn't on by default for every project; auto-creating a billed cloud routine silently would violate the escalation-is-proposed rule, but the end of session zero is the natural moment to offer it (janus round-3 evolve session)
-- Rule: when a project finishes bootstrapping, propose creating the maintenance heartbeat (one yes, PR-delivery only) instead of waiting for the user to discover it
+- Rule: when a project finishes bootstrapping, propose creating the maintenance heartbeat (one yes, PR-delivery only) instead of waiting for the user to discover it. observed: 2026-08-16 — the cost of leaving this a candidate measured in overlord: heartbeat never created, /evolve 8 days overdue with ripe candidates, /recalibrate never run; the operator asked why the loops don't run themselves
 - Scope: portable
-- Evidence: 1
-- Status: candidate
+- Evidence: 2
+- Status: promoted:skill/bootstrap — 2026-08-16, on the operator's correction (recurrence: overlord's unset heartbeat)
 
 ## L-013 · 2026-07-06 · Absence from one environment is not deprecation — confirm drift against the primary source
 - Trigger: a maintenance audit flagged the scaffold's /goal references as drift because the command was absent from the auditing session's surface; the official best-practices page documents /goal as a real feature, and the planned "fix" was withdrawn before landing (janus round-3.5 session)
@@ -366,3 +366,10 @@ Rules for curators (`/evolve`):
 - Evidence: 2
 - Status: promoted:skill/ship — 2026-08-16, on the operator's explicit correction
 
+
+## L-048 · 2026-08-16 · Pair every capture channel with a scheduled consumer
+- Trigger: the descope loop landed capture (part B → `task:` issue) with no consumer — the operator asked why deferred tasks aren't looped to continue and why an empty backlog doesn't trigger evaluation of what should exist next; loop-engineering research confirmed the shape (developersdigest.tech/blog/loop-engineering-definitive-guide: "a loop with no verifier produces wrong answers faster", the worker never grades its own homework; Huntley's Ralph loop: fresh context per iteration, state on disk, one task per pass) (origin: user correction + fetched content, verified in main thread, 2026-08-16)
+- Rule: a backlog without a scheduled consumer is a parking lot — pair every capture channel with a routine that consumes exactly one ready item per firing and delivers by PR, generates proposals only when idle, and never executes a proposal in the firing that created it
+- Scope: portable
+- Evidence: 1
+- Status: promoted:skill/work-loop — 2026-08-16, on the operator's correction
