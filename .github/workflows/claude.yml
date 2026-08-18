@@ -60,4 +60,4 @@ jobs:
           # Without a Bash grant the action can run no shell command at all,
           # so a dispatched order could only claim a verification loop, never
           # close one (aegis-sentinel#1).
-          claude_args: --max-turns 50 --allowedTools "Read,Glob,Grep,Edit,Write,Bash(git *),Bash(gh *),Bash(scripts/*)"
+          claude_args: --max-turns 120 --allowedTools "Read,Glob,Grep,Edit,Write,Bash(git *),Bash(gh *),Bash(scripts/*)"
