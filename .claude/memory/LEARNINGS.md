@@ -38,7 +38,7 @@ Rules for curators (`/evolve`):
 <!-- entries below this line -->
 
 ## L-001 · 2026-07-06 · Fixture-test every hook with sample JSON before committing
-- Trigger: session-start.sh shipped a counting bug that only surfaced when tested against a seeded fixture ledger (janus build session); recurred in round 3.5 — the ripe-counter awk carried two more counting bugs (Evidence >= 10 missed, state leaking across entries) that only red-first regression fixtures exposed
+- Trigger: session-start.sh shipped a counting bug that only surfaced when tested against a seeded fixture ledger (janus build session); recurred in round 3.5 — the ripe-counter awk carried two more counting bugs (Evidence >= 10 missed, state leaking across entries) that only red-first regression fixtures exposed; observed: 2026-08-18 — the same per-entry state-reset bug class was designed out up front in scripts/check-ledger-aging.sh (a plain script, not a hook, but built to the same discipline) by fixture-testing stale/fresh/promoted/ripe cases in scripts/test-hooks.sh before commit (work-loop firing, issue #17)
 - Rule: before committing a hook script, pipe fixture JSON through it and assert exit code and output for the pass, fail, and repeat cases
 - Scope: portable
 - Evidence: 2
@@ -66,10 +66,10 @@ Rules for curators (`/evolve`):
 - Status: promoted:skill/recalibrate
 
 ## L-005 · 2026-07-06 · Treat aggregator claims and fetch summaries as leads, never evidence
-- Trigger: an aggregator site mixed verified practices with unverifiable feature claims — only primary-source-corroborated claims were encoded (janus refinement session); the withheld /goal claim was later confirmed by the official loops post (round-3 research); merged with L-011: a fetch-summary of the workspace paper attributed claims the paper never makes, caught by demanding verbatim quotes; recurred in round 3.5: a subagent report claimed a branch was "up to date with its origin" — the remote had no such branch, and a PR create failed until `git ls-remote` settled it; recurred 2026-07-24 (methodology review): a delegated verifier reported two Anthropic quotes as FABRICATIONS — main-thread raw-HTML fetch showed both sentences real, the refutation itself being the false summary-layer claim (origin: subagent report, falsified by own observation); observed: 2026-07-27 — a research subagent claimed cloud cross-repo session triggers don't exist; checked against the session's own toolset, which exposes exactly that mechanism, so the claim was corrected before entering the plan (salvaged 2026-08-16 from stranded branch claude/janice-multi-repo-orchestration-3h96bg)
+- Trigger: an aggregator site mixed verified practices with unverifiable feature claims — only primary-source-corroborated claims were encoded (janus refinement session); the withheld /goal claim was later confirmed by the official loops post (round-3 research); merged with L-011: a fetch-summary of the workspace paper attributed claims the paper never makes, caught by demanding verbatim quotes; recurred in round 3.5: a subagent report claimed a branch was "up to date with its origin" — the remote had no such branch, and a PR create failed until `git ls-remote` settled it; recurred 2026-07-24 (methodology review): a delegated verifier reported two Anthropic quotes as FABRICATIONS — main-thread raw-HTML fetch showed both sentences real, the refutation itself being the false summary-layer claim (origin: subagent report, falsified by own observation); observed: 2026-07-27 — a research subagent claimed cloud cross-repo session triggers don't exist; checked against the session's own toolset, which exposes exactly that mechanism, so the claim was corrected before entering the plan (salvaged 2026-08-16 from stranded branch claude/janice-multi-repo-orchestration-3h96bg); recurred 2026-08-18 (work-loop firing, issue #17): a commit/PR-body claim that the new check-ledger-aging.sh nudge "surfaces on every CI run" was adopted from an existing doc row's "(verify.sh full + CI)" phrasing convention without checking the actual workflow YAML — the verifier agent's adversarial pass caught it against the primary source (.github/workflows/verify.yml runs only test-hooks.sh, never verify.sh full); notably this was a self-authored claim, not a subagent's, and L-005 didn't stop it from being drafted — it was only caught downstream by the verifier's independent check, worth weighing when judging how preventive vs. how catch-net this rule actually is
 - Rule: treat aggregator claims and fetch summaries as leads, never evidence — confirm any specific claim verbatim against a primary source before adopting or citing it
 - Scope: portable
-- Evidence: 5
+- Evidence: 6
 - Status: promoted:CLAUDE.md
 
 ## L-006 · 2026-07-07 · Distinguish context bloat from dependency bloat when judging a tool
@@ -87,7 +87,7 @@ Rules for curators (`/evolve`):
 - Status: promoted:CLAUDE.md
 
 ## L-008 · 2026-07-06 · Stress-test a plan against scale, concurrency, and headless modes before presenting it
-- Trigger: user rejected the round-3 plan approval asking "will this perform under stress and scaling?"; the resulting review found 4 real design bugs the plan had missed — ledger cap deadlock, worktree ID collisions, headless gates with no user, mtime loss across clones (janus round-3 session); observed: 2026-07-27 — the orchestration plan's adversarial pass surfaced the heartbeat-burst, session-attribution, and un-bootstrapped-dispatch failures, and their fixes (staggering, one-repo-owns-a-session, verify-green precondition) shipped in the docs and the conductor child's skills (salvaged 2026-08-16 from the same stranded branch)
+- Trigger: user rejected the round-3 plan approval asking "will this perform under stress and scaling?"; the resulting review found 4 real design bugs the plan had missed — ledger cap deadlock, worktree ID collisions, headless gates with no user, mtime loss across clones (janus round-3 session); observed: 2026-07-27 — the orchestration plan's adversarial pass surfaced the heartbeat-burst, session-attribution, and un-bootstrapped-dispatch failures, and their fixes (staggering, one-repo-owns-a-session, verify-green precondition) shipped in the docs and the conductor child's skills (salvaged 2026-08-16 from the same stranded branch); observed: 2026-08-18 — a headless-mode preflight against the three known sensitive-write paths correctly ruled out editing session-start.sh for issue #17's mechanism up front, but the plan still hit an unforeseen headless failure mode after push (the seatbelt/machinery-change gate, L-055) — the pre-push adversarial pass caught what it was scoped to catch, not everything headless-shaped
 - Rule: before presenting a plan, run an adversarial pass over its behavior at scale, under concurrent use, and with no user present — and pair every failure found with a fix, not just a risk note
 - Scope: portable
 - Evidence: 1
@@ -129,7 +129,7 @@ Rules for curators (`/evolve`):
 - Status: retired (merged into L-004)
 
 ## L-014 · 2026-07-06 · Mechanisms enter the template only after dogfooding evidence demonstrates the need
-- Trigger: round-3.5 subtraction removed Graphify (never built here), the ARCHIVE.md + ≤25 cap (ledger held 12 entries), and staged expiry policies — all machinery added for problems no session had hit, against the repo's own Evidence >= 2 discipline (janus round-3.5 session)
+- Trigger: round-3.5 subtraction removed Graphify (never built here), the ARCHIVE.md + ≤25 cap (ledger held 12 entries), and staged expiry policies — all machinery added for problems no session had hit, against the repo's own Evidence >= 2 discipline (janus round-3.5 session); observed: 2026-08-18 — issue #17's ledger-aging mechanism was justified by a concrete, already-demonstrated pain (7+ real Evidence-1 candidates already 42-43 days stale), not a hypothetical; the same reasoning ruled out speculative extras (e.g. a configurable threshold, a second severity tier) that the issue never asked for
 - Rule: disciplines can be designed up front, but a mechanism (tool, file, cap, fallback) enters the scaffold only after real use demonstrates the need it serves
 - Scope: portable
 - Evidence: 3
@@ -412,6 +412,20 @@ Rules for curators (`/evolve`):
 ## L-054 · 2026-07-27 · Every changed line must trace to the request
 - Trigger: same evaluation ("Surgical Changes") — neither Janus nor the platform encodes diff minimalism: don't improve adjacent code, comments, or formatting while editing; the platform covers style-matching natively but not scope-of-diff (external lead, karpathy-skills evaluation session; authored as L-020 on the same branch, renumbered at 2026-08-16 salvage)
 - Rule: when editing existing code, change only lines the request requires and remove only orphans your own change created; mention pre-existing dead code, don't delete it
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-055 · 2026-08-18 · A CODEOWNERS-gated CI check is a second headless permission boundary, distinct from sensitive-file writes
+- Trigger: PR #36 (issue #17, ledger-aging mechanism) edited scripts/test-hooks.sh to add its required fixtures; the edit itself succeeded — .claude/hooks/**, .github/workflows/**, and .claude/settings.json were correctly left untouched per the known headless boundary — but gate-integrity.yml's seatbelt check still failed CI, because scripts/test-hooks.sh and .github/workflows/* are CODEOWNERS-routed and require the operator-only machinery-change label; the block surfaced only as a red check after push, not as a permission prompt during the edit (origin: own observation, work-loop firing)
+- Rule: before delivering a headless PR that touches scripts/test-hooks.sh or .github/workflows/*, expect the seatbelt gate to require the operator's machinery-change label — comment on the PR naming exactly what's blocking rather than attempting to self-apply the label or route around the gate
+- Scope: project
+- Evidence: 1
+- Status: candidate
+
+## L-056 · 2026-08-18 · A headless session's logged correction signal can be a false positive from relayed automated text
+- Trigger: this session's .claude/memory/.session-signals logged a `correction:` entry whose matched keyword was "wrong", sourced from a task-notification's relayed verifier-agent report text — the session had no live human turns at all (scheduled/headless work-loop firing); prompt-signal.sh's UserPromptSubmit hook scans all incoming prompt text for correction-looking keywords without distinguishing live human prompts from system-relayed content like task-notification bodies (origin: own observation, this session)
+- Rule: before treating a Stop-hook-reported correction signal as a real lesson, check whether its source text is live human input or relayed automated content (a task-notification, tool output) — a signal sourced from the latter is a scaffold artifact to note, not evidence of an actual correction to reflect on
 - Scope: portable
 - Evidence: 1
 - Status: candidate
