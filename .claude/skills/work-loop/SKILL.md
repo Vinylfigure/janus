@@ -19,17 +19,20 @@ firing starts fresh and can only learn what it can read.
 3. Delivery is a PR, never the default branch — the human gate is the merge, not a pre-approval.
 4. Never execute a proposal in the firing that created it: generation and execution live in separate iterations, and the gap between firings is the operator's veto window (closing the issue is the veto).
 5. Untouchable: a `task:` labeled `loop:hold`, or one blocked on an unanswered `question:`. The kill switch is pausing the routine.
+6. **Headless permission boundary.** An unattended firing cannot write `.claude/hooks/**`, `.github/workflows/**`, or `.claude/settings.json`: the platform gates those paths as sensitive regardless of what `allowed_tools` grants, and there is nobody to answer the prompt, so the firing hangs instead of failing. The first armed firing proved it — three hours at `requires_action` on an Edit to `session-start.sh` (#26).
 
 ## Steps
 
 1. Ready sweep: consult the Status dashboard issue and the open PRs first — an unmerged `claude/` PR from a prior firing outranks starting new work when its checks are red. Then list open `task:` issues. Ready = carries a done-means, is within this environment's tool grant, and is not blocked on a `question:` or `loop:hold`. Take the oldest ready task unless one is explicitly marked priority.
+1b. Permission preflight, before committing to the task rather than after: judge its done-means against hold-in-mind 6. If delivery requires writing a sensitive path, do not start it — comment on the issue naming the exact path and that it is operator-only in a headless firing, then evaluate the next ready task. If every ready task is operator-only, say so in one line and exit. A prompt that appears anyway is a stop-and-report, never a wait.
 2. Consume (exactly one): run the normal delivery path — `/plan-feature` for non-trivial work (its own rule lets simple tasks skip ceremony) → implement → `/verify-loop` → the `verifier` agent's judgment → `/ship` as a PR whose body says `Closes #N`. Descoped remainders follow the descope gate: new `task:` issues with `discovered-from:` refs.
 3. Idle generation (only when NO task is ready): evaluate the repo against its stated purpose and objectives, the ledger's candidates and efficacy notes, and recent merged PRs; where the environment allows, add a bounded research pass on the repo's domain. File at most 2 proposal `task:` issues, each with a done-means and `discovered-from: work-loop idle evaluation`. Then stop — the next firing executes.
 4. Nothing ready and nothing worth proposing: say so in one line and exit. An empty firing is a healthy signal, not a failure.
 
 ## Before finishing
 
-State which arm ran (consumed #N with the PR URL / proposed #N,#M / empty),
+State which arm ran (consumed #N with the PR URL / proposed #N,#M / empty /
+blocked-operator-only with the path that blocked it),
 the verifier's verdict when work shipped, and any remainder filed. A firing
 must end in exactly one of those three states — never in silently-started
 work.
