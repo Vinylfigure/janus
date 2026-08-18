@@ -37,6 +37,9 @@ case "$MODE" in
     # Loop-manifest check: scaffold plumbing, not stack — it sits outside the
     # bootstrap sentinels so children keep it after /bootstrap rewires full.
     "$(dirname "$0")/check-loops.sh" || exit $?
+    # Ledger aging nudge: always exits 0 (informational), so it runs
+    # unconditionally and never gates full's stack suite below.
+    "$(dirname "$0")/check-ledger-aging.sh"
     # janus:bootstrap:full:start
     # Template plumbing suite. /bootstrap replaces this block with the
     # project's real suite (lint all, typecheck, tests, build), e.g.:
