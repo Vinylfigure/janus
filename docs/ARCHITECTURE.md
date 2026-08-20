@@ -8,6 +8,7 @@ several "arbitrary" numbers here are load-bearing.
 
 ```
 CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked blocks)
+AGENTS.md                     generated mirror of CLAUDE.md for the agents.md convention (#22 / L-046); never hand-edit
 .claude/
   settings.json               hook wiring + safe-command permissions
   hooks/                      4 shell hooks (protocol below)
@@ -20,6 +21,7 @@ scripts/
   test-hooks.sh               fixture suite for the scaffold plumbing — hooks + docs cross-refs (verify.sh full + CI)
   check-loops.sh              loops.yaml schema check — 0 ok / 1 missing / 2 violation (verify.sh full + CI)
   check-ledger-aging.sh       nudges on Evidence-1 ledger candidates stale >= 30d (verify.sh full; its own fixtures run in CI via test-hooks.sh; always exits 0)
+  generate-agents-md.sh       regenerates AGENTS.md from CLAUDE.md; --check is verify.sh full's drift gate — 0 ok / 1 missing source / 2 drift (#22)
   fleet-status.sh             dashboard + aging engine behind fleet-status.yml (--dry-run is fixture-smoked)
 .github/
   loops.yaml                  declarative loop manifest: the automations this repo EXPECTS (detect-only reconciliation)
