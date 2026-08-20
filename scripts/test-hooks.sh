@@ -236,6 +236,63 @@ printf 'loops:\n  - name: ghost\n    schedule: "17 1 * * *"\n    driver: github-
 rc=$?
 [ "$rc" -eq 2 ] && pass "ghost workflow reference -> exit 2" || fail "ghost workflow reference -> exit 2 (got $rc)"
 
+echo "== check-ledger-aging.sh (Evidence-1 staleness nudge) =="
+LFIX="$SANDBOX/ledger-aging.md"
+stale_date=$(date -u -d '-40 days' +%Y-%m-%d 2>/dev/null)
+fresh_date=$(date -u +%Y-%m-%d)
+old_promoted_date=$(date -u -d '-90 days' +%Y-%m-%d 2>/dev/null)
+if [ -z "$stale_date" ] || [ -z "$old_promoted_date" ]; then
+  echo "  skip: date -d unavailable — check-ledger-aging.sh fixtures skipped"
+else
+  cat > "$LFIX" <<EOF
+# fixture ledger
+
+<!-- entries below this line -->
+
+## L-100 · $stale_date · Stale Evidence-1 candidate
+- Trigger: fixture
+- Rule: fixture rule
+- Scope: project
+- Evidence: 1
+- Status: candidate
+
+## L-101 · $fresh_date · Fresh Evidence-1 candidate
+- Trigger: fixture
+- Rule: fixture rule
+- Scope: project
+- Evidence: 1
+- Status: candidate
+
+## L-102 · $old_promoted_date · Stale but already promoted
+- Trigger: fixture
+- Rule: fixture rule
+- Scope: project
+- Evidence: 1
+- Status: promoted:CLAUDE.md (Evidence 1 — promoted on explicit user confirmation)
+
+## L-103 · $old_promoted_date · Stale but ripe (Evidence 2, own review path already)
+- Trigger: fixture
+- Rule: fixture rule
+- Scope: project
+- Evidence: 2
+- Status: candidate
+EOF
+  out=$("$ROOT/scripts/check-ledger-aging.sh" "$LFIX" 30)
+  rc=$?
+  [ "$rc" -eq 0 ] && pass "check-ledger-aging: always exits 0 (nudge, not a gate)" || fail "check-ledger-aging: always exits 0 (got $rc)"
+  echo "$out" | grep -q "L-100" && pass "stale Evidence-1 candidate flagged" || fail "stale Evidence-1 candidate flagged (got: $out)"
+  echo "$out" | grep -q "L-101" && fail "fresh candidate must not be flagged (got: $out)" || pass "fresh candidate must not be flagged"
+  echo "$out" | grep -q "L-102" && fail "already-promoted entry must not be flagged (got: $out)" || pass "already-promoted entry must not be flagged"
+  echo "$out" | grep -q "L-103" && fail "Evidence>=2 entry must not be flagged (ripe path covers it) (got: $out)" || pass "Evidence>=2 entry must not be flagged"
+  echo "$out" | grep -q "^check-ledger-aging: 1 candidate" && pass "aging count is exactly 1" || fail "aging count is exactly 1 (got: $out)"
+fi
+out=$("$ROOT/scripts/check-ledger-aging.sh" "$SANDBOX/no-such-ledger.md" 2>&1)
+rc=$?
+[ "$rc" -eq 0 ] && [ -z "$out" ] && pass "missing ledger -> silent exit 0" || fail "missing ledger -> silent exit 0 (got rc=$rc, out=$out)"
+out=$("$ROOT/scripts/check-ledger-aging.sh" "$ROOT/.claude/memory/LEARNINGS.md" 999999)
+rc=$?
+[ "$rc" -eq 0 ] && [ -z "$out" ] && pass "real ledger, huge threshold -> silent exit 0" || fail "real ledger, huge threshold -> silent exit 0 (got rc=$rc, out=$out)"
+
 echo "== fleet-status.sh (stubbed gh, --dry-run) =="
 # The dashboard engine must render every section from stub data and mutate
 # nothing. The stub answers the exact gh shapes the script (and the

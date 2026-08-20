@@ -19,6 +19,7 @@ scripts/
   verify.sh                   quick|full dispatcher; /bootstrap fills the case arms
   test-hooks.sh               fixture suite for the scaffold plumbing — hooks + docs cross-refs (verify.sh full + CI)
   check-loops.sh              loops.yaml schema check — 0 ok / 1 missing / 2 violation (verify.sh full + CI)
+  check-ledger-aging.sh       nudges on Evidence-1 ledger candidates stale >= 30d (verify.sh full; its own fixtures run in CI via test-hooks.sh; always exits 0)
   fleet-status.sh             dashboard + aging engine behind fleet-status.yml (--dry-run is fixture-smoked)
 .github/
   loops.yaml                  declarative loop manifest: the automations this repo EXPECTS (detect-only reconciliation)
