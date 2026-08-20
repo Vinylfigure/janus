@@ -22,6 +22,7 @@ scripts/
   check-loops.sh              loops.yaml schema check — 0 ok / 1 missing / 2 violation (verify.sh full + CI)
   check-ledger-aging.sh       nudges on Evidence-1 ledger candidates stale >= 30d (verify.sh full; its own fixtures run in CI via test-hooks.sh; always exits 0)
   generate-agents-md.sh       regenerates AGENTS.md from CLAUDE.md; --check is verify.sh full's drift gate — 0 ok / 1 missing source / 2 drift (#22)
+  check-machinery-gate.sh     the seatbelt's rule engine, called by .github/workflows/gate-integrity.yml — blocks a workflow edit, a removed test-hooks.sh assertion, or a deleted fixture/hook unless the PR carries `machinery-change`; additive fixture changes pass (0 clean / 1 blocked)
   fleet-status.sh             dashboard + aging engine behind fleet-status.yml (--dry-run is fixture-smoked)
 .github/
   loops.yaml                  declarative loop manifest: the automations this repo EXPECTS (detect-only reconciliation)
