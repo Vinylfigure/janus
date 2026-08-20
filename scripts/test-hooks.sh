@@ -292,6 +292,28 @@ rc=$?
 out=$("$ROOT/scripts/check-ledger-aging.sh" "$ROOT/.claude/memory/LEARNINGS.md" 999999)
 rc=$?
 [ "$rc" -eq 0 ] && [ -z "$out" ] && pass "real ledger, huge threshold -> silent exit 0" || fail "real ledger, huge threshold -> silent exit 0 (got rc=$rc, out=$out)"
+echo "== generate-agents-md.sh (AGENTS.md mirror, #22) =="
+"$ROOT/scripts/generate-agents-md.sh" --check >/dev/null 2>&1
+rc=$?
+[ "$rc" -eq 0 ] && pass "real AGENTS.md matches CLAUDE.md (exit 0)" || fail "real AGENTS.md matches CLAUDE.md (got $rc)"
+AGENTSFIX="$SANDBOX/agents-fixture"
+mkdir -p "$AGENTSFIX"
+printf '# Fixture project\n\n- a fact\n' > "$AGENTSFIX/CLAUDE.src.md"
+"$ROOT/scripts/generate-agents-md.sh" "$AGENTSFIX/CLAUDE.src.md" "$AGENTSFIX/AGENTS.out.md" >/dev/null 2>&1
+rc=$?
+[ "$rc" -eq 0 ] && pass "generation exits 0" || fail "generation exits 0 (got $rc)"
+grep -q "a fact" "$AGENTSFIX/AGENTS.out.md" 2>/dev/null && pass "generated file carries source content" || fail "generated file carries source content"
+grep -q "GENERATED FILE" "$AGENTSFIX/AGENTS.out.md" 2>/dev/null && pass "generated file carries a do-not-edit header" || fail "generated file carries a do-not-edit header"
+"$ROOT/scripts/generate-agents-md.sh" --check "$AGENTSFIX/CLAUDE.src.md" "$AGENTSFIX/AGENTS.out.md" >/dev/null 2>&1
+rc=$?
+[ "$rc" -eq 0 ] && pass "--check: in-sync pair -> exit 0" || fail "--check: in-sync pair -> exit 0 (got $rc)"
+printf '# Fixture project\n\n- a fact\n- hand-edited drift\n' > "$AGENTSFIX/AGENTS.out.md"
+"$ROOT/scripts/generate-agents-md.sh" --check "$AGENTSFIX/CLAUDE.src.md" "$AGENTSFIX/AGENTS.out.md" >/dev/null 2>&1
+rc=$?
+[ "$rc" -eq 2 ] && pass "--check: drifted pair -> exit 2" || fail "--check: drifted pair -> exit 2 (got $rc)"
+"$ROOT/scripts/generate-agents-md.sh" --check "$AGENTSFIX/no-such-src.md" "$AGENTSFIX/AGENTS.out.md" >/dev/null 2>&1
+rc=$?
+[ "$rc" -eq 1 ] && pass "missing source -> exit 1" || fail "missing source -> exit 1 (got $rc)"
 
 echo "== fleet-status.sh (stubbed gh, --dry-run) =="
 # The dashboard engine must render every section from stub data and mutate

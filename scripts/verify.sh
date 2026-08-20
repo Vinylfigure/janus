@@ -40,6 +40,10 @@ case "$MODE" in
     # Ledger aging nudge: always exits 0 (informational), so it runs
     # unconditionally and never gates full's stack suite below.
     "$(dirname "$0")/check-ledger-aging.sh"
+    # AGENTS.md mirror drift check (#22 / L-046 go decision): CLAUDE.md is
+    # canonical, AGENTS.md is generated — scaffold plumbing, not stack, so it
+    # sits outside the bootstrap sentinel too.
+    "$(dirname "$0")/generate-agents-md.sh" --check || exit $?
     # janus:bootstrap:full:start
     # Template plumbing suite. /bootstrap replaces this block with the
     # project's real suite (lint all, typecheck, tests, build), e.g.:
