@@ -459,6 +459,57 @@ git -C "$HER" remote set-url origin https://github.com/example/janus.git
 out=$(echo '{"source":"startup"}' | CLAUDE_PROJECT_DIR="$HER" "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -q "retrofit" && fail "template's own origin -> silent (got: $out)" || pass "template's own origin -> silent"
 
+echo "== check-machinery-gate.sh (seatbelt rule engine) =="
+MG="$SANDBOX/machinery-gate"
+mkdir -p "$MG/scripts" "$MG/.github/workflows"
+git init -q -b main "$MG" 2>/dev/null || git init -q "$MG"
+git -C "$MG" config user.email t@t
+git -C "$MG" config user.name t
+cp "$ROOT/scripts/check-machinery-gate.sh" "$MG/scripts/check-machinery-gate.sh"
+printf 'pass "alpha holds"\nfail "alpha holds"\npass "beta holds"\nfail "beta holds"\n' > "$MG/scripts/test-hooks.sh"
+printf 'name: ci\n' > "$MG/.github/workflows/ci.yml"
+printf 'echo hi\n' > "$MG/scripts/helper.sh"
+printf 'a doc\n' > "$MG/README.md"
+git -C "$MG" add -A >/dev/null && git -C "$MG" commit -qm base
+BASE_SHA=$(git -C "$MG" rev-parse HEAD)
+
+mg_run() { ( cd "$MG" && ./scripts/check-machinery-gate.sh "$BASE_SHA" 2>&1 ); }
+mg_reset() { git -C "$MG" checkout -q . && git -C "$MG" clean -qfd; }
+
+# 1. untouched machinery -> clean
+printf 'a doc, edited\n' > "$MG/README.md"
+git -C "$MG" add -A >/dev/null && git -C "$MG" commit -qm docs-only
+out=$(mg_run); rc=$?
+[ "$rc" -eq 0 ] && pass "machinery gate: no machinery touched -> exit 0" || fail "machinery gate: no machinery touched -> exit 0 (rc=$rc, out=$out)"
+
+# 2. additive fixture change -> allowed (the case the old any-touch rule failed)
+printf 'pass "alpha holds"\nfail "alpha holds"\npass "beta holds"\nfail "beta holds"\npass "gamma holds"\nfail "gamma holds"\n' > "$MG/scripts/test-hooks.sh"
+git -C "$MG" add -A >/dev/null && git -C "$MG" commit -qm additive
+out=$(mg_run); rc=$?
+[ "$rc" -eq 0 ] && pass "machinery gate: assertion added -> exit 0" || fail "machinery gate: assertion added -> exit 0 (rc=$rc, out=$out)"
+echo "$out" | grep -q "additive change, allowed" && pass "machinery gate: additive change is named in the output" || fail "machinery gate: additive change is named in the output (got: $out)"
+
+# 3. assertion removed -> blocked
+printf 'pass "alpha holds"\nfail "alpha holds"\n' > "$MG/scripts/test-hooks.sh"
+git -C "$MG" add -A >/dev/null && git -C "$MG" commit -qm weaken
+out=$(mg_run); rc=$?
+[ "$rc" -eq 1 ] && pass "machinery gate: assertion removed -> exit 1" || fail "machinery gate: assertion removed -> exit 1 (rc=$rc, out=$out)"
+echo "$out" | grep -q 'assertion removed.*beta holds' && pass "machinery gate: names the removed assertion" || fail "machinery gate: names the removed assertion (got: $out)"
+
+# 4. workflow modified -> blocked even with no assertion loss
+git -C "$MG" reset -q --hard "$BASE_SHA"
+printf 'name: ci\non: push\n' > "$MG/.github/workflows/ci.yml"
+git -C "$MG" add -A >/dev/null && git -C "$MG" commit -qm workflow
+out=$(mg_run); rc=$?
+[ "$rc" -eq 1 ] && pass "machinery gate: workflow modified -> exit 1" || fail "machinery gate: workflow modified -> exit 1 (rc=$rc, out=$out)"
+
+# 5. fixture script deleted outright -> blocked
+git -C "$MG" reset -q --hard "$BASE_SHA"
+git -C "$MG" rm -q "scripts/helper.sh" && git -C "$MG" commit -qm delete-helper
+out=$(mg_run); rc=$?
+[ "$rc" -eq 1 ] && pass "machinery gate: fixture script deleted -> exit 1" || fail "machinery gate: fixture script deleted -> exit 1 (rc=$rc, out=$out)"
+git -C "$MG" reset -q --hard "$BASE_SHA"
+
 echo
 if [ "$FAILS" -eq 0 ]; then
   echo "ALL SCAFFOLD TESTS PASSED"
