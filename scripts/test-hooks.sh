@@ -314,6 +314,9 @@ rc=$?
 "$ROOT/scripts/generate-agents-md.sh" --check "$AGENTSFIX/no-such-src.md" "$AGENTSFIX/AGENTS.out.md" >/dev/null 2>&1
 rc=$?
 [ "$rc" -eq 1 ] && pass "missing source -> exit 1" || fail "missing source -> exit 1 (got $rc)"
+"$ROOT/scripts/generate-agents-md.sh" --check "$AGENTSFIX/CLAUDE.src.md" "$AGENTSFIX/no-such-out.md" >/dev/null 2>&1
+rc=$?
+[ "$rc" -eq 2 ] && pass "missing OUT under --check -> exit 2 (fails closed, not a silent pass)" || fail "missing OUT under --check -> exit 2 (got $rc)"
 
 echo "== fleet-status.sh (stubbed gh, --dry-run) =="
 # The dashboard engine must render every section from stub data and mutate
