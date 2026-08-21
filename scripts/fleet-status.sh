@@ -45,11 +45,16 @@ if [ "$DRY" -eq 0 ]; then
   gh label create "aging"     --force --color fbca04 --description ">3 days without a response"                      >/dev/null 2>&1 || true
   gh label create "overdue"   --force --color b60205 --description ">7 days without a response"                      >/dev/null 2>&1 || true
   gh label create "dashboard" --force --color 0e8a16 --description "the regenerated status dashboard issue"          >/dev/null 2>&1 || true
+  gh label create "inbox:"    --force --color c5def5 --description "a thought, not a spec — triaged, never consumed" >/dev/null 2>&1 || true
+  gh label create "human-check:" --force --color e99695 --description "operator's eyes required before merge"        >/dev/null 2>&1 || true
+  gh label create "janus:v1"  --force --color 0052cc --description "Janus Human Attention Protocol v1 (docs/ATTENTION.md)" >/dev/null 2>&1 || true
 fi
 
 # --- gather ------------------------------------------------------------------
 questions=$(ghj issue list --label "question:" --state open --limit 200 --json number,title,createdAt,updatedAt)
-tasks=$(ghj issue list --label "task:" --state open --limit 200 --json number,createdAt)
+tasks=$(ghj issue list --label "task:" --state open --limit 200 --json number,createdAt,labels)
+inboxes=$(ghj issue list --label "inbox:" --state open --limit 200 --json number,title,createdAt)
+hchecks=$(ghj issue list --label "human-check:" --state open --limit 200 --json number,title,createdAt)
 prs=$(ghj pr list --state open --limit 200 --json number,title,createdAt,updatedAt,headRefName)
 
 # --- 2. aging ladder (issues + claude/* PRs; owner reply clears; never close)
@@ -132,6 +137,30 @@ if [ "${n_tasks:-0}" -gt 0 ]; then
   oldest_task="oldest $(age_days "$oldest_created")d"
 fi
 
+# The consumption gate (docs/ATTENTION.md): a `task:` carrying any gating
+# label is not consumable — the work loop's ready sweep mirrors this list.
+GATE='.name == "question:" or .name == "loop:hold" or .name == "inbox:" or .name == "human-check:"'
+n_gated=$(printf '%s' "$tasks" | jq "[.[] | select(any(.labels[]?; $GATE))] | length" 2>/dev/null || echo 0)
+n_consumable=$(( ${n_tasks:-0} - ${n_gated:-0} ))
+gated_rows=$(printf '%s' "$tasks" | jq -r ".[] | select(any(.labels[]?; $GATE)) | \"- gated: #\(.number) — \([.labels[].name] | join(\", \"))\"" 2>/dev/null)
+
+inbox_rows=""
+n_inbox=$(printf '%s' "$inboxes" | jq 'length' 2>/dev/null || echo 0)
+while read -r num created; do
+  [ -n "$num" ] || continue
+  title=$(printf '%s' "$inboxes" | jq -r ".[] | select(.number == $num) | .title")
+  inbox_rows="${inbox_rows}- #$num $title — captured $(age_days "$created")d ago"$'\n'
+done < <(printf '%s' "$inboxes" | jq -r '.[] | "\(.number) \(.createdAt)"' 2>/dev/null)
+[ -n "$inbox_rows" ] || inbox_rows="_inbox empty_"$'\n'
+
+hc_rows=""
+while read -r num created; do
+  [ -n "$num" ] || continue
+  title=$(printf '%s' "$hchecks" | jq -r ".[] | select(.number == $num) | .title")
+  hc_rows="${hc_rows}- #$num $title — waiting $(age_days "$created")d for your eyes"$'\n'
+done < <(printf '%s' "$hchecks" | jq -r '.[] | "\(.number) \(.createdAt)"' 2>/dev/null)
+[ -n "$hc_rows" ] || hc_rows="_nothing awaiting your check_"$'\n'
+
 loop_rows=$(awk '
   function emit() {
     if (name == "") return
@@ -157,10 +186,20 @@ $pr_rows
 ## Blocked on operator
 
 $q_rows
+## Awaiting your check
+
+$hc_rows
 ## Backlog
 
 ${n_tasks:-0} open \`task:\` issue(s) ($oldest_task).
+Consumable now: ${n_consumable} — the gate excludes \`question:\`/\`loop:hold\`/\`inbox:\`/\`human-check:\` (docs/ATTENTION.md).
+$gated_rows
 
+## Inbox
+
+${n_inbox:-0} captured thought(s) — informational, never urgent; the work loop's idle arm triages.
+
+$inbox_rows
 ## Loops
 
 Declared in \`.github/loops.yaml\` (detect-only — this table reports, it never arms):

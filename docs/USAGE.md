@@ -161,17 +161,22 @@ Reconciliation is detect-only: `scripts/check-loops.sh` enforces the schema
 (in `verify.sh full` and CI), and the dashboard flags `enabled: false`
 entries as "declared, not armed". Arming a routine and flipping its entry to
 `enabled: true` + `armed_by` happen in the same session (L-048); flipping it
-back in a PR is the declarative kill switch. The `task:`/`question:` label
-vocabulary itself lives in git too, as issue forms under
-`.github/ISSUE_TEMPLATE/` — a Task requires its done-means, a Question
-requires the options considered.
+back in a PR is the declarative kill switch. The protocol label vocabulary
+itself lives in git too, as issue forms under `.github/ISSUE_TEMPLATE/` —
+a Task requires its done-means, a Question requires the options considered
+plus a recommended choice, and an Inbox item is a thought, not a spec. Every
+form applies the `janus:v1` label; the full contract — types, states, the
+consumption gate, and the canonical human-action comments — is
+`docs/ATTENTION.md` (the Janus Human Attention Protocol, version 1).
 
 **The Status dashboard** is one GitHub issue (titled "Status dashboard",
 labeled `dashboard`) that `.github/workflows/fleet-status.yml` regenerates
 *in place* every six hours: open PRs with check state, `question:` issues
 blocked on you (the aging ladder adds `aging` after 3 quiet days and
 `overdue` after 7 — your reply clears both; nothing is ever auto-closed),
-the `task:` backlog, the loop manifest's armed/declared state, and red
+deliveries awaiting your check (`human-check:`), the `task:` backlog with its
+"Consumable now" gate line, the inbox count, the loop manifest's
+armed/declared state, and red
 findings — a `claude/*` branch older than a day with no PR (L-047) or a
 broken manifest fails the run visibly. Comments and checkboxes there are
 your control surface.

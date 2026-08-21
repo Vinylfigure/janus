@@ -1,0 +1,12 @@
+name: Inbox (a thought, not a spec)
+description: Capture an idea with zero ceremony — the work loop's idle arm triages it into a task or question later; nothing executes from here.
+labels: ["inbox:", "janus:v1"]
+body:
+  - type: textarea
+    id: thought
+    attributes:
+      label: Thought
+      description: One free-text field, no done-means required. Triage (a later firing) promotes this into a `task:` proposal with a drafted done-means, or into a `question:` when a product decision is needed — and never executes in the firing that promotes it.
+      placeholder: "What if the dashboard grouped failures by root cause instead of by repo?"
+    validations:
+      required: true
