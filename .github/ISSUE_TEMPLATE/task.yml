@@ -1,5 +1,6 @@
 name: Task
 description: A unit of ready work for the work loop — carries its own done-means.
+title: "task: "
 labels: ["task:"]
 body:
   - type: textarea

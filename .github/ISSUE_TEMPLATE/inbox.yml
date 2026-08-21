@@ -1,5 +1,6 @@
 name: Inbox
 description: A thought, not a spec — no done-means required; triage turns it into a task.
+title: "inbox: "
 labels: ["inbox:"]
 body:
   - type: textarea
