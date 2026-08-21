@@ -1,6 +1,6 @@
 name: Task
 description: A unit of ready work for the work loop — carries its own done-means.
-labels: ["task:"]
+labels: ["task:", "janus:v1"]
 body:
   - type: textarea
     id: done-means
@@ -16,6 +16,33 @@ body:
       label: Discovered from
       description: Provenance — the PR, plan section, audit line, or idle evaluation this was descoped from (descope capture, L-043).
       placeholder: "discovered-from: PR #12 review, deferred part B"
+    validations:
+      required: false
+  - type: textarea
+    id: blocked-by
+    attributes:
+      label: Blocked by
+      description: Explicit dependencies the executor checks before consuming — issue refs only (`#123`, `owner/repo#123`, or a full issue URL), one or comma-separated. The consumption gate treats this issue as blocked while any listed issue is open (docs/ATTENTION.md). Prose references elsewhere in the body do not gate.
+      placeholder: "#123"
+    validations:
+      required: false
+  - type: textarea
+    id: human-check
+    attributes:
+      label: Human check
+      description: Fill only when delivery needs the operator's eyes before merge. Keep the four sub-headings — they are the v1 machine interface (docs/ATTENTION.md); delivery with this section applies the `human-check:` label.
+      placeholder: |
+        #### Surface
+        the deployed preview / the phone / the rendered artifact
+
+        #### Instruction
+        what to do, in one or two steps
+
+        #### URL
+        https://...
+
+        #### Pass criteria
+        what the operator must observe for this to pass
     validations:
       required: false
   - type: dropdown

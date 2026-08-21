@@ -1,16 +1,61 @@
 name: Question (operator decision)
-description: A decision only the operator can make — blocks every task that references it.
-labels: ["question:"]
+description: A decision only the operator can make — blocks every task whose "Blocked by" field references it.
+labels: ["question:", "janus:v1"]
 body:
   - type: textarea
-    id: question
+    id: decision
     attributes:
-      label: Question and options considered
-      description: State the decision needed, then the options already considered with one-line trade-offs — a question without options is an unfinished exploration, not a decision request. The aging ladder escalates this issue (`aging` >3d, `overdue` >7d) until the operator replies; the reply clears the labels.
+      label: Decision
+      description: State the decision needed, then the options already considered as bullets with one-line trade-offs — a question without options is an unfinished exploration, not a decision request. The aging ladder escalates this issue (`aging` >3d, `overdue` >7d) until the operator replies; the reply clears the labels. These headings are the v1 machine interface (docs/ATTENTION.md) — do not rename them.
       placeholder: |
-        Question: should X or Y own Z?
-        Options considered:
+        Should X or Y own Z?
         - X: pro..., con...
         - Y: pro..., con...
     validations:
       required: true
+  - type: textarea
+    id: recommended-choice
+    attributes:
+      label: Recommended choice
+      description: The option this repo would pick if the operator said "use your recommendation". Required — a question arrives with a recommendation.
+      placeholder: "X, because..."
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: The rationale for the recommendation, in plain words.
+    validations:
+      required: true
+  - type: textarea
+    id: if-you-do-nothing
+    attributes:
+      label: If you do nothing
+      description: The consequence of no answer — what stays blocked, what default takes effect, what risk accrues.
+    validations:
+      required: true
+  - type: textarea
+    id: reversible
+    attributes:
+      label: Reversible?
+      description: Whether the recommended choice can be cheaply undone, and how.
+      placeholder: "yes — one commit reverts it / no — schema migration"
+    validations:
+      required: false
+  - type: textarea
+    id: needed-by
+    attributes:
+      label: Needed by
+      description: When an answer stops being useful (a date or an event), if there is one.
+      placeholder: "2026-09-01, before the next release cut"
+    validations:
+      required: false
+  - type: textarea
+    id: blocks
+    attributes:
+      label: Blocks
+      description: For the human reading this — the work waiting on the answer. The dependent task's own "Blocked by" field is what the executor checks.
+      placeholder: "#45, #47"
+    validations:
+      required: false

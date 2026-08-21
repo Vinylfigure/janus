@@ -123,7 +123,8 @@ else
   for p in .github/workflows/verify.yml .github/workflows/fleet-status.yml \
            .github/workflows/gate-integrity.yml .github/loops.yaml .github/CODEOWNERS \
            .github/ISSUE_TEMPLATE/task.yml .github/ISSUE_TEMPLATE/question.yml \
-           .github/ISSUE_TEMPLATE/config.yml \
+           .github/ISSUE_TEMPLATE/inbox.yml .github/ISSUE_TEMPLATE/config.yml \
+           docs/ATTENTION.md \
            .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/sources-seen.md; do
     if [ -e "$ROOT/$p" ]; then pass "component-map path $p exists"; else fail "component-map path $p missing from tree"; fi
   done
@@ -340,11 +341,38 @@ chmod +x "$SANDBOX/bin/gh"
 out=$(PATH="$SANDBOX/bin:$PATH" "$ROOT/scripts/fleet-status.sh" --dry-run 2>/dev/null)
 rc=$?
 [ "$rc" -eq 0 ] && pass "dry-run with clean data -> exit 0" || fail "dry-run with clean data -> exit 0 (got $rc)"
-for h in "## Open PRs" "## Blocked on operator" "## Backlog" "## Loops" "## Red findings"; do
+for h in "## Open PRs" "## Blocked on operator" "## Awaiting your check" "## Backlog" "## Inbox" "## Loops" "## Red findings"; do
   echo "$out" | grep -qF "$h" && pass "dashboard section: $h" || fail "dashboard section: $h"
 done
 echo "$out" | grep -qF "declared, not armed" && pass "unarmed loops flagged" || fail "unarmed loops flagged"
 echo "$out" | grep -qF "regenerated in place" && pass "footer states in-place regeneration" || fail "footer states in-place regeneration"
+
+echo "== fleet-status.sh consumption gate (docs/ATTENTION.md) =="
+# The #42 fixture: two otherwise-identical open task: issues, one also
+# labeled question:. The gate must count exactly one consumable and name the
+# question:-labeled one as gated — the work-loop skill's Gating labels list
+# mirrors this line.
+mkdir -p "$SANDBOX/gatebin"
+cat > "$SANDBOX/gatebin/gh" <<'EOF'
+#!/usr/bin/env bash
+args="$*"
+case "$args" in
+  *"issue list"*"task:"*) echo '[{"number":3,"createdAt":"2026-08-01T00:00:00Z","labels":[{"name":"task:"}]},{"number":9,"createdAt":"2026-08-01T00:00:00Z","labels":[{"name":"task:"},{"name":"question:"}]}]' ;;
+  *"issue list"*"inbox:"*) echo '[{"number":11,"title":"stub thought","createdAt":"2026-08-19T00:00:00Z"}]' ;;
+  *"issue list"*"human-check:"*) echo '[{"number":12,"title":"stub check","createdAt":"2026-08-19T00:00:00Z"}]' ;;
+  *"issue list"*"question:"*) echo '[]' ;;
+  *"pr list"*) echo '[]' ;;
+  *"pr view"*|*"issue view"*) echo '{"comments":[]}' ;;
+  *"repo view"*) echo 'stub' ;;
+  *) echo '[]' ;;
+esac
+EOF
+chmod +x "$SANDBOX/gatebin/gh"
+out=$(PATH="$SANDBOX/gatebin:$PATH" "$ROOT/scripts/fleet-status.sh" --dry-run 2>/dev/null)
+echo "$out" | grep -qF "Consumable now: 1" && pass "gate: question:-labeled task is not consumable, unlabeled twin is" || fail "gate: question:-labeled task is not consumable, unlabeled twin is (got: $(echo "$out" | grep 'Consumable now' || echo 'no gate line'))"
+echo "$out" | grep -qF "gated: #9" && pass "gate: the gated issue is named with its labels" || fail "gate: the gated issue is named with its labels"
+echo "$out" | grep -qF "#11 stub thought" && pass "inbox section lists captured thoughts" || fail "inbox section lists captured thoughts"
+echo "$out" | grep -qF "#12 stub check" && pass "awaiting-your-check section lists human-check: issues" || fail "awaiting-your-check section lists human-check: issues"
 
 echo "== session-start.sh: work line (backlog visibility) =="
 # Renders only when gh + jq + a github.com origin all hold; every failure
