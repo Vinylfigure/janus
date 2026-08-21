@@ -1,0 +1,12 @@
+name: Inbox
+description: A thought, not a spec — no done-means required; triage turns it into a task.
+labels: ["inbox:"]
+body:
+  - type: textarea
+    id: thought
+    attributes:
+      label: Thought
+      description: Capture it raw — from a phone, a walk, anywhere. The work loop's triage pass drafts a done-means and promotes this to a `task:` proposal (or to a `question:` when a product decision is needed); the loop never consumes `inbox:` items directly (Human Attention Protocol v1, docs/ATTENTION.md).
+      placeholder: "Profiles should feel more personal."
+    validations:
+      required: true

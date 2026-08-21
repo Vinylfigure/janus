@@ -18,6 +18,18 @@ body:
       placeholder: "discovered-from: PR #12 review, deferred part B"
     validations:
       required: false
+  - type: textarea
+    id: human-check
+    attributes:
+      label: Human check
+      description: Only when machine verification cannot judge the outcome — what the operator must verify with their own eyes before this counts as done. Delivery then applies `human-check:` to this issue and the PR waits for that check before merge (Human Attention Protocol v1, docs/ATTENTION.md).
+      placeholder: |
+        Surface: preview deployment
+        Instruction: Save a nanny, refresh, remove one.
+        URL: https://...
+        Pass: the saved state survives the refresh
+    validations:
+      required: false
   - type: dropdown
     id: priority
     attributes:

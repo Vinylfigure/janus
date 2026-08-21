@@ -123,7 +123,8 @@ else
   for p in .github/workflows/verify.yml .github/workflows/fleet-status.yml \
            .github/workflows/gate-integrity.yml .github/loops.yaml .github/CODEOWNERS \
            .github/ISSUE_TEMPLATE/task.yml .github/ISSUE_TEMPLATE/question.yml \
-           .github/ISSUE_TEMPLATE/config.yml \
+           .github/ISSUE_TEMPLATE/inbox.yml .github/ISSUE_TEMPLATE/config.yml \
+           docs/ATTENTION.md \
            .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/sources-seen.md; do
     if [ -e "$ROOT/$p" ]; then pass "component-map path $p exists"; else fail "component-map path $p missing from tree"; fi
   done
@@ -340,7 +341,7 @@ chmod +x "$SANDBOX/bin/gh"
 out=$(PATH="$SANDBOX/bin:$PATH" "$ROOT/scripts/fleet-status.sh" --dry-run 2>/dev/null)
 rc=$?
 [ "$rc" -eq 0 ] && pass "dry-run with clean data -> exit 0" || fail "dry-run with clean data -> exit 0 (got $rc)"
-for h in "## Open PRs" "## Blocked on operator" "## Backlog" "## Loops" "## Red findings"; do
+for h in "## Open PRs" "## Blocked on operator" "## Awaiting your check" "## Inbox" "## Backlog" "## Loops" "## Red findings"; do
   echo "$out" | grep -qF "$h" && pass "dashboard section: $h" || fail "dashboard section: $h"
 done
 echo "$out" | grep -qF "declared, not armed" && pass "unarmed loops flagged" || fail "unarmed loops flagged"
@@ -458,6 +459,29 @@ echo "$out" | grep -q "retrofit" && pass "template identity + foreign origin -> 
 git -C "$HER" remote set-url origin https://github.com/example/janus.git
 out=$(echo '{"source":"startup"}' | CLAUDE_PROJECT_DIR="$HER" "$SANDBOX/.claude/hooks/session-start.sh")
 echo "$out" | grep -q "retrofit" && fail "template's own origin -> silent (got: $out)" || pass "template's own origin -> silent"
+
+echo "== check-ready.sh (consumption gate, #42) =="
+# The gate's whole reason to exist: three views agreed a question:-labeled
+# issue was blocked on the operator, and the loop consumed it anyway. Label
+# semantics are asserted here so weakening them is a visible act.
+CR="$ROOT/scripts/check-ready.sh"
+"$CR" "task:" >/dev/null 2>&1 && pass "check-ready: bare task: -> ready (exit 0)" || fail "check-ready: bare task: -> ready (exit 0)"
+"$CR" "task:" "question:" >/dev/null 2>&1 && fail "check-ready: task:+question: -> blocked" || pass "check-ready: task:+question: -> blocked"
+"$CR" "question:" >/dev/null 2>&1 && fail "check-ready: question: alone -> blocked" || pass "check-ready: question: alone -> blocked"
+"$CR" "task:" "loop:hold" >/dev/null 2>&1 && fail "check-ready: task:+loop:hold -> blocked" || pass "check-ready: task:+loop:hold -> blocked"
+"$CR" "task:" "inbox:" >/dev/null 2>&1 && fail "check-ready: task:+inbox: -> blocked" || pass "check-ready: task:+inbox: -> blocked"
+"$CR" "task:" "human-check:" >/dev/null 2>&1 && fail "check-ready: task:+human-check: -> blocked" || pass "check-ready: task:+human-check: -> blocked"
+"$CR" "enhancement" >/dev/null 2>&1 && fail "check-ready: unlabeled-as-task -> blocked" || pass "check-ready: unlabeled-as-task -> blocked"
+"$CR" >/dev/null 2>&1; rc=$?
+[ "$rc" -eq 64 ] && pass "check-ready: no labels -> usage exit 64" || fail "check-ready: no labels -> usage exit 64 (got $rc)"
+out=$("$CR" "task:" "question:" 2>/dev/null)
+echo "$out" | grep -q "question:" && pass "check-ready: block names the gating label" || fail "check-ready: block names the gating label (got: $out)"
+CRB="$SANDBOX/cr-body.md"
+printf '### Done means\n\nverify.sh exits 0\n' > "$CRB"
+"$CR" --body "$CRB" "task:" >/dev/null 2>&1 && pass "check-ready: body with Done means -> ready" || fail "check-ready: body with Done means -> ready"
+printf 'no done means heading here\n' > "$CRB"
+"$CR" --body "$CRB" "task:" >/dev/null 2>&1 && fail "check-ready: body without Done means -> blocked" || pass "check-ready: body without Done means -> blocked"
+"$CR" --body "$SANDBOX/no-such-body.md" "task:" >/dev/null 2>&1 && fail "check-ready: missing body file -> blocked (fails closed)" || pass "check-ready: missing body file -> blocked (fails closed)"
 
 echo "== check-machinery-gate.sh (seatbelt rule engine) =="
 MG="$SANDBOX/machinery-gate"

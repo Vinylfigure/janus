@@ -161,17 +161,22 @@ Reconciliation is detect-only: `scripts/check-loops.sh` enforces the schema
 (in `verify.sh full` and CI), and the dashboard flags `enabled: false`
 entries as "declared, not armed". Arming a routine and flipping its entry to
 `enabled: true` + `armed_by` happen in the same session (L-048); flipping it
-back in a PR is the declarative kill switch. The `task:`/`question:` label
-vocabulary itself lives in git too, as issue forms under
-`.github/ISSUE_TEMPLATE/` — a Task requires its done-means, a Question
-requires the options considered.
+back in a PR is the declarative kill switch. The label vocabulary itself
+lives in git too, as issue forms under `.github/ISSUE_TEMPLATE/` — a Task
+requires its done-means (and may carry a Human check the operator performs
+before merge), a Question requires the options considered plus a
+recommendation and its consequence, and an Inbox thought requires nothing at
+all: triage drafts its done-means later. The full state model and the
+consumption gate are the Human Attention Protocol (docs/ATTENTION.md,
+enforced by `check-ready.sh`).
 
 **The Status dashboard** is one GitHub issue (titled "Status dashboard",
 labeled `dashboard`) that `.github/workflows/fleet-status.yml` regenerates
 *in place* every six hours: open PRs with check state, `question:` issues
 blocked on you (the aging ladder adds `aging` after 3 quiet days and
 `overdue` after 7 — your reply clears both; nothing is ever auto-closed),
-the `task:` backlog, the loop manifest's armed/declared state, and red
+`human-check:` items awaiting your verification, the `inbox:` count, the
+`task:` backlog, the loop manifest's armed/declared state, and red
 findings — a `claude/*` branch older than a day with no PR (L-047) or a
 broken manifest fails the run visibly. Comments and checkboxes there are
 your control surface.

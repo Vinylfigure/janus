@@ -23,6 +23,7 @@ scripts/
   check-ledger-aging.sh       nudges on Evidence-1 ledger candidates stale >= 30d (verify.sh full; its own fixtures run in CI via test-hooks.sh; always exits 0)
   generate-agents-md.sh       regenerates AGENTS.md from CLAUDE.md; --check is verify.sh full's drift gate — 0 ok / 1 missing source / 2 drift (#22)
   check-machinery-gate.sh     the seatbelt's rule engine, called by .github/workflows/gate-integrity.yml — blocks a workflow edit, a removed test-hooks.sh assertion, or a deleted fixture/hook unless the PR carries `machinery-change`; additive fixture changes pass (0 clean / 1 blocked)
+  check-ready.sh              the work loop's consumption gate, executable (#42): gating labels + done-means, fixtured in test-hooks.sh — 0 ready / 1 blocked / 64 usage
   fleet-status.sh             dashboard + aging engine behind fleet-status.yml (--dry-run is fixture-smoked)
 .github/
   loops.yaml                  declarative loop manifest: the automations this repo EXPECTS (detect-only reconciliation)
@@ -30,7 +31,7 @@ scripts/
   workflows/fleet-status.yml  6-hourly: regenerates the Status dashboard issue, ages operator-blocked items
   workflows/gate-integrity.yml PR seatbelt: machinery paths require the operator's machinery-change label
   workflows/claude.yml        dispatch channel: @claude-mention-gated agent runs (inert until the CLAUDE_CODE_OAUTH_TOKEN secret exists)
-  ISSUE_TEMPLATE/             task:/question: issue forms — the label vocabulary and done-means field, in git
+  ISSUE_TEMPLATE/             task:/question:/inbox: issue forms — the label vocabulary, done-means and Human check fields, in git; their headings are the Human Attention Protocol v1 parse contract (docs/ATTENTION.md)
   CODEOWNERS                  /.github/ and /scripts/ route to the operator
 ```
 

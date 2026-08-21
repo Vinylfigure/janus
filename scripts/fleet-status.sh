@@ -41,6 +41,8 @@ age_hours() { echo $(( (NOW - $(iso_epoch "$1")) / 3600 )); }
 if [ "$DRY" -eq 0 ]; then
   gh label create "task:"     --force --color 1d76db --description "unit of ready work — carries a done-means"        >/dev/null 2>&1 || true
   gh label create "question:" --force --color d93f0b --description "blocked on an operator decision"                 >/dev/null 2>&1 || true
+  gh label create "inbox:"    --force --color c5def5 --description "a thought awaiting triage — no done-means yet"    >/dev/null 2>&1 || true
+  gh label create "human-check:" --force --color e99695 --description "machine work done — operator verification before merge" >/dev/null 2>&1 || true
   gh label create "loop:hold" --force --color 5319e7 --description "the work loop must not take this"                >/dev/null 2>&1 || true
   gh label create "aging"     --force --color fbca04 --description ">3 days without a response"                      >/dev/null 2>&1 || true
   gh label create "overdue"   --force --color b60205 --description ">7 days without a response"                      >/dev/null 2>&1 || true
@@ -50,6 +52,8 @@ fi
 # --- gather ------------------------------------------------------------------
 questions=$(ghj issue list --label "question:" --state open --limit 200 --json number,title,createdAt,updatedAt)
 tasks=$(ghj issue list --label "task:" --state open --limit 200 --json number,createdAt)
+inboxes=$(ghj issue list --label "inbox:" --state open --limit 200 --json number,createdAt)
+hchecks=$(ghj issue list --label "human-check:" --state open --limit 200 --json number,title,createdAt)
 prs=$(ghj pr list --state open --limit 200 --json number,title,createdAt,updatedAt,headRefName)
 
 # --- 2. aging ladder (issues + claude/* PRs; owner reply clears; never close)
@@ -125,6 +129,21 @@ while read -r num created; do
 done < <(printf '%s' "$questions" | jq -r '.[] | "\(.number) \(.createdAt)"' 2>/dev/null)
 [ -n "$q_rows" ] || q_rows="_nothing blocked on the operator_"$'\n'
 
+hc_rows=""
+while read -r num created; do
+  [ -n "$num" ] || continue
+  title=$(printf '%s' "$hchecks" | jq -r ".[] | select(.number == $num) | .title")
+  hc_rows="${hc_rows}- #$num $title — awaiting your check ($(age_days "$created")d)"$'\n'
+done < <(printf '%s' "$hchecks" | jq -r '.[] | "\(.number) \(.createdAt)"' 2>/dev/null)
+[ -n "$hc_rows" ] || hc_rows="_nothing awaiting your check_"$'\n'
+
+n_inbox=$(printf '%s' "$inboxes" | jq 'length' 2>/dev/null || echo 0)
+oldest_inbox="—"
+if [ "${n_inbox:-0}" -gt 0 ]; then
+  oldest_in_created=$(printf '%s' "$inboxes" | jq -r 'map(.createdAt) | sort | .[0]')
+  oldest_inbox="oldest $(age_days "$oldest_in_created")d"
+fi
+
 n_tasks=$(printf '%s' "$tasks" | jq 'length' 2>/dev/null || echo 0)
 oldest_task="—"
 if [ "${n_tasks:-0}" -gt 0 ]; then
@@ -157,6 +176,13 @@ $pr_rows
 ## Blocked on operator
 
 $q_rows
+## Awaiting your check
+
+$hc_rows
+## Inbox
+
+${n_inbox:-0} open \`inbox:\` thought(s) ($oldest_inbox) — the work loop's triage pass promotes them.
+
 ## Backlog
 
 ${n_tasks:-0} open \`task:\` issue(s) ($oldest_task).

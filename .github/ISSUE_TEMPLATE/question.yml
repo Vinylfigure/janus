@@ -3,14 +3,57 @@ description: A decision only the operator can make — blocks every task that re
 labels: ["question:"]
 body:
   - type: textarea
-    id: question
+    id: decision
     attributes:
-      label: Question and options considered
-      description: State the decision needed, then the options already considered with one-line trade-offs — a question without options is an unfinished exploration, not a decision request. The aging ladder escalates this issue (`aging` >3d, `overdue` >7d) until the operator replies; the reply clears the labels.
+      label: Decision
+      description: State the decision needed, then the options already considered with one-line trade-offs — a question without options is an unfinished exploration, not a decision request. The aging ladder escalates this issue (`aging` >3d, `overdue` >7d) until the operator replies; the reply clears the labels. Field headings below are the Human Attention Protocol v1 contract (docs/ATTENTION.md) — renaming one breaks consumers, so it fails a fixture.
       placeholder: |
-        Question: should X or Y own Z?
+        Should X or Y own Z?
         Options considered:
         - X: pro..., con...
         - Y: pro..., con...
     validations:
       required: true
+  - type: textarea
+    id: recommendation
+    attributes:
+      label: Recommended choice
+      description: Which option, and why — one to three sentences. A question reaching the operator's phone leads with this.
+      placeholder: "X, because ..."
+    validations:
+      required: true
+  - type: textarea
+    id: if-nothing
+    attributes:
+      label: If you do nothing
+      description: The concrete consequence of no answer — what stalls, what ships anyway, what risk accrues.
+      placeholder: "PR #12 stays unmerged; no other work is blocked."
+    validations:
+      required: true
+  - type: dropdown
+    id: reversible
+    attributes:
+      label: Reversible?
+      description: Can the recommended choice be undone later without losing work?
+      options:
+        - "yes"
+        - partially
+        - "no"
+    validations:
+      required: true
+  - type: input
+    id: needed-by
+    attributes:
+      label: Needed by
+      description: When an answer becomes necessary (date or event) — leave empty when nothing forces a deadline.
+      placeholder: "2026-09-01, or: before the next release"
+    validations:
+      required: false
+  - type: input
+    id: blocks
+    attributes:
+      label: Blocks
+      description: The issues/PRs waiting on this answer, as refs.
+      placeholder: "#12, #15"
+    validations:
+      required: false
