@@ -22,7 +22,7 @@ gets re-litigated — or silently drifted past — by the next session.
 
 1. Extract the final decision in one sentence; separate it from the options discussed.
 2. Read `docs/DECISIONS.md` (create it with a two-line header on first use). An existing lock on the same question means this is an amendment — cite it.
-3. Append: `## DL-NNN · YYYY-MM-DD · <decision, one sentence>` with `Context:` (one line), `Decided by:` (the owner), `Supersedes:` (ID or none).
+3. Append: `## DL-YYYY-MM-DD-<slug> · YYYY-MM-DD · <decision, one sentence>` with `Context:` (one line), `Decided by:` (the owner), `Supersedes:` (ID or none). The id is **date-plus-slug, never the next sequential number**: two sessions reading the same `main` both compute the same "next" number and both take it — that is how this repo ended up with two different `DL-002` entries on two branches. A date and a slug cannot collide by construction. Existing `DL-NNN` ids stay as they are; cite them unchanged.
 4. Reconcile every canonical doc the decision changes in the same commit; grep for contradicting wording (L-007).
 
 ## Before finishing

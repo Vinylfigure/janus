@@ -341,8 +341,9 @@ Rules for curators (`/evolve`):
 ## L-044 · 2026-08-16 · Count sibling-repo incidents as evidence, with repo and ref cited
 - Trigger: L-004 ("encoded references rot") carries fleet-wide Evidence >= 6 across three child ledgers but stands at 2 here — each ledger is an island, so fleet recurrence never ripens anything (origin: own observation, cross-repo audit 2026-08-16). Promoted into this ledger's writer rules the same day
 - Rule: an incident observed in a sibling or child repo is an Evidence unit when the Trigger cites repo + ref; the efficacy pass may bump promoted rules on child evidence the same way
+- observed: 2026-08-22 — the cost of the island came due. Overlord's five concurrency entries (L-105, L-108, L-113, L-116, L-117) have no counterpart in this ledger, so this repo had no recorded knowledge of the collision class when two sessions built its attention protocol in parallel; L-057/L-058 here are the same lessons learned a second time, at full price
 - Scope: portable
-- Evidence: 1
+- Evidence: 2
 - Status: candidate
 
 ## L-045 · 2026-08-16 · A provisioning step never writes another ritual's completion stamp
@@ -430,3 +431,17 @@ Rules for curators (`/evolve`):
 - Evidence: 1
 - Status: candidate
 
+
+## L-057 · 2026-08-22 · A state a protocol defines but never computes is not a gate — it is a comment
+- Trigger: `docs/ATTENTION.md` shipped 2026-08-21 defining `working` as "a `claude/*` branch or open PR references the issue", and the consumption gate it ships alongside checks labels only — in all three implementations (`ATTENTION.md`'s prose gate, `work-loop/SKILL.md`'s list, `fleet-status.sh`'s jq expression). Two sessions consequently committed a from-scratch `docs/ATTENTION.md` nine seconds apart (janus `ba2e2ad` 20:06:02Z, `09256d3` 20:06:11Z) and opened PRs nineteen seconds apart (#43, #44), producing two mutually contradictory "version 1"s: one versions by a `janus:v1` label and argues a body comment cannot work, the other mandates the body comment and never applies the label. The duplication then propagated to the sibling (overlord #129 vs #130, overlapping 8 of 8 files). Cross-repo evidence per L-044: Vinylfigure/overlord#129, Vinylfigure/overlord#130, Vinylfigure/janus#43, Vinylfigure/janus#44 (origin: own observation plus three read-only audits, this session)
+- Rule: when a protocol or spec defines a state, either compute it in the gate that consumes it or delete it from the document — an uncomputed state reads as satisfied to every consumer, so the actor most likely to violate it is the one following the spec most carefully
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-058 · 2026-08-22 · Append-only files with one shared append point conflict on contact, independent of content
+- Trigger: `git merge-tree` against main produced exactly one conflicting file for each of overlord's three open PRs — `ACTIVITY.md` — including for two PRs (#126, #129) that share no product surface whatsoever; every branch appends line 124 of a 123-line file. The same shape with an id on top gave three branches three different `DL-5` entries in overlord and two different `DL-002` entries here, because each read main, computed "next number", and took it. Precedent one week earlier: janus `c8bd72a` "Merge origin/main: reconcile parallel enforcement-ladder work; renumber ledger IDs". Sibling: overlord L-108 solved the identical shape for a generated file by decommitting it (origin: own observation, `git merge-tree` on all open branches, this session)
+- Rule: give an append-only tracked file a union merge driver and its ids a collision-proof shape (date plus slug, never the next sequential number), then assert id uniqueness in CI — a file every branch appends to is a guaranteed conflict, and hand-resolving it teaches nothing because the next branch hits it again
+- Scope: portable
+- Evidence: 1
+- Status: candidate

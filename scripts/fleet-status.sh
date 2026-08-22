@@ -53,6 +53,7 @@ fi
 # --- gather ------------------------------------------------------------------
 questions=$(ghj issue list --label "question:" --state open --limit 200 --json number,title,createdAt,updatedAt)
 tasks=$(ghj issue list --label "task:" --state open --limit 200 --json number,createdAt,labels)
+prs_full=$(ghj pr list --state open --limit 200 --json number,title,body,headRefName)
 inboxes=$(ghj issue list --label "inbox:" --state open --limit 200 --json number,title,createdAt)
 hchecks=$(ghj issue list --label "human-check:" --state open --limit 200 --json number,title,createdAt)
 prs=$(ghj pr list --state open --limit 200 --json number,title,createdAt,updatedAt,headRefName)
@@ -137,12 +138,50 @@ if [ "${n_tasks:-0}" -gt 0 ]; then
   oldest_task="oldest $(age_days "$oldest_created")d"
 fi
 
-# The consumption gate (docs/ATTENTION.md): a `task:` carrying any gating
-# label is not consumable — the work loop's ready sweep mirrors this list.
-GATE='.name == "question:" or .name == "loop:hold" or .name == "inbox:" or .name == "human-check:"'
-n_gated=$(printf '%s' "$tasks" | jq "[.[] | select(any(.labels[]?; $GATE))] | length" 2>/dev/null || echo 0)
-n_consumable=$(( ${n_tasks:-0} - ${n_gated:-0} ))
-gated_rows=$(printf '%s' "$tasks" | jq -r ".[] | select(any(.labels[]?; $GATE)) | \"- gated: #\(.number) — \([.labels[].name] | join(\", \"))\"" 2>/dev/null)
+# The consumption gate (docs/ATTENTION.md). Two halves, and the second one
+# is the one this repo learned the hard way:
+#
+#   labels  — a `task:` carrying any gating label is not consumable.
+#   working — an issue an open PR or a live delivery branch ALREADY
+#             references is not consumable either, however clean its labels
+#             are. ATTENTION.md has always defined `working` as a state; it
+#             was defined and then never computed, so a task another actor
+#             had already started still read "ready" to every consumer. Two
+#             sessions built this protocol nine seconds apart through that
+#             hole (L-057).
+#
+# Derived from what GitHub already knows: closing keywords in an open PR's
+# title/body, and the issue number embedded in a delivery branch name
+# (`task/17-...`, `claude/42-...`).
+working_nums=$(
+  {
+    printf '%s' "$prs_full" | jq -r '.[] | ((.body // "") + " " + (.title // ""))' 2>/dev/null \
+      | grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?)[[:space:]]+#[0-9]+' \
+      | grep -oE '[0-9]+'
+    printf '%s' "$prs_full" | jq -r '.[].headRefName' 2>/dev/null \
+      | grep -oE '(^|/)[0-9]+-' | grep -oE '[0-9]+'
+  } 2>/dev/null | sort -u
+)
+is_working() { [ -n "$working_nums" ] && printf '%s\n' "$working_nums" | grep -qxF "$1"; }
+
+n_consumable=0
+gated_rows=""
+while read -r num labels; do
+  [ -n "$num" ] || continue
+  reason=""
+  case " $labels " in
+    *" question: "*|*" loop:hold "*|*" inbox: "*|*" human-check: "*)
+      reason="labels: $labels" ;;
+  esac
+  if [ -z "$reason" ] && is_working "$num"; then
+    reason="working — an open PR or delivery branch already references it"
+  fi
+  if [ -n "$reason" ]; then
+    gated_rows="${gated_rows}- gated: #$num — $reason"$'\n'
+  else
+    n_consumable=$(( n_consumable + 1 ))
+  fi
+done < <(printf '%s' "$tasks" | jq -r '.[] | "\(.number) \([.labels[]?.name] | join(" "))"' 2>/dev/null)
 
 inbox_rows=""
 n_inbox=$(printf '%s' "$inboxes" | jq 'length' 2>/dev/null || echo 0)

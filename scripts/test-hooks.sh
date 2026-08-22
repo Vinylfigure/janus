@@ -374,6 +374,45 @@ echo "$out" | grep -qF "gated: #9" && pass "gate: the gated issue is named with 
 echo "$out" | grep -qF "#11 stub thought" && pass "inbox section lists captured thoughts" || fail "inbox section lists captured thoughts"
 echo "$out" | grep -qF "#12 stub check" && pass "awaiting-your-check section lists human-check: issues" || fail "awaiting-your-check section lists human-check: issues"
 
+echo "== fleet-status.sh working state (the gate's second half) =="
+# ATTENTION.md defines `working` as "an open PR or claude/* branch references
+# the issue" and the gate never computed it, so a task another actor had
+# already started still read consumable (L-057). Same two task: issues as
+# above, both unlabeled this time; an open PR closes one of them.
+mkdir -p "$SANDBOX/workbin"
+cat > "$SANDBOX/workbin/gh" <<'EOF'
+#!/usr/bin/env bash
+args="$*"
+case "$args" in
+  *"issue list"*"task:"*) echo '[{"number":3,"createdAt":"2026-08-01T00:00:00Z","labels":[{"name":"task:"}]},{"number":9,"createdAt":"2026-08-01T00:00:00Z","labels":[{"name":"task:"}]}]' ;;
+  *"pr list"*"body"*)     echo '[{"number":50,"title":"deliver the thing","body":"Closes #3\n","headRefName":"claude/deliver-thing"}]' ;;
+  *"pr list"*)            echo '[{"number":50,"title":"deliver the thing","createdAt":"2026-08-20T00:00:00Z","updatedAt":"2026-08-20T00:00:00Z","headRefName":"claude/deliver-thing"}]' ;;
+  *"pr checks"*)          printf 'test\tpass\t1m\thttps://example.invalid\n' ;;
+  *"pr view"*|*"issue view"*) echo '{"comments":[]}' ;;
+  *"repo view"*)          echo 'stub' ;;
+  *)                      echo '[]' ;;
+esac
+EOF
+chmod +x "$SANDBOX/workbin/gh"
+out=$(PATH="$SANDBOX/workbin:$PATH" "$ROOT/scripts/fleet-status.sh" --dry-run 2>/dev/null)
+echo "$out" | grep -qF "Consumable now: 1" && pass "gate: an issue an open PR already closes is not consumable" || fail "gate: an issue an open PR already closes is not consumable (got: $(echo "$out" | grep 'Consumable now' || echo 'no gate line'))"
+echo "$out" | grep -qF "gated: #3 — working" && pass "gate: the working issue is named with its reason" || fail "gate: the working issue is named with its reason"
+echo "$out" | grep -qF "gated: #9" && fail "gate: an unreferenced twin must stay consumable" || pass "gate: an unreferenced twin must stay consumable"
+
+echo "== ledger and decision ids are unique (append-only union-merge guard) =="
+# .gitattributes union-merges these files so parallel branches stop
+# conflicting on them; the trade is that two branches can both land an entry
+# under the same id. That must fail loudly here rather than merge silently.
+dupe_ids() { grep -oE "^## $2[A-Za-z0-9-]+" "$1" 2>/dev/null | sort | uniq -d; }
+d=$(dupe_ids "$ROOT/docs/DECISIONS.md" "DL-")
+[ -z "$d" ] && pass "docs/DECISIONS.md has no duplicate lock id" || fail "docs/DECISIONS.md has duplicate lock id(s): $d"
+d=$(grep -oE '^## L-[0-9]+' "$ROOT/.claude/memory/LEARNINGS.md" 2>/dev/null | sort | uniq -d)
+[ -z "$d" ] && pass "LEARNINGS.md has no duplicate learning id" || fail "LEARNINGS.md has duplicate learning id(s): $d"
+# Red-first proof the check can actually fail: a fixture file with a known dupe.
+printf '## DL-2026-01-01-a · x\n## DL-2026-01-01-a · y\n' > "$SANDBOX/dupe-fixture.md"
+d=$(dupe_ids "$SANDBOX/dupe-fixture.md" "DL-")
+[ -n "$d" ] && pass "duplicate-id check detects a planted duplicate" || fail "duplicate-id check detects a planted duplicate"
+
 echo "== session-start.sh: work line (backlog visibility) =="
 # Renders only when gh + jq + a github.com origin all hold; every failure
 # path is silent. A gh that errors covers the no-gh guard behaviorally —
