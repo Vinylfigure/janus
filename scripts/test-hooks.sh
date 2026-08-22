@@ -399,6 +399,29 @@ echo "$out" | grep -qF "Consumable now: 1" && pass "gate: an issue an open PR al
 echo "$out" | grep -qF "gated: #3 — working" && pass "gate: the working issue is named with its reason" || fail "gate: the working issue is named with its reason"
 echo "$out" | grep -qF "gated: #9" && fail "gate: an unreferenced twin must stay consumable" || pass "gate: an unreferenced twin must stay consumable"
 
+echo "== check-ready.sh (the gate, executable) =="
+# Label semantics asserted here so weakening one is a visible, gate-blocked
+# act — and `working` asserted alongside them, because the state that was
+# defined-but-never-computed is the one that actually cost this repo (L-057).
+CR="$ROOT/scripts/check-ready.sh"
+"$CR" "task:" >/dev/null 2>&1 && pass "check-ready: bare task: -> ready (exit 0)" || fail "check-ready: bare task: -> ready (exit 0)"
+"$CR" "task:" "question:" >/dev/null 2>&1 && fail "check-ready: task:+question: -> blocked" || pass "check-ready: task:+question: -> blocked"
+"$CR" "task:" "loop:hold" >/dev/null 2>&1 && fail "check-ready: task:+loop:hold -> blocked" || pass "check-ready: task:+loop:hold -> blocked"
+"$CR" "task:" "inbox:" >/dev/null 2>&1 && fail "check-ready: task:+inbox: -> blocked" || pass "check-ready: task:+inbox: -> blocked"
+"$CR" "task:" "human-check:" >/dev/null 2>&1 && fail "check-ready: task:+human-check: -> blocked" || pass "check-ready: task:+human-check: -> blocked"
+"$CR" "enhancement" >/dev/null 2>&1 && fail "check-ready: not labeled task: -> blocked" || pass "check-ready: not labeled task: -> blocked"
+"$CR" --working "task:" >/dev/null 2>&1 && fail "check-ready: --working -> blocked even with clean labels" || pass "check-ready: --working -> blocked even with clean labels"
+out=$("$CR" --working "task:" 2>/dev/null)
+echo "$out" | grep -q "already references it" && pass "check-ready: working block names its reason" || fail "check-ready: working block names its reason"
+"$CR" >/dev/null 2>&1; rc=$?
+[ "$rc" -eq 64 ] && pass "check-ready: no labels -> usage exit 64" || fail "check-ready: no labels -> usage exit 64 (got $rc)"
+CRB="$SANDBOX/cr-body.md"
+printf '### Done means\n\nverify.sh exits 0\n' > "$CRB"
+"$CR" --body "$CRB" "task:" >/dev/null 2>&1 && pass "check-ready: body with Done means -> ready" || fail "check-ready: body with Done means -> ready"
+printf 'no done means heading here\n' > "$CRB"
+"$CR" --body "$CRB" "task:" >/dev/null 2>&1 && fail "check-ready: body without Done means -> blocked" || pass "check-ready: body without Done means -> blocked"
+"$CR" --body "$SANDBOX/no-such-body.md" "task:" >/dev/null 2>&1 && fail "check-ready: missing body file -> blocked (fails closed)" || pass "check-ready: missing body file -> blocked (fails closed)"
+
 echo "== ledger and decision ids are unique (append-only union-merge guard) =="
 # .gitattributes union-merges these files so parallel branches stop
 # conflicting on them; the trade is that two branches can both land an entry

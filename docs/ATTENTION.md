@@ -82,7 +82,10 @@ name. An issue another actor has already started reads "ready" to every
 consumer until someone computes it; on 2026-08-21 two sessions built this
 protocol nine seconds apart through exactly that hole, producing two
 mutually contradictory "version 1"s (L-057). `fleet-status.sh` now computes
-it and names the reason on each gated issue.
+it and names the reason on each gated issue, and `scripts/check-ready.sh` is
+the gate as one executable statement — it takes `--working` as an explicit
+argument precisely so a caller that never asked GitHub has to say so by
+omission.
 
 `question:` is not `loop:hold`: hold means "not now"; question means "the
 answer is not known yet", and building either branch of an unanswered
