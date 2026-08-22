@@ -72,7 +72,20 @@ and enforced observably by `fleet-status.sh`'s "Consumable now" line, which
 Consumable = labeled `task:` AND carries a done-means AND is within the
 environment's tool grant AND carries **none** of `question:` / `loop:hold` /
 `inbox:` / `human-check:` AND every issue named in its `### Blocked by` field
-is closed or resolved.
+is closed or resolved AND the issue is **not already `working`**.
+
+That last clause is the half this protocol defined and did not compute for
+its first day of life. `working` means an open PR or a live delivery branch
+already references the issue — derivable from closing keywords in an open
+PR's title or body, and from the issue number embedded in a delivery branch
+name. An issue another actor has already started reads "ready" to every
+consumer until someone computes it; on 2026-08-21 two sessions built this
+protocol nine seconds apart through exactly that hole, producing two
+mutually contradictory "version 1"s (L-057). `fleet-status.sh` now computes
+it and names the reason on each gated issue, and `scripts/check-ready.sh` is
+the gate as one executable statement — it takes `--working` as an explicit
+argument precisely so a caller that never asked GitHub has to say so by
+omission.
 
 `question:` is not `loop:hold`: hold means "not now"; question means "the
 answer is not known yet", and building either branch of an unanswered

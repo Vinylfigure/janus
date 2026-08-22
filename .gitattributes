@@ -1,0 +1,13 @@
+# Append-only files: union merge instead of a conflict.
+#
+# Every branch appends at the same point, so two branches that share no
+# product surface still collide on line N+1. Union merge keeps both sides'
+# added lines. It is safe here precisely because these files are append-only
+# and their invariants are checked elsewhere: a duplicate ledger id fails
+# test-hooks.sh, so a bad union surfaces as a loud CI failure rather than a
+# silent wrong merge.
+#
+# This does NOT apply to files where two edits can be semantically
+# incompatible — those must still conflict and be resolved by a human.
+.claude/memory/LEARNINGS.md merge=union
+docs/DECISIONS.md            merge=union
