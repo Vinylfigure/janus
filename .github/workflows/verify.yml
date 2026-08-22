@@ -18,8 +18,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Run hook fixture tests
+      # Same entry point a developer runs. Reaching past verify.sh to call one
+      # of its legs directly keeps CI passing while its green certifies less:
+      # this job ran ./scripts/test-hooks.sh until 2026-08-22, so check-loops,
+      # check-ledger-aging and the AGENTS.md drift gate never ran in CI at all.
+      - name: Run the verification loop
         run: |
           git config user.email "ci@janus.local"
           git config user.name "janus-ci"
-          ./scripts/test-hooks.sh
+          ./scripts/verify.sh full
