@@ -27,7 +27,7 @@ scripts/
   fleet-status.sh             dashboard + aging engine behind fleet-status.yml (--dry-run is fixture-smoked)
 .github/
   loops.yaml                  declarative loop manifest: the automations this repo EXPECTS (detect-only reconciliation)
-  workflows/verify.yml        CI: runs test-hooks.sh on every push/PR
+  workflows/verify.yml        CI: runs verify.sh full on every push/PR — the same entry point a developer runs
   workflows/fleet-status.yml  6-hourly: regenerates the Status dashboard issue, ages operator-blocked items
   workflows/gate-integrity.yml PR seatbelt: machinery paths require the operator's machinery-change label
   workflows/claude.yml        dispatch channel: @claude-mention-gated agent runs (inert until the CLAUDE_CODE_OAUTH_TOKEN secret exists)
