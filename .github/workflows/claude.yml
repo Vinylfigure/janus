@@ -53,6 +53,18 @@ jobs:
           # --max-turns is the runaway bound, not the effort budget; per-order
           # effort budgets live in the work-order spec.
           #
+          # SYNTAX, and the reason this was rewritten: the wildcard in a tool
+          # grant is `:*`, a literal prefix wildcard — NOT a shell glob. The
+          # previous grant said Bash(git *),Bash(gh *),Bash(scripts/*), which
+          # matches only commands whose text is exactly `git *`, `gh *` or
+          # `scripts/*`, i.e. nothing at all (L-052). This repo could accept an
+          # @claude order and then run no shell command, so a dispatched run
+          # could claim a verification loop but never close one — the
+          # aegis-sentinel#1 failure the comment below warns about, arriving
+          # through syntax instead of omission. janus is the template every
+          # child inherits, so the defect propagated: overlord-ui carried it
+          # verbatim. Every dispatch-proven repo uses the :* form.
+          #
           # --allowedTools: post-bootstrap tier — this repo's stack is the
           # scaffold itself, so the grant mirrors .github/loops.yaml's declared
           # allowed_tools exactly (the manifest and the channel must agree, or
@@ -60,4 +72,4 @@ jobs:
           # Without a Bash grant the action can run no shell command at all,
           # so a dispatched order could only claim a verification loop, never
           # close one (aegis-sentinel#1).
-          claude_args: --max-turns 120 --allowedTools "Read,Glob,Grep,Edit,Write,Bash(git *),Bash(gh *),Bash(scripts/*)"
+          claude_args: --max-turns 120 --allowedTools "Read,Glob,Grep,Edit,Write,Bash(./scripts/verify.sh:*),Bash(scripts/verify.sh:*),Bash(bash scripts/verify.sh:*),Bash(./scripts/test-hooks.sh:*),Bash(scripts/test-hooks.sh:*),Bash(bash scripts/test-hooks.sh:*),Bash(./scripts/check-loops.sh:*),Bash(scripts/check-loops.sh:*),Bash(./scripts/check-ready.sh:*),Bash(scripts/check-ready.sh:*),Bash(./scripts/generate-agents-md.sh:*),Bash(scripts/generate-agents-md.sh:*),Bash(./scripts/check-ledger-aging.sh:*),Bash(scripts/check-ledger-aging.sh:*),Bash(bash -n:*),Bash(git status:*),Bash(git diff:*),Bash(git add:*),Bash(git checkout:*),Bash(git branch:*),Bash(git commit:*),Bash(git push:*),Bash(git log:*),Bash(gh pr:*),Bash(gh issue:*)"

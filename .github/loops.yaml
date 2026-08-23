@@ -33,7 +33,7 @@ loops:
     skill: work-loop
     enabled: false
     armed_by: ""
-    allowed_tools: ["Read", "Glob", "Grep", "Edit", "Write", "Bash(git *)", "Bash(gh *)", "Bash(scripts/*)"]
+    allowed_tools: ["Read", "Glob", "Grep", "Edit", "Write", "Bash(./scripts/verify.sh:*)", "Bash(scripts/verify.sh:*)", "Bash(bash scripts/verify.sh:*)", "Bash(./scripts/test-hooks.sh:*)", "Bash(scripts/test-hooks.sh:*)", "Bash(bash scripts/test-hooks.sh:*)", "Bash(./scripts/check-loops.sh:*)", "Bash(scripts/check-loops.sh:*)", "Bash(./scripts/check-ready.sh:*)", "Bash(scripts/check-ready.sh:*)", "Bash(./scripts/generate-agents-md.sh:*)", "Bash(scripts/generate-agents-md.sh:*)", "Bash(./scripts/check-ledger-aging.sh:*)", "Bash(scripts/check-ledger-aging.sh:*)", "Bash(bash -n:*)", "Bash(git status:*)", "Bash(git diff:*)", "Bash(git add:*)", "Bash(git checkout:*)", "Bash(git branch:*)", "Bash(git commit:*)", "Bash(git push:*)", "Bash(git log:*)", "Bash(gh pr:*)", "Bash(gh issue:*)"]
     owner: Vinylfigure
     notes: "backlog consumer — one ready task: issue per firing, PR delivery, proposals only when idle; arming tracked in issue #23"
 
@@ -43,7 +43,7 @@ loops:
     skill: recalibrate
     enabled: false
     armed_by: ""
-    allowed_tools: ["Read", "Glob", "Grep", "Edit", "Write", "Bash(git *)", "Bash(gh *)", "Bash(scripts/*)"]
+    allowed_tools: ["Read", "Glob", "Grep", "Edit", "Write", "Bash(./scripts/verify.sh:*)", "Bash(scripts/verify.sh:*)", "Bash(bash scripts/verify.sh:*)", "Bash(./scripts/test-hooks.sh:*)", "Bash(scripts/test-hooks.sh:*)", "Bash(bash scripts/test-hooks.sh:*)", "Bash(./scripts/check-loops.sh:*)", "Bash(scripts/check-loops.sh:*)", "Bash(./scripts/check-ready.sh:*)", "Bash(scripts/check-ready.sh:*)", "Bash(./scripts/generate-agents-md.sh:*)", "Bash(scripts/generate-agents-md.sh:*)", "Bash(./scripts/check-ledger-aging.sh:*)", "Bash(scripts/check-ledger-aging.sh:*)", "Bash(bash -n:*)", "Bash(git status:*)", "Bash(git diff:*)", "Bash(git add:*)", "Bash(git checkout:*)", "Bash(git branch:*)", "Bash(git commit:*)", "Bash(git push:*)", "Bash(git log:*)", "Bash(gh pr:*)", "Bash(gh issue:*)"]
     owner: Vinylfigure
     notes: "weekly heartbeat — /recalibrate, then /evolve when the ledger is ripe, both delivering by PR; arming tracked in issue #23"
 
