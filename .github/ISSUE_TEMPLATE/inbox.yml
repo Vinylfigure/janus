@@ -1,5 +1,6 @@
 name: Inbox (a thought, not a spec)
 description: Capture an idea with zero ceremony — the work loop's idle arm triages it into a task or question later; nothing executes from here.
+title: "inbox: "
 labels: ["inbox:", "janus:v1"]
 body:
   - type: textarea
