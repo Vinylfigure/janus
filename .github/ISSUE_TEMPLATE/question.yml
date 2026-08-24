@@ -1,5 +1,6 @@
 name: Question (operator decision)
 description: A decision only the operator can make — blocks every task whose "Blocked by" field references it.
+title: "question: "
 labels: ["question:", "janus:v1"]
 body:
   - type: textarea
