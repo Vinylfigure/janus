@@ -71,8 +71,11 @@ and enforced observably by `fleet-status.sh`'s "Consumable now" line, which
 
 Consumable = labeled `task:` AND carries a done-means AND is within the
 environment's tool grant AND carries **none** of `question:` / `loop:hold` /
-`inbox:` / `human-check:` AND every issue named in its `### Blocked by` field
+`inbox:` / `human-check:` / `intent:` AND every issue named in its `### Blocked by` field
 is closed or resolved AND the issue is **not already `working`**.
+
+Intents live above tasks (overlord protocol `overlord:intent:v1`) and are
+never consumable.
 
 That last clause is the half this protocol defined and did not compute for
 its first day of life. `working` means an open PR or a live delivery branch

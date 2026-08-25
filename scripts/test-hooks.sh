@@ -409,6 +409,8 @@ CR="$ROOT/scripts/check-ready.sh"
 "$CR" "task:" "loop:hold" >/dev/null 2>&1 && fail "check-ready: task:+loop:hold -> blocked" || pass "check-ready: task:+loop:hold -> blocked"
 "$CR" "task:" "inbox:" >/dev/null 2>&1 && fail "check-ready: task:+inbox: -> blocked" || pass "check-ready: task:+inbox: -> blocked"
 "$CR" "task:" "human-check:" >/dev/null 2>&1 && fail "check-ready: task:+human-check: -> blocked" || pass "check-ready: task:+human-check: -> blocked"
+"$CR" "intent:" >/dev/null 2>&1 && fail "check-ready: bare intent: -> blocked" || pass "check-ready: bare intent: -> blocked"
+"$CR" "task:" "intent:" >/dev/null 2>&1 && fail "check-ready: task:+intent: -> blocked" || pass "check-ready: task:+intent: -> blocked"
 "$CR" "enhancement" >/dev/null 2>&1 && fail "check-ready: not labeled task: -> blocked" || pass "check-ready: not labeled task: -> blocked"
 "$CR" --working "task:" >/dev/null 2>&1 && fail "check-ready: --working -> blocked even with clean labels" || pass "check-ready: --working -> blocked even with clean labels"
 out=$("$CR" --working "task:" 2>/dev/null)
