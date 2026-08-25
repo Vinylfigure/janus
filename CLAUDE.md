@@ -21,7 +21,7 @@ already shows earns nothing.
 
 <!-- janus:facts:start -->
 - App stack: NOT BOOTSTRAPPED — run /bootstrap to specialize this scaffold.
-- Template plumbing is wired: `scripts/verify.sh quick|full` (full runs the loop-manifest check `scripts/check-loops.sh` then the hook fixture suite `scripts/test-hooks.sh`; CI runs `verify.sh full` on every PR).
+- Template plumbing is wired: `scripts/verify.sh quick|full` (full runs the loop-manifest check `scripts/check-loops.sh`, the ledger-aging report `scripts/check-ledger-aging.sh`, the AGENTS.md drift gate `scripts/generate-agents-md.sh --check`, then the hook fixture suite `scripts/test-hooks.sh`; CI runs `verify.sh full` on every PR).
 <!-- janus:facts:end -->
 
 ## Learned rules

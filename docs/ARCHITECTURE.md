@@ -157,6 +157,14 @@ across machines or cloud environments". So the headless heartbeat, cloud
 sessions, and a teammate's clone all start with it empty — anything the
 automation depends on has to live in the git-tracked tiers above it.
 
+The genome tier also flows backward (reverse heredity — DL-001, L-044):
+`/recalibrate`'s harvest step runs `scripts/harvest-ledgers.sh` over reachable
+child-repo ledgers, surfacing portable entries this ledger lacks as harvest
+candidates; the skill judges each hit and cites the child repo + entry id in
+the Trigger, so a sibling incident counts as an Evidence unit without
+conflating provenance. Children out-learning the template is the expected
+steady state — the harvest is how the template keeps up.
+
 Capture is ambient (auto memory notes things as work happens, zero
 ceremony), consolidation is deliberate (`/reflect` harvests shareable
 repo-truths from auto memory and the session into evidence-gated ledger

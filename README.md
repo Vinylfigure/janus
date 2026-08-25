@@ -62,6 +62,8 @@ and side-effect skills confirm with you before acting. Typing the
 | `/ship` | Verify green, commit, push, PR, then babysit CI and reviews until merged |
 | `/worktree-parallel` | Fan out parallel sessions in git worktrees |
 | `/add-skill` | Author new skills in the canonical shape |
+| `/decision-lock` | Freeze a resolved decision as a dated record in docs/DECISIONS.md |
+| `/work-loop` | Consume one ready `task:` issue per firing, or triage and propose when idle |
 | `verifier`, `memory-curator` | Subagents: the skeptic and the librarian (scouting and design use Claude Code's native subagents) |
 | 4 hooks | SessionStart status, silent correction detector, per-edit verify, stop-time reflect nudge |
 | `.claude/memory/LEARNINGS.md` | The append-only learnings ledger — the repo's genome |

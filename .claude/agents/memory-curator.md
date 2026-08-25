@@ -2,7 +2,6 @@
 name: memory-curator
 description: Analyzes the learnings ledger and proposes promotions, merges, and retirements for /evolve. Read-only — it proposes, the main thread disposes. Use when curating .claude/memory/LEARNINGS.md.
 tools: Read, Grep, Glob
-model: claude-sonnet-5
 effort: high
 ---
 

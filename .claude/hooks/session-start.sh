@@ -40,7 +40,8 @@ fi
 # lose its lessons. The compact branch above already reports the count.
 if [ "$source" != "compact" ] && [ -s "$SIGNALS" ]; then
   n=$(wc -l < "$SIGNALS" | tr -d ' ')
-  lines+=("$n unprocessed learning signal(s) from a previous session — consider /reflect.")
+  owners=$(awk -F: '{print $NF}' "$SIGNALS" 2>/dev/null | sort -u | wc -l | tr -d ' ')
+  lines+=("$n unprocessed learning signal(s) from $owners other session(s) — theirs to /reflect on; only lines stamped with your own session id are yours.")
 fi
 
 if [ -f "$LEDGER" ]; then
