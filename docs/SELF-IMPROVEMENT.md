@@ -78,7 +78,7 @@ history, which is what makes the ledger a genome rather than a notebook.
 - `Scope: portable` is a promise: true in *any* repository. Judge harshly —
   a wrongly-portable entry pollutes every descendant.
 - Never delete; mark. History is data.
-- IDs are sequential; parallel worktree sessions reconcile colliding IDs at
+- New IDs are date+slug (`L-<YYYYMMDD>-<two-word-slug>`, L-058) — collision-proof, so parallel sessions never reconcile IDs at
   merge time (see the worktree-parallel skill).
 
 ## Improving Janus itself (dogfooding)

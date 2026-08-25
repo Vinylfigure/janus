@@ -30,6 +30,14 @@ it's delivered when the PR merges with green checks.
    - On review comments: apply clear fixes directly; for ambiguous or architectural asks, check with the user before acting.
 6. Terminal: merged or closed. If several fix rounds go nowhere or a failure is out of scope, stop and report where it's stuck instead of going quiet.
 
+## Cross-repo closes
+
+GitHub's `Closes #N` only auto-closes issues in the PR's OWN repo. A body
+line naming another repo's issue (`closes owner/repo#N`) closes nothing —
+janus PR #47 claimed to close an overlord capture and it sat open a day until
+a hand close. After the merge, close any cross-repo issue the PR resolved
+explicitly, with a comment linking the merged PR.
+
 ## Before finishing
 
 State: the PR URL, the CI status with evidence (check names + conclusions),
