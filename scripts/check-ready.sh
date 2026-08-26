@@ -29,6 +29,7 @@
 #   loop:hold     known work, intentionally paused
 #   inbox:        a thought, not a spec — triage promotes it, the loop never consumes it
 #   human-check:  machine work finished; the operator's verification is the next actor
+#   intent:       lives above tasks (overlord protocol overlord:intent:v1) — never consumable
 set -uo pipefail
 
 BODY_FILE=""
@@ -50,6 +51,7 @@ for l in "$@"; do
     "loop:hold")    echo "not ready: carries loop:hold — intentionally paused"; exit 1 ;;
     "inbox:")       echo "not ready: carries inbox: — a thought awaiting triage, not a spec"; exit 1 ;;
     "human-check:") echo "not ready: carries human-check: — waiting on the operator's verification"; exit 1 ;;
+    "intent:")      echo "not ready: carries intent: — lives above tasks (overlord:intent:v1), never consumable"; exit 1 ;;
   esac
 done
 [ "$has_task" -eq 1 ] || { echo "not ready: not labeled task:"; exit 1; }

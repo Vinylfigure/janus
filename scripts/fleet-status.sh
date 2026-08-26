@@ -170,7 +170,7 @@ while read -r num labels; do
   [ -n "$num" ] || continue
   reason=""
   case " $labels " in
-    *" question: "*|*" loop:hold "*|*" inbox: "*|*" human-check: "*)
+    *" question: "*|*" loop:hold "*|*" inbox: "*|*" human-check: "*|*" intent: "*)
       reason="labels: $labels" ;;
   esac
   if [ -z "$reason" ] && is_working "$num"; then
@@ -231,7 +231,7 @@ $hc_rows
 ## Backlog
 
 ${n_tasks:-0} open \`task:\` issue(s) ($oldest_task).
-Consumable now: ${n_consumable} — the gate excludes \`question:\`/\`loop:hold\`/\`inbox:\`/\`human-check:\` (docs/ATTENTION.md).
+Consumable now: ${n_consumable} — the gate excludes \`question:\`/\`loop:hold\`/\`inbox:\`/\`human-check:\`/\`intent:\` (docs/ATTENTION.md).
 $gated_rows
 
 ## Inbox
