@@ -118,6 +118,13 @@ silently):
 `Decision` · `Recommended choice` · `Why` · `If you do nothing` ·
 `Reversible?` · `Needed by` · `Blocks`
 
+Three further headings — `Parent goal`, `Gates signal`, `Kind` — are
+additive v1.1: all optional, appended after the seven above, never
+renaming or reordering them. A body without them is still valid v1; a
+parser must treat their absence as "no parent goal / no gated signal /
+Kind = Decision". `Parent goal` is how a question joins the Goal graph
+defined in Vinylfigure/overlord `docs/GOAL.md` (`overlord:goal:v1`).
+
 A question arrives with a recommendation — "what should I do?" with no
 explored options is an unfinished exploration, not a decision request.
 

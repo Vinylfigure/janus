@@ -60,3 +60,30 @@ body:
       placeholder: "#45, #47"
     validations:
       required: false
+  - type: textarea
+    id: parent-goal
+    attributes:
+      label: Parent goal
+      description: "The Goal this question gates, as `goal/<n>` (the Vinylfigure/overlord issue number — `goal/207` anywhere means Vinylfigure/overlord#207). Leave empty for questions not under a Goal."
+      placeholder: "goal/207"
+    validations:
+      required: false
+  - type: textarea
+    id: gates-signal
+    attributes:
+      label: Gates signal
+      description: The one success signal on the parent Goal that your answer makes evaluable, quoted verbatim from the Goal's `### Success signals`. One line.
+    validations:
+      required: false
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      description: "Decision: pick between named options. Permission: grant something outside delegated authority (a credential, a boundary change). Escalation: a mechanical blocker the machine may not clear alone."
+      options:
+        - Decision
+        - Permission
+        - Escalation
+      default: 0
+    validations:
+      required: false
