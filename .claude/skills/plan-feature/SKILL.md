@@ -38,6 +38,9 @@ still red.
 
 Then the descope gate: every Deferred item, and every follow-up discovered
 mid-implementation, is either filed as a `task:` issue in this repo — title
-`task: <outcome>`, body carrying its done-means and a
+`task: <outcome>`, body starting with `### In plain words` (one sentence,
+the operator's own words, ≤160 chars, no ids/paths/backticks/protocol
+nouns — run `scripts/check-record.sh <body-file>` on the drafted body
+before filing) and carrying its done-means and a
 `discovered-from: <plan/PR/issue ref>` line — or declared dead in one line.
 A transcript is not a backlog (L-043).

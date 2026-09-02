@@ -4,6 +4,14 @@ title: "question: "
 labels: ["question:", "janus:v1"]
 body:
   - type: textarea
+    id: in-plain-words
+    attributes:
+      label: In plain words
+      description: One sentence, in the operator's own words, restating what is being asked — no ids, file paths, backticks, or protocol nouns, 160 characters or fewer. A control surface renders this as the card headline; without it the card shows muted, "not yet in plain words".
+      placeholder: "Should low-stakes questions answer themselves after three days of silence?"
+    validations:
+      required: true
+  - type: textarea
     id: decision
     attributes:
       label: Decision
@@ -15,10 +23,20 @@ body:
     validations:
       required: true
   - type: textarea
+    id: options
+    attributes:
+      label: Options
+      description: 2-4 named answers, one per line, in the operator's own words — these become the card's buttons.
+      placeholder: |
+        Yes, auto-answer after three days
+        No, always wait for me
+    validations:
+      required: true
+  - type: textarea
     id: recommended-choice
     attributes:
       label: Recommended choice
-      description: The option this repo would pick if the operator said "use your recommendation". Required — a question arrives with a recommendation.
+      description: The option this repo would pick if the operator said "use your recommendation" — must be one of the Options, verbatim. Required — a question arrives with a recommendation.
       placeholder: "X, because..."
     validations:
       required: true

@@ -424,6 +424,28 @@ printf 'no done means heading here\n' > "$CRB"
 "$CR" --body "$CRB" "task:" >/dev/null 2>&1 && fail "check-ready: body without Done means -> blocked" || pass "check-ready: body without Done means -> blocked"
 "$CR" --body "$SANDBOX/no-such-body.md" "task:" >/dev/null 2>&1 && fail "check-ready: missing body file -> blocked (fails closed)" || pass "check-ready: missing body file -> blocked (fails closed)"
 
+echo "== check-record.sh (In plain words at filing, self-test on fixtures) =="
+# This is verify.sh full's only exercise of check-record.sh: a self-test
+# against fixture bodies here, never a scan of live issues.
+CRR="$ROOT/scripts/check-record.sh"
+CRRB="$SANDBOX/record-body.md"
+printf '### In plain words\nThe app opens in under two seconds and switching views is instant.\n\n### Done means\nverify.sh full exits 0\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && pass "check-record: compliant task body -> exit 0" || fail "check-record: compliant task body -> exit 0"
+printf '### Done means\nverify.sh full exits 0\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: task body without In plain words -> exit 1" || pass "check-record: task body without In plain words -> exit 1"
+printf '### In plain words\nThe fixture reconciles against the canonical schema per protocol v1.\n\n### Done means\nx\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: In plain words matching the jargon deny-list -> exit 1" || pass "check-record: In plain words matching the jargon deny-list -> exit 1"
+printf '### In plain words\nRun `scripts/verify.sh` to confirm it works.\n\n### Done means\nx\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: In plain words with backticks -> exit 1" || pass "check-record: In plain words with backticks -> exit 1"
+LONG="$(printf 'x%.0s' $(seq 1 161))"
+printf '### In plain words\n%s\n\n### Done means\nx\n' "$LONG" > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: In plain words over 160 chars -> exit 1" || pass "check-record: In plain words over 160 chars -> exit 1"
+printf '### In plain words\nShould low-stakes questions answer themselves after three days?\n\n### Decision\nx\n\n### Options\nYes, auto-answer\nNo, always wait\n\n### Recommended choice\nYes, auto-answer\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && pass "check-record: compliant question body -> exit 0" || fail "check-record: compliant question body -> exit 0"
+printf '### In plain words\nShould low-stakes questions answer themselves after three days?\n\n### Decision\nx\n\n### Recommended choice\nYes, auto-answer\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: question without Options -> exit 1" || pass "check-record: question without Options -> exit 1"
+"$CRR" "$SANDBOX/no-such-record.md" >/dev/null 2>&1 && fail "check-record: missing body file -> exit 1 (fails closed)" || pass "check-record: missing body file -> exit 1 (fails closed)"
+
 echo "== ledger and decision ids are unique (append-only union-merge guard) =="
 # .gitattributes union-merges these files so parallel branches stop
 # conflicting on them; the trade is that two branches can both land an entry
@@ -622,17 +644,27 @@ PYEOF
     pass "question.yml parses as YAML with a body of labeled fields"
   fi
   EXPECTED_V1=$'Decision\nRecommended choice\nWhy\nIf you do nothing\nReversible?\nNeeded by\nBlocks'
-  EXPECTED_FULL=$'Decision\nRecommended choice\nWhy\nIf you do nothing\nReversible?\nNeeded by\nBlocks\nParent goal\nGates signal\nKind'
+  EXPECTED_FULL=$'In plain words\nDecision\nOptions\nRecommended choice\nWhy\nIf you do nothing\nReversible?\nNeeded by\nBlocks\nParent goal\nGates signal\nKind'
   if [ "$Q_LABELS" = "$EXPECTED_FULL" ]; then
-    pass "question.yml labels, in order: the 7 v1 headings then Parent goal, Gates signal, Kind"
+    pass "question.yml labels, in order: In plain words, then Decision, Options, the rest of v1, then Parent goal, Gates signal, Kind"
   else
-    fail "question.yml label order != 7 v1 headings followed by Parent goal, Gates signal, Kind (got: $(echo "$Q_LABELS" | tr '\n' '|'))"
+    fail "question.yml label order != In plain words + Decision + Options + v1 + Parent goal/Gates signal/Kind (got: $(echo "$Q_LABELS" | tr '\n' '|'))"
   fi
-  Q_LABELS_HEAD7=$(echo "$Q_LABELS" | head -7)
-  if [ "$Q_LABELS_HEAD7" = "$EXPECTED_V1" ]; then
-    pass "question.yml first 7 labels start with the v1 machine interface, unrenamed"
+  # `In plain words` and `Options` are v1.1 additions — the original 7 must
+  # still appear, unrenamed, in their original relative order (they are no
+  # longer required to be contiguous: Options now sits between Decision and
+  # Recommended choice).
+  V1_SUBSEQ=$(printf '%s\n' "$Q_LABELS" | grep -xF -f <(printf '%s\n' "$EXPECTED_V1"))
+  if [ "$V1_SUBSEQ" = "$EXPECTED_V1" ]; then
+    pass "question.yml still carries the 7 v1 headings, unrenamed, in original relative order"
   else
-    fail "question.yml first 7 labels != v1 machine interface (got: $(echo "$Q_LABELS_HEAD7" | tr '\n' '|'))"
+    fail "question.yml v1 headings missing or reordered (got: $(echo "$V1_SUBSEQ" | tr '\n' '|'))"
+  fi
+  Q_FIRST=$(echo "$Q_LABELS" | head -1)
+  if [ "$Q_FIRST" = "In plain words" ]; then
+    pass "question.yml renders In plain words first"
+  else
+    fail "question.yml first label != In plain words (got: $Q_FIRST)"
   fi
 
   # A sample v1 body carrying only the seven original headings (no v1.1
@@ -651,6 +683,21 @@ PYEOF
   else
     fail "a v1 body without the 3 new headings is missing one of the 7 required headings"
   fi
+
+  for tf in task.yml inbox.yml; do
+    T_FIRST=$(python3 - "$ROOT/.github/ISSUE_TEMPLATE/$tf" <<'PYEOF'
+import sys, yaml
+doc = yaml.safe_load(open(sys.argv[1]))
+labels = [f.get("attributes", {}).get("label") for f in doc["body"] if f.get("attributes", {}).get("label")]
+print(labels[0] if labels else "")
+PYEOF
+)
+    if [ "$T_FIRST" = "In plain words" ]; then
+      pass "$tf renders In plain words first"
+    else
+      fail "$tf first label != In plain words (got: $T_FIRST)"
+    fi
+  done
 fi
 
 echo
