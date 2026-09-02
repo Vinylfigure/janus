@@ -31,6 +31,14 @@ OWNER="${GITHUB_REPOSITORY_OWNER:-}"
 [ -n "$OWNER" ] || OWNER=unknown
 REPO="${GITHUB_REPOSITORY:-}"
 [ -n "$REPO" ] || REPO=$(gh repo view --json nameWithOwner --jq '.nameWithOwner' 2>/dev/null || true)
+# The L-047 detector compares every branch against this, so it must be the
+# repo's REAL default — DryDock's is `Main`, not `main`, and guessing would
+# make every branch there look stranded.
+DEFAULT_BRANCH="${GITHUB_DEFAULT_BRANCH:-}"
+if [ -z "$DEFAULT_BRANCH" ] && [ -n "$REPO" ]; then
+  DEFAULT_BRANCH=$(gh api "repos/$REPO" --jq '.default_branch' 2>/dev/null || true)
+fi
+[ -n "$DEFAULT_BRANCH" ] || DEFAULT_BRANCH=main
 
 NOW=$(date -u +%s)
 iso_epoch() { date -u -d "$1" +%s 2>/dev/null || echo "$NOW"; }
@@ -84,7 +92,24 @@ done < <(printf '%s' "$prs" | jq -r '.[] | select(.headRefName | startswith("cla
 
 # --- 3. red findings: branch-without-PR (L-047) + manifest schema ------------
 reds=""
+tidies=""
+# Two independent proofs that a branch's work has landed. BOTH are needed.
+#
+#   merged PR  — the head of a MERGED pull request. Under squash-merge the
+#                branch tip is NOT an ancestor of the default branch, so these
+#                read ahead=1..4 forever: content landed, commits did not.
+#   ahead == 0 — the tip IS an ancestor of the default branch (merge-commit or
+#                rebase). Catches branches merged without a PR at all.
+#
+# Anything else carrying commits of its own is genuinely unshipped work.
+# Flagging a delivered branch red rendered "already delivered" and "silently
+# stranded" as the same colour (L-064) — which trained the operator to stop
+# reading the detector, so the branches that WERE stranded went unread with
+# them. `unknown` (API unreachable) stays red: fail closed, never hide a
+# possible stranding behind a failed lookup.
 pr_heads=$(printf '%s' "$prs" | jq -r '.[].headRefName' 2>/dev/null)
+merged_heads=$(ghj pr list -R "$REPO" --state merged --limit 500 --json headRefName \
+  | jq -r '.[].headRefName' 2>/dev/null)
 if [ -n "$REPO" ]; then
   while read -r bname bsha; do
     [ -n "$bname" ] || continue
@@ -92,8 +117,20 @@ if [ -n "$REPO" ]; then
     cdate=$(ghj api "repos/$REPO/commits/$bsha" | jq -r '.commit.committer.date // empty' 2>/dev/null)
     [ -n "$cdate" ] || continue
     h=$(age_hours "$cdate")
-    if [ "$h" -gt 24 ]; then
-      reds="${reds}- branch without PR (L-047): \`$bname\` — head ${h}h old, no open PR"$'\n'
+    [ "$h" -gt 24 ] || continue
+    if printf '%s\n' "$merged_heads" | grep -qxF "$bname"; then
+      tidies="${tidies}- \`$bname\` — its PR merged, safe to delete"$'\n'
+      continue
+    fi
+    ahead=$(ghj api "repos/$REPO/compare/$DEFAULT_BRANCH...$bname" \
+      | jq -r 'if type == "object" then (.ahead_by // 0) else "unknown" end' 2>/dev/null)
+    [ -n "$ahead" ] || ahead=unknown
+    if [ "$ahead" = "0" ]; then
+      tidies="${tidies}- \`$bname\` — already in \`$DEFAULT_BRANCH\`, safe to delete"$'\n'
+    elif [ "$ahead" = "unknown" ]; then
+      reds="${reds}- branch without PR (L-047): \`$bname\` — head ${h}h old, no open PR, ahead-count unavailable"$'\n'
+    else
+      reds="${reds}- branch without PR (L-047): \`$bname\` — head ${h}h old, no merged PR, **${ahead} commit(s) not in \`$DEFAULT_BRANCH\`**"$'\n'
     fi
   done < <(ghj api "repos/$REPO/branches?per_page=100" \
     | jq -r '.[] | select(.name | startswith("claude/")) | "\(.name) \(.commit.sha)"' 2>/dev/null)
@@ -216,6 +253,8 @@ loop_rows=$(awk '
 
 [ -n "$reds" ] || reds_body="_none_"
 [ -n "$reds" ] && reds_body="$reds"
+[ -n "$tidies" ] || tidy_body="_none_"
+[ -n "$tidies" ] && tidy_body="$tidies"
 
 BODY="## Open PRs
 
@@ -250,6 +289,12 @@ $loop_rows
 ## Red findings
 
 $reds_body
+
+## Merged branches, not yet deleted
+
+Housekeeping only — the work is already in \`$DEFAULT_BRANCH\`. Never a red finding.
+
+$tidy_body
 
 ---
 _Last updated: $(date -u +"%Y-%m-%dT%H:%M:%SZ") — this body is regenerated in place on every run; checkboxes and comments here are the operator's control surface._
