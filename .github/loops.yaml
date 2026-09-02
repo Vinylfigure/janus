@@ -38,7 +38,7 @@ loops:
     notes: "backlog consumer — one ready task: issue per firing, PR delivery, proposals only when idle; arming tracked in issue #23"
 
   - name: maintenance
-    schedule: "47 9 * * 1"
+    schedule: "48 9 * * 1"
     driver: routine
     skill: recalibrate
     enabled: false
