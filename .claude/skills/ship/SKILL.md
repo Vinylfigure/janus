@@ -3,7 +3,6 @@ name: ship
 description: Close the delivery loop - verify green, commit, push, open a PR, then babysit CI and review feedback until merged or closed. Confirms branch and remote before the first push.
 when_to_use: Use when a verified change is ready to leave the machine or the user asks to ship, land, or PR.
 argument-hint: [optional PR title]
-model: claude-sonnet-5
 effort: high
 ---
 
@@ -30,6 +29,14 @@ it's delivered when the PR merges with green checks.
    - On CI failure: read the failing job's log, state the diagnosis in one sentence, fix, push. Each failure is also a `/reflect` signal if it reveals a gap in `verify.sh`.
    - On review comments: apply clear fixes directly; for ambiguous or architectural asks, check with the user before acting.
 6. Terminal: merged or closed. If several fix rounds go nowhere or a failure is out of scope, stop and report where it's stuck instead of going quiet.
+
+## Cross-repo closes
+
+GitHub's `Closes #N` only auto-closes issues in the PR's OWN repo. A body
+line naming another repo's issue (`closes owner/repo#N`) closes nothing —
+janus PR #47 claimed to close an overlord capture and it sat open a day until
+a hand close. After the merge, close any cross-repo issue the PR resolved
+explicitly, with a comment linking the merged PR.
 
 ## Before finishing
 

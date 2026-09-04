@@ -2,12 +2,16 @@
 name: reflect
 description: Distill this session's lessons (corrections, verification failures, surprises, wasted paths) into structured entries in .claude/memory/LEARNINGS.md.
 when_to_use: Use at session end, after a correction, or when the Stop hook asks for it.
-model: claude-sonnet-5
 effort: high
 ---
 
 Runs in the main thread only — never delegate this to a subagent. Only this
 thread holds the session transcript, and the transcript is the raw material.
+The same constraint bounds scheduling: a scheduled or fresh session invoked
+as a reflect-sweep may run ONLY the signals and ledger passes — the
+transcript and prediction passes die with the session that did the work,
+which is why the work-loop runs /reflect in-session before ending when
+signals exist rather than deferring to any interval.
 
 ## Hold in mind
 
@@ -27,7 +31,7 @@ thread holds the session transcript, and the transcript is the raw material.
    - **Auto-memory pass**: read the project's auto-memory `MEMORY.md` (the memory directory named in your session context; skip silently if auto memory is absent or disabled). Ambient notes that are shareable repo-truths — a build quirk, a recurring correction, a workflow fact — are candidate lessons under the same rules below; machine-local trivia stays local.
    - **Prediction pass**: compare what the task *predicted* — stated invariants, predicted failure modes, "done means" criteria — against what actually happened. A wrong prediction is the highest-value lesson here: it is a model error rather than a process error, and it is the one signal no user correction will ever surface.
 2. For each event, decide: is there a rule here? Some failures are noise (typo, flaky network). Say so in one line and move on — do not manufacture lessons.
-3. For each real lesson, check `LEARNINGS.md` for an equivalent entry (grep for key terms AND read all entry titles — a semantic duplicate rarely shares your wording). If found: increment its `Evidence` count and update its date, honoring Hold-in-mind #3's independence bar. If not: append a new entry after the `<!-- entries below this line -->` marker, using the format spec at the top of the file. Next ID = highest existing L-NNN + 1.
+3. For each real lesson, check `LEARNINGS.md` for an equivalent entry (grep for key terms AND read all entry titles — a semantic duplicate rarely shares your wording). If found: increment its `Evidence` count and update its date, honoring Hold-in-mind #3's independence bar. If not: append a new entry after the `<!-- entries below this line -->` marker, using the format spec at the top of the file. Next ID = `L-<YYYYMMDD>-<two-word-slug>` (collision-proof across concurrent sessions per L-058 — two sessions minting "highest + 1" collided twice, janus PRs #43/#44 and the aegis L-070 pair; existing sequential IDs are grandfathered, never renumbered).
 4. Efficacy pass: for each promoted rule (CLAUDE.md rules block and `.claude/rules/`), note whether it visibly fired this session — prevented or caught something, or failed to help when it should have. Append `observed: <date> — <one line>` to that entry's Trigger. No observation, no note; this is what `/evolve`'s dead-rule review reads.
 5. Delete `.claude/memory/.session-signals`.
 6. If any entry now has `Evidence: 2` or more, tell the user: "N learnings have enough evidence to promote — run /evolve when convenient."

@@ -3,7 +3,6 @@ name: add-skill
 description: Author a new skill for this repository using the canonical Janus SKILL.md shape (Hold in mind, Steps, Before finishing) and workspace-priming rules.
 when_to_use: Use when a procedure has been repeated or explained more than once, when the user describes a workflow worth keeping, or when /evolve promotes a procedure-shaped learning.
 argument-hint: [skill name and purpose]
-model: claude-sonnet-5
 effort: high
 ---
 

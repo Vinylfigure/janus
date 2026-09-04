@@ -2,7 +2,6 @@
 name: recalibrate
 description: Re-verify this repo's encoded conventions (skills, CLAUDE.md directives, ARCHITECTURE.md claims) against primary sources and file drift as candidate LEARNINGS.md entries.
 when_to_use: Use when the session-start status says recalibration is stale, a documented practice misbehaves, or on the maintenance heartbeat.
-model: claude-sonnet-5
 effort: high
 ---
 
@@ -36,13 +35,27 @@ weeks after `claude --worktree` made it the fallback rather than the path.
    If a source is unreachable, record nothing for the claims it covers — a failed fetch is "no data", never a confirmation.
 4. Diff and classify each claim: **confirmed** (still current), **drifted** (a primary source contradicts or supersedes it — cite where), or **newly-available** (a capability the scaffold predates and could use). For a native limit, check whether the number is a target or a failure threshold before treating it as a budget.
 5. For each drift or new capability, append a candidate entry to `.claude/memory/LEARNINGS.md` per its format spec: `Evidence: 1`, verbatim quote and source URL in the Trigger. If an equivalent entry exists, bump its Evidence instead.
-6. Append every source you actually read to `.claude/memory/sources-seen.md`, one row each, with its conclusion.
-7. Record the run: `date +%s > .claude/memory/recalibrated-at` (epoch in content — mtimes don't survive clones). Stamp **only** if step 1's enumeration was completed — a stamp from a partial run is a false green that suppresses the very nudge meant to catch it. Commit it alongside any drift entries.
-8. Summarize: N claims checked, N confirmed, N drifted, N new — and if any entry is now at Evidence >= 2, recommend `/evolve`.
+6. Harvest child ledgers (reverse heredity — DL-001, janus#38, L-044). For
+   every reachable child-repo ledger — a sibling checkout's
+   `.claude/memory/LEARNINGS.md`, a worktree, or a copy fetched read-only
+   this run — run `scripts/harvest-ledgers.sh <own-ledger> <child-ledger>...`.
+   It surfaces portable, non-retired child entries whose title this ledger
+   lacks; judge each hit like any drift finding: worth adopting → append a
+   candidate entry citing the child repo + entry id in the Trigger (that
+   citation is what lets a sibling incident count as an Evidence unit under
+   L-044, without conflating it with this repo's own observations); an
+   equivalent entry already here → bump its Evidence with the child citation.
+   No reachable child ledger is a normal outcome for a fresh clone — say so
+   in the summary rather than skipping silently. The overlord survey's
+   memory-health column stays what it is: a downstream view, not this step.
+
+7. Append every source you actually read to `.claude/memory/sources-seen.md`, one row each, with its conclusion.
+8. Record the run: `date +%s > .claude/memory/recalibrated-at` (epoch in content — mtimes don't survive clones). Stamp **only** if step 1's enumeration was completed — a stamp from a partial run is a false green that suppresses the very nudge meant to catch it. Commit it alongside any drift entries.
+9. Summarize: N claims checked, N confirmed, N drifted, N new — and if any entry is now at Evidence >= 2, recommend `/evolve`.
 
 ## Before finishing
 
-State the counts from step 8 and read back each entry you wrote. Say whether
+State the counts from step 9 and read back each entry you wrote. Say whether
 step 1's enumeration was complete, and therefore whether you stamped. Assert
 explicitly that you edited no convention file — no skill, not CLAUDE.md, not
 ARCHITECTURE.md — only the ledger and the run stamp. If you caught yourself

@@ -75,27 +75,32 @@ nicely would not survive the next round of tidying.
 
 ## The mapping
 
+**Policy since 2026-08-25: model auto-select, fleet-aligned.** The operator's
+order (given interactively 2026-08-20 for overlord, extended to the template
+2026-08-25 in the fix-program review): no skill, agent, or routine pins a
+model. Effort tiers are the discernment; the model is the operator's choice
+per session and the platform's per default. The table keeps the tier
+*concepts* — a descendant that wants pinning back restores the `model:`
+column deliberately, against this recorded default.
+
 | Tier | Model | Effort | Applies to |
 |---|---|---|---|
-| **Judgment** | *inherited* — Opus 5 by default, Fable 5 on the operator's escalation | `xhigh` | `verify-loop`, `plan-feature`, `evolve`, the `verifier` agent |
-| **Working** | `claude-sonnet-5` | `high` | `work-loop`, `reflect`, `ship`, `recalibrate`, `replicate`, `bootstrap`, `add-skill`, `decision-lock`, `worktree-parallel`, the `memory-curator` agent |
-| **Mechanical** | `claude-haiku-4-5` | `low` | ad-hoc subagents with a named, bounded input — single-file reads, extraction. No skill declares this tier; it is a choice made per `Agent` call. |
+| **Judgment** | *inherited* (never pinned — CI-asserted) | `xhigh` | `verify-loop`, `plan-feature`, `evolve`, the `verifier` agent |
+| **Working** | *inherited* (auto-select; previously pinned `claude-sonnet-5`, unpinned 2026-08-25) | `high` | `work-loop`, `reflect`, `ship`, `recalibrate`, `replicate`, `bootstrap`, `add-skill`, `decision-lock`, `worktree-parallel`, the `memory-curator` agent |
+| **Mechanical** | per `Agent` call (e.g. `claude-haiku-4-5`) | `low` | ad-hoc subagents with a named, bounded input — single-file reads, extraction. No skill declares this tier. |
 
-`memory-curator` is working tier because it *proposes* and `/evolve` disposes —
-the propose/dispose separation already recorded in `docs/ARCHITECTURE.md` is
-exactly what makes the downgrade safe. The verifier has no such backstop, so
-it stays judgment.
+`memory-curator` stays working tier because it *proposes* and `/evolve`
+disposes — the propose/dispose separation already recorded in
+`docs/ARCHITECTURE.md`. The verifier has no such backstop, so it stays
+judgment.
 
 ## Verification status
 
 The `model:` and `effort:` frontmatter fields are accepted by the platform's
 skill and agent schemas (both allowlisted in `scripts/test-hooks.sh`, which
-`/recalibrate` re-verifies against the skills docs). What this repo has
-**not** yet observed is a declared field visibly changing the model of a live
-run — that needs an interactive session, and this round was headless.
-
-So: declared and CI-enforced, behaviorally unconfirmed. The first interactive
-session that invokes a working-tier skill should confirm the switch actually
-happens and date the observation here. Until then, treat the win as intended
-rather than measured — recording it as verified would be precisely the
-false-green move this file's own gate rule exists to prevent.
+`/recalibrate` re-verifies against the skills docs). The earlier caveat here —
+"declared and CI-enforced, behaviorally unconfirmed", a pinned field never
+observed switching a live run's model — is MOOT under auto-select: nothing
+pins, so there is nothing to confirm. What remains observable is effort-tier
+behavior, and the standing offer holds: an interactive session that measures
+a declared `effort:` visibly changing a run should date the observation here.

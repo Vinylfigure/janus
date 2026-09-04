@@ -35,7 +35,7 @@ loops:
     armed_by: ""
     allowed_tools: ["Read", "Glob", "Grep", "Edit", "Write", "Bash(./scripts/verify.sh:*)", "Bash(scripts/verify.sh:*)", "Bash(bash scripts/verify.sh:*)", "Bash(./scripts/test-hooks.sh:*)", "Bash(scripts/test-hooks.sh:*)", "Bash(bash scripts/test-hooks.sh:*)", "Bash(./scripts/check-loops.sh:*)", "Bash(scripts/check-loops.sh:*)", "Bash(./scripts/check-ready.sh:*)", "Bash(scripts/check-ready.sh:*)", "Bash(./scripts/generate-agents-md.sh:*)", "Bash(scripts/generate-agents-md.sh:*)", "Bash(./scripts/check-ledger-aging.sh:*)", "Bash(scripts/check-ledger-aging.sh:*)", "Bash(bash -n:*)", "Bash(git status:*)", "Bash(git diff:*)", "Bash(git add:*)", "Bash(git checkout:*)", "Bash(git branch:*)", "Bash(git commit:*)", "Bash(git push:*)", "Bash(git log:*)", "Bash(gh pr:*)", "Bash(gh issue:*)"]
     owner: Vinylfigure
-    notes: "backlog consumer — one ready task: issue per firing, PR delivery, proposals only when idle; arming tracked in issue #23"
+    notes: "backlog consumer — one ready task: issue per firing, PR delivery, proposals only when idle; arming tracked in issue #23. Operator ruling 2026-08-25: the template does not run its own loops (loops are declared here and armed in stamped children); the trigger armed 2026-08-17 is being paused, so enabled: false is true again. The template's backlog is operator-only by nature — improvement flows through operator sessions, dispatch, and the harvest pass (#38)"
 
   - name: maintenance
     schedule: "47 9 * * 1"

@@ -3,7 +3,6 @@ name: decision-lock
 description: Freeze a resolved product or design decision as a dated, ID'd, owner-attributed record in docs/DECISIONS.md, so later plans cite the lock instead of re-litigating it.
 when_to_use: Use when a discussion resolves a decision ("lock this", "that's the decision") or a plan touches a locked one.
 argument-hint: [the decision to lock]
-model: claude-sonnet-5
 effort: high
 ---
 

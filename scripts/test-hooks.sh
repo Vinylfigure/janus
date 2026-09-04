@@ -446,6 +446,61 @@ printf '### In plain words\nShould low-stakes questions answer themselves after 
 "$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: question without Options -> exit 1" || pass "check-record: question without Options -> exit 1"
 "$CRR" "$SANDBOX/no-such-record.md" >/dev/null 2>&1 && fail "check-record: missing body file -> exit 1 (fails closed)" || pass "check-record: missing body file -> exit 1 (fails closed)"
 
+echo "== harvest-ledgers.sh (reverse heredity, janus#38) =="
+HV="$ROOT/scripts/harvest-ledgers.sh"
+mkdir -p "$SANDBOX/harvest"
+cat > "$SANDBOX/harvest/own.md" <<'EOF'
+## L-001 · 2026-07-01 · Shared rule both repos hold
+
+- Trigger: something
+- Rule: shared.
+- Scope: portable
+- Evidence: 2
+- Status: candidate
+EOF
+cat > "$SANDBOX/harvest/child.md" <<'EOF'
+## L-050 · 2026-08-20 · Shared rule both repos hold
+
+- Trigger: child copy
+- Rule: shared.
+- Scope: portable
+- Evidence: 3
+- Status: candidate
+
+## L-051 · 2026-08-21 · Child-only portable lesson the template lacks
+
+- Trigger: child incident
+- Rule: harvest me.
+- Scope: portable
+- Evidence: 2
+- Status: candidate
+
+## L-052 · 2026-08-21 · Project-scoped child lesson
+
+- Trigger: child-local
+- Rule: never harvested.
+- Scope: project
+- Evidence: 1
+- Status: candidate
+
+## L-053 · 2026-08-22 · Retired portable lesson
+
+- Trigger: gone
+- Rule: dead.
+- Scope: portable
+- Evidence: 2
+- Status: retired (merged elsewhere)
+EOF
+hv_out=$("$HV" "$SANDBOX/harvest/own.md" "$SANDBOX/harvest/child.md"); hv_rc=$?
+[ "$hv_rc" -eq 0 ] && pass "harvest: exits 0 (survey, not a gate)" || fail "harvest: exits 0 (got $hv_rc)"
+echo "$hv_out" | grep -q "L-051" && pass "harvest: child-only portable entry surfaces" || fail "harvest: child-only portable entry surfaces (got: $hv_out)"
+echo "$hv_out" | grep -q "L-050" && fail "harvest: shared-title entry must not surface (got: $hv_out)" || pass "harvest: shared-title entry not surfaced"
+echo "$hv_out" | grep -q "L-052" && fail "harvest: project-scoped entry must not surface (got: $hv_out)" || pass "harvest: project-scoped entry not surfaced"
+echo "$hv_out" | grep -q "L-053" && fail "harvest: retired entry must not surface (got: $hv_out)" || pass "harvest: retired entry not surfaced"
+n=$(printf '%s\n' "$hv_out" | grep -c "L-051")
+[ "$n" -eq 1 ] && pass "harvest: exactly one candidate line" || fail "harvest: exactly one candidate line (got $n)"
+"$HV" "$SANDBOX/harvest/own.md" "$SANDBOX/harvest/missing.md" 2>/dev/null >/dev/null && pass "harvest: missing child ledger skipped, still exit 0" || fail "harvest: missing child ledger skipped, still exit 0"
+
 echo "== ledger and decision ids are unique (append-only union-merge guard) =="
 # .gitattributes union-merges these files so parallel branches stop
 # conflicting on them; the trade is that two branches can both land an entry
