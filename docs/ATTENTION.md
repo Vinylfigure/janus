@@ -71,8 +71,11 @@ and enforced observably by `fleet-status.sh`'s "Consumable now" line, which
 
 Consumable = labeled `task:` AND carries a done-means AND is within the
 environment's tool grant AND carries **none** of `question:` / `loop:hold` /
-`inbox:` / `human-check:` AND every issue named in its `### Blocked by` field
+`inbox:` / `human-check:` / `intent:` AND every issue named in its `### Blocked by` field
 is closed or resolved AND the issue is **not already `working`**.
+
+Intents live above tasks (overlord protocol `overlord:intent:v1`) and are
+never consumable.
 
 That last clause is the half this protocol defined and did not compute for
 its first day of life. `working` means an open PR or a live delivery branch
@@ -106,6 +109,41 @@ done-means (or into a `question:` when a product decision is needed), and
 never execute a promotion in the firing that created it — the gap between
 firings is the operator's veto window.
 
+## In plain words — required at filing (v1.1, additive)
+
+Every `inbox:`, `task:`, and `question:` issue form opens with a required
+`### In plain words` heading: one sentence, in the operator's own words,
+stating what is being asked or what becomes true — no ids, file paths,
+backticks, or protocol nouns, 160 characters or fewer. This is an ADDITION
+to the v1 body API, not a rename: every existing heading string in this
+document stays byte-identical, so a body written under the original
+protocol is still fully valid v1 (the heading is simply absent, and a
+reader treats that the same as "not yet in plain words").
+
+The reading contract: a control surface renders `### In plain words`
+verbatim as the card's headline. When it is absent, the surface falls back
+to the first sentence of `### Decision` (questions) or the raw title —
+and only as a fallback, never a substitute at filing time. A headline that
+matches a jargon deny-list (fixture, reconcile, canonical, machine-decidable,
+protocol vN, schema, drift, marker, orphan, sha256, a Pn/Rn/Ln/DL- id, a
+`goal/N` ref, "Drone", or a backtick) renders muted with the label "not yet
+in plain words" rather than showing the raw match — a plain line that reads
+as machine prose is treated as no plain line at all.
+
+Filers: this heading is REQUIRED on every `task:`/`question:`/`inbox:`
+issue an agent or the conductor files, enforced by `scripts/check-record.sh`
+at filing time (`.claude/skills/work-loop/SKILL.md`,
+`.claude/skills/plan-feature/SKILL.md`, `.claude/skills/ship/SKILL.md`). A
+"go and confirm" request is filed as a `Human check` task (below), never as
+a `question:` — a question is for a decision only the operator can make,
+not an observation the operator is asked to make on the machine's behalf.
+
+`question.yml` additionally requires `### Options`: 2-4 named answers, one
+per line, in the operator's own words. These become the control surface's
+buttons; `### Recommended choice` must name one of them, verbatim — a
+question without named options is not ready to file, and a surface with no
+`### Options` falls back to the first sentence of `### Recommended choice`.
+
 ## Question schema — the v1 body API
 
 `question.yml` renders these stable headings; they ARE the machine interface
@@ -114,6 +152,20 @@ silently):
 
 `Decision` · `Recommended choice` · `Why` · `If you do nothing` ·
 `Reversible?` · `Needed by` · `Blocks`
+
+Three further headings — `Parent goal`, `Gates signal`, `Kind` — are
+additive v1.1: all optional, appended after the seven above, never
+renaming or reordering them. A body without them is still valid v1; a
+parser must treat their absence as "no parent goal / no gated signal /
+Kind = Decision". `Parent goal` is how a question joins the Goal graph
+defined in Vinylfigure/overlord `docs/GOAL.md` (`overlord:goal:v1`).
+
+Two more headings are additive v1.1, required for filers, optional for
+readers (see "In plain words — required at filing" above): `In plain
+words` (rendered first, before `Decision`) and `Options` (rendered between
+`Decision` and `Recommended choice`). Neither renames nor reorders the
+seven original headings; a reader must still treat their absence as valid
+v1.
 
 A question arrives with a recommendation — "what should I do?" with no
 explored options is an unfinished exploration, not a decision request.

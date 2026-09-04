@@ -23,6 +23,7 @@ scripts/
   check-ledger-aging.sh       nudges on Evidence-1 ledger candidates stale >= 30d (verify.sh full; its own fixtures run in CI via test-hooks.sh; always exits 0)
   generate-agents-md.sh       regenerates AGENTS.md from CLAUDE.md; --check is verify.sh full's drift gate — 0 ok / 1 missing source / 2 drift (#22)
   check-ready.sh              the consumption gate, executable: gating labels + `working` + done-means, fixtured (#42 / L-057) — 0 ready / 1 blocked / 64 usage
+  check-record.sh             In plain words at filing, executable: rejects a task:/question: body over 160 chars, with backticks, or matching the jargon deny-list, and a question: without Options, fixtured in test-hooks.sh (verify.sh full's only exercise of it — never scans live issues) — 0 compliant / 1 not compliant / 64 usage
   check-machinery-gate.sh     the seatbelt's rule engine, called by .github/workflows/gate-integrity.yml — blocks a workflow edit, a removed test-hooks.sh assertion, or a deleted fixture/hook unless the PR carries `machinery-change`; additive fixture changes pass (0 clean / 1 blocked)
   fleet-status.sh             dashboard + aging engine behind fleet-status.yml (--dry-run is fixture-smoked)
 .github/

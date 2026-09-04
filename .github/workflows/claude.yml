@@ -51,7 +51,16 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # --max-turns is the runaway bound, not the effort budget; per-order
-          # effort budgets live in the work-order spec.
+          # effort budgets live in the work-order spec. Raised 120 -> 150
+          # 2026-09-01: a run that finished successfully at turn 121 was
+          # marked failed by the action (overlord run 33436707198). --model
+          # sonnet makes the dispatch bus's implicit pin explicit as a
+          # downward alias (overlord docs/MODEL-TIERS.md, "The dispatch bus
+          # is an implicit pin") — omitting --model silently took the
+          # action's default (observed claude-sonnet-5); this states that
+          # default instead of leaving it to drift with the action's own
+          # defaults. This is the template every child inherits, so the fix
+          # belongs here, not just in overlord.
           #
           # SYNTAX, and the reason this was rewritten: the wildcard in a tool
           # grant is `:*`, a literal prefix wildcard — NOT a shell glob. The
@@ -72,4 +81,4 @@ jobs:
           # Without a Bash grant the action can run no shell command at all,
           # so a dispatched order could only claim a verification loop, never
           # close one (aegis-sentinel#1).
-          claude_args: --max-turns 120 --allowedTools "Read,Glob,Grep,Edit,Write,Bash(./scripts/verify.sh:*),Bash(scripts/verify.sh:*),Bash(bash scripts/verify.sh:*),Bash(./scripts/test-hooks.sh:*),Bash(scripts/test-hooks.sh:*),Bash(bash scripts/test-hooks.sh:*),Bash(./scripts/check-loops.sh:*),Bash(scripts/check-loops.sh:*),Bash(./scripts/check-ready.sh:*),Bash(scripts/check-ready.sh:*),Bash(./scripts/generate-agents-md.sh:*),Bash(scripts/generate-agents-md.sh:*),Bash(./scripts/check-ledger-aging.sh:*),Bash(scripts/check-ledger-aging.sh:*),Bash(bash -n:*),Bash(git status:*),Bash(git diff:*),Bash(git add:*),Bash(git checkout:*),Bash(git branch:*),Bash(git commit:*),Bash(git push:*),Bash(git log:*),Bash(gh pr:*),Bash(gh issue:*)"
+          claude_args: --model sonnet --max-turns 150 --allowedTools "Read,Glob,Grep,Edit,Write,Bash(./scripts/verify.sh:*),Bash(scripts/verify.sh:*),Bash(bash scripts/verify.sh:*),Bash(./scripts/test-hooks.sh:*),Bash(scripts/test-hooks.sh:*),Bash(bash scripts/test-hooks.sh:*),Bash(./scripts/check-loops.sh:*),Bash(scripts/check-loops.sh:*),Bash(./scripts/check-ready.sh:*),Bash(scripts/check-ready.sh:*),Bash(./scripts/generate-agents-md.sh:*),Bash(scripts/generate-agents-md.sh:*),Bash(./scripts/check-ledger-aging.sh:*),Bash(scripts/check-ledger-aging.sh:*),Bash(bash -n:*),Bash(git status:*),Bash(git diff:*),Bash(git add:*),Bash(git checkout:*),Bash(git branch:*),Bash(git commit:*),Bash(git push:*),Bash(git log:*),Bash(gh pr:*),Bash(gh issue:*)"

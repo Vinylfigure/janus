@@ -4,6 +4,14 @@ title: "task: "
 labels: ["task:", "janus:v1"]
 body:
   - type: textarea
+    id: in-plain-words
+    attributes:
+      label: In plain words
+      description: One sentence, in the operator's own words — what becomes true when this ships. No ids, file paths, backticks, or protocol nouns. 160 characters or fewer. A control surface renders this as the card headline; without it the card shows muted, "not yet in plain words".
+      placeholder: "The app opens in under two seconds and switching views is instant."
+    validations:
+      required: true
+  - type: textarea
     id: done-means
     attributes:
       label: Done means

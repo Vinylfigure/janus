@@ -4,6 +4,14 @@ title: "inbox: "
 labels: ["inbox:", "janus:v1"]
 body:
   - type: textarea
+    id: in-plain-words
+    attributes:
+      label: In plain words
+      description: One sentence, in the operator's own words — what this thought is about. No ids, file paths, backticks, or protocol nouns. 160 characters or fewer. A control surface renders this as the card headline; without it the card shows muted, "not yet in plain words".
+      placeholder: "Group failures by root cause instead of by repo."
+    validations:
+      required: true
+  - type: textarea
     id: thought
     attributes:
       label: Thought
