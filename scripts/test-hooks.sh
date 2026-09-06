@@ -448,6 +448,13 @@ printf '### In plain words\n%s\n\n### Done means\nx\n' "$EIGHTY" > "$CRRB"
 "$CRR" "$CRRB" >/dev/null 2>&1 && pass "check-record: an 80-char, 12-word plain line -> exit 0" || fail "check-record: an 80-char, 12-word plain line -> exit 0"
 printf '### In plain words\n%s\n\n### Done means\nx\n' "$EIGHTYONE" > "$CRRB"
 "$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: an 81-char plain line -> exit 1" || pass "check-record: an 81-char plain line -> exit 1"
+# The older, weaker bound is KEPT, not replaced: a line over 160 must still be
+# refused, and an assertion that stops being made is an assertion nobody
+# notices going missing (this repo's own machinery gate reads a rename as a
+# removal, and it is right to).
+LONG="$(printf 'x%.0s' $(seq 1 161))"
+printf '### In plain words\n%s\n\n### Done means\nx\n' "$LONG" > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: In plain words over 160 chars -> exit 1" || pass "check-record: In plain words over 160 chars -> exit 1"
 printf '### In plain words\none two three four five six seven eight nine ten eleven twelve thirteen\n\n### Done means\nx\n' > "$CRRB"
 "$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: a 13-word plain line -> exit 1" || pass "check-record: a 13-word plain line -> exit 1"
 printf '### In plain words\nThe app opens fast. Switching views is instant.\n\n### Done means\nx\n' > "$CRRB"
@@ -531,6 +538,9 @@ ask_body "Approve the wider access" "$(printf 'x%.0s' $(seq 1 121))" "Nothing mo
 "$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a Because line over 120 chars -> exit 1" || pass "check-ask: a Because line over 120 chars -> exit 1"
 ask_body "Approve the wider access" "$(printf 'x%.0s' $(seq 1 120))" "Nothing moves." "Yes | No"
 "$CA" "$CAB" >/dev/null 2>&1 && pass "check-ask: a Because line at exactly 120 chars -> exit 0" || fail "check-ask: a Because line at exactly 120 chars -> exit 0"
+# The older, weaker bound is KEPT, not replaced — see check-record above.
+ask_body "Approve the wider access" "$(printf 'x%.0s' $(seq 1 141))" "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a Because line over 140 chars -> exit 1" || pass "check-ask: a Because line over 140 chars -> exit 1"
 ask_body "Approve the wider access" "A fact." "$(printf 'x%.0s' $(seq 1 121))" "Yes | No"
 "$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: an If-nothing over 120 chars -> exit 1" || pass "check-ask: an If-nothing over 120 chars -> exit 1"
 # The caps are the FILE's, not the script's: swap the file, the rule changes.
