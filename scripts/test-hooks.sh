@@ -446,6 +446,35 @@ printf '### In plain words\nShould low-stakes questions answer themselves after 
 "$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: question without Options -> exit 1" || pass "check-record: question without Options -> exit 1"
 "$CRR" "$SANDBOX/no-such-record.md" >/dev/null 2>&1 && fail "check-record: missing body file -> exit 1 (fails closed)" || pass "check-record: missing body file -> exit 1 (fails closed)"
 
+# Render the actual producer template's Human check placeholder into a task.
+# It is a drafting aid, not a delivered review request.
+python3 - "$ROOT/.github/ISSUE_TEMPLATE/task.yml" "$CRRB" <<'PYREVIEW'
+import sys
+text = open(sys.argv[1]).read().split("id: human-check", 1)[1]
+lines = text.split("placeholder: |", 1)[1].split("    validations:", 1)[0].splitlines()
+raw = "\n".join(line[8:] if line.startswith("        ") else line for line in lines).strip()
+open(sys.argv[2], "w").write("### In plain words\nReview whether saved lessons belong in every project.\n\n### Human check\n" + raw + "\n")
+PYREVIEW
+"$CRR" "$CRRB" --ready-for-review >/dev/null 2>&1 && fail "review readiness: producer placeholder is not a delivery" || pass "review readiness: producer placeholder is not a delivery"
+python3 - "$CRRB" <<'PYREVIEW'
+import sys
+p=sys.argv[1]; text=open(p).read().replace("https://...", "https://github.com/o/app/pull/9").replace("the deployed preview / the phone / the rendered artifact", "Delivered changes").replace("what to do, in one or two steps", "Open the change and review each lesson classification.").replace("what the operator must observe for this to pass", "Each project-specific lesson stays in its own project.")
+open(p, "w").write(text)
+PYREVIEW
+"$CRR" "$CRRB" --ready-for-review >/dev/null 2>&1 && pass "review readiness: producer headings and concrete artifact parse" || fail "review readiness: producer headings and concrete artifact parse"
+python3 - "$CRRB" <<'PYREVIEW'
+import sys
+p=sys.argv[1]; text=open(p).read().split("#### Pass criteria")[0]+"#### Pass criteria\n_No response_\n"
+open(p,"w").write(text)
+PYREVIEW
+"$CRR" "$CRRB" --ready-for-review >/dev/null 2>&1 && fail "review readiness: missing pass criteria fails" || pass "review readiness: missing pass criteria fails"
+printf '### In plain words\nReview the delivered change.\n### Human check\nSurface: Preview\nInstruction: Open and refresh the page.\nURL: https://github.com/o/app/pull/9\nPass: The saved value remains.\n' > "$CRRB"
+"$CRR" "$CRRB" --ready-for-review >/dev/null 2>&1 && pass "review readiness: legacy colon fields remain accepted" || fail "review readiness: legacy colon fields remain accepted"
+printf '### In plain words\nCreate the connection.\n### Done means\nThe connection works.\n' > "$CRRB"
+"$CRR" "$CRRB" --ready-for-review >/dev/null 2>&1 && fail "review readiness: ordinary work is not a delivered review" || pass "review readiness: ordinary work is not a delivered review"
+
+python3 "$ROOT/scripts/test-review-request.py" && pass "review producer: source-bound delivery transitions" || fail "review producer: source-bound delivery transitions"
+
 echo "== harvest-ledgers.sh (reverse heredity, janus#38) =="
 HV="$ROOT/scripts/harvest-ledgers.sh"
 mkdir -p "$SANDBOX/harvest"
