@@ -12,7 +12,8 @@
 #
 # Deliberately grep/awk only, like every other gate here: children run it
 # before any stack is bootstrapped, and the emitting skill's tool grant is a
-# shell one-liner. That includes reading the deny-list — no jq, no python.
+# shell one-liner. That includes reading the deny-list and the caps in
+# scripts/card-grammar.json — no jq, no python.
 set -uo pipefail
 
 BODY_FILE="${1:-}"
@@ -61,6 +62,33 @@ read_list() { # read_list <array-name> <key> — bash 3.2 ships no mapfile
     eval "$1+=(\"\$line\")"
   done < <(json_array "$2" "$DENY_FILE")
 }
+
+json_number() { # json_number <key> <file> — the integer value of "<key>": N
+  awk -v key="$1" '
+    match($0, "\"" key "\"[ \t]*:[ \t]*-?[0-9]+") {
+      piece = substr($0, RSTART, RLENGTH)
+      sub(/^[^:]*:[ \t]*/, "", piece)
+      print piece
+      exit
+    }' "$2"
+}
+
+# --- the caps ------------------------------------------------------------
+# Same rule as the deny-list, for the same reason: `scripts/card-grammar.json`
+# is the fleet's ONE file of caps, so the numbers below are read, never typed.
+# One cap for every record's plain line 1 lives in that file beside these.
+GRAMMAR_FILE="${CARD_GRAMMAR:-$(dirname "$0")/card-grammar.json}"
+[ -f "$GRAMMAR_FILE" ] || { echo "not an ask: card grammar not found: $GRAMMAR_FILE"; exit 1; }
+ASK_CHARS=$(json_number askChars "$GRAMMAR_FILE")
+BECAUSE_CHARS=$(json_number becauseChars "$GRAMMAR_FILE")
+IF_NOTHING_CHARS=$(json_number ifNothingChars "$GRAMMAR_FILE")
+OPTION_CHARS=$(json_number optionChars "$GRAMMAR_FILE")
+for cap_name in ASK_CHARS BECAUSE_CHARS IF_NOTHING_CHARS OPTION_CHARS; do
+  eval "cap_value=\$$cap_name"
+  case "$cap_value" in
+    ''|*[!0-9]*) echo "not an ask: card grammar has no usable $cap_name: $GRAMMAR_FILE"; exit 1 ;;
+  esac
+done
 
 read_list DENY_IDENTIFIERS identifiers
 read_list DENY_MACHINE_WORDS machine_words
@@ -115,7 +143,7 @@ done
 # --- Ask -----------------------------------------------------------------
 ask=$(field Ask)
 [ -n "$ask" ] || fail "Ask is empty"
-[ "${#ask}" -le 80 ] || fail "Ask is ${#ask} chars, must be <=80"
+[ "${#ask}" -le "$ASK_CHARS" ] || fail "Ask is ${#ask} chars, must be <=$ASK_CHARS"
 # The fixed set is six PHRASES, not six first words. Matching only the first
 # token let "Close it immediately without review" and "Confirm the sky is blue"
 # through — a legal opening word with an arbitrary tail, which is exactly the
@@ -142,14 +170,14 @@ n_because=$(printf '%s\n' "$because" | grep -c .)
   || fail "Because needs 1-3 fact lines, each starting '- ' (found $n_because)"
 while IFS= read -r factline; do
   [ -n "$factline" ] || continue
-  [ "${#factline}" -le 140 ] || fail "Because line is ${#factline} chars, must be <=140: $factline"
+  [ "${#factline}" -le "$BECAUSE_CHARS" ] || fail "Because line is ${#factline} chars, must be <=$BECAUSE_CHARS: $factline"
   deny_scan "Because" "$factline"
 done <<< "$because"
 
 # --- If-nothing ----------------------------------------------------------
 ifnothing=$(field If-nothing)
 [ -n "$ifnothing" ] || fail "If-nothing is empty"
-[ "${#ifnothing}" -le 140 ] || fail "If-nothing is ${#ifnothing} chars, must be <=140"
+[ "${#ifnothing}" -le "$IF_NOTHING_CHARS" ] || fail "If-nothing is ${#ifnothing} chars, must be <=$IF_NOTHING_CHARS"
 deny_scan "If-nothing" "$ifnothing"
 
 # --- Options -------------------------------------------------------------
@@ -160,7 +188,7 @@ IFS='|' read -r -a option_names <<< "$options"
 for name in "${option_names[@]}"; do
   trimmed=$(printf '%s' "$name" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
   [ -n "$trimmed" ] || fail "Options has an empty name: $options"
-  [ "${#trimmed}" -le 30 ] || fail "Option name is ${#trimmed} chars, must be <=30: $trimmed"
+  [ "${#trimmed}" -le "$OPTION_CHARS" ] || fail "Option name is ${#trimmed} chars, must be <=$OPTION_CHARS: $trimmed"
   n_options=$((n_options + 1))
 done
 { [ "$n_options" -ge 2 ] && [ "$n_options" -le 4 ]; } \

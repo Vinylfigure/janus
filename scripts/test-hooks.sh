@@ -124,7 +124,8 @@ else
            .github/workflows/gate-integrity.yml .github/loops.yaml .github/CODEOWNERS \
            .github/ISSUE_TEMPLATE/task.yml .github/ISSUE_TEMPLATE/question.yml \
            .github/ISSUE_TEMPLATE/inbox.yml .github/ISSUE_TEMPLATE/config.yml \
-           docs/ATTENTION.md scripts/deny-list.json \
+           docs/ATTENTION.md scripts/deny-list.json scripts/card-grammar.json \
+           scripts/vendor-grammar.sh \
            .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/sources-seen.md; do
     if [ -e "$ROOT/$p" ]; then pass "component-map path $p exists"; else fail "component-map path $p missing from tree"; fi
   done
@@ -437,9 +438,27 @@ printf '### In plain words\nThe fixture reconciles against the canonical schema 
 "$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: In plain words matching the jargon deny-list -> exit 1" || pass "check-record: In plain words matching the jargon deny-list -> exit 1"
 printf '### In plain words\nRun `scripts/verify.sh` to confirm it works.\n\n### Done means\nx\n' > "$CRRB"
 "$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: In plain words with backticks -> exit 1" || pass "check-record: In plain words with backticks -> exit 1"
-LONG="$(printf 'x%.0s' $(seq 1 161))"
-printf '### In plain words\n%s\n\n### Done means\nx\n' "$LONG" > "$CRRB"
-"$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: In plain words over 160 chars -> exit 1" || pass "check-record: In plain words over 160 chars -> exit 1"
+# ONE cap for every record's plain line 1 (scripts/card-grammar.json): 80
+# characters, 12 words, one sentence. The old rule joined the whole section
+# and capped the join at 160, which let a 150-character first line — the line
+# a card actually shows — straight through.
+EIGHTY="Risky changes wait for your approval and everything safer merges itself quietly."
+EIGHTYONE="x${EIGHTY}"   # 81 chars, still 12 words and one sentence
+printf '### In plain words\n%s\n\n### Done means\nx\n' "$EIGHTY" > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && pass "check-record: an 80-char, 12-word plain line -> exit 0" || fail "check-record: an 80-char, 12-word plain line -> exit 0"
+printf '### In plain words\n%s\n\n### Done means\nx\n' "$EIGHTYONE" > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: an 81-char plain line -> exit 1" || pass "check-record: an 81-char plain line -> exit 1"
+printf '### In plain words\none two three four five six seven eight nine ten eleven twelve thirteen\n\n### Done means\nx\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: a 13-word plain line -> exit 1" || pass "check-record: a 13-word plain line -> exit 1"
+printf '### In plain words\nThe app opens fast. Switching views is instant.\n\n### Done means\nx\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: a two-sentence plain line -> exit 1" || pass "check-record: a two-sentence plain line -> exit 1"
+printf '### In plain words\nShould low-stakes questions answer themselves after three days\n\n### Decision\nx\n\n### Options\nYes, auto-answer\nNo, always wait\n\n### Recommended choice\nYes, auto-answer\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: a question whose plain line has no question mark -> exit 1" || pass "check-record: a question whose plain line has no question mark -> exit 1"
+# The cap is the FILE's, not the script's.
+jq '.caps.headlineChars = 10' "$ROOT/scripts/card-grammar.json" > "$SANDBOX/record-grammar.json"
+printf '### In plain words\nThe app opens in under two seconds.\n\n### Done means\nx\n' > "$CRRB"
+CARD_GRAMMAR="$SANDBOX/record-grammar.json" "$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: a cap lowered in card-grammar.json is enforced" || pass "check-record: a cap lowered in card-grammar.json is enforced"
+CARD_GRAMMAR="$SANDBOX/no-such-card-grammar.json" "$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: a missing card grammar -> exit 1 (fails closed)" || pass "check-record: a missing card grammar -> exit 1 (fails closed)"
 printf '### In plain words\nShould low-stakes questions answer themselves after three days?\n\n### Decision\nx\n\n### Options\nYes, auto-answer\nNo, always wait\n\n### Recommended choice\nYes, auto-answer\n' > "$CRRB"
 "$CRR" "$CRRB" >/dev/null 2>&1 && pass "check-record: compliant question body -> exit 0" || fail "check-record: compliant question body -> exit 0"
 printf '### In plain words\nShould low-stakes questions answer themselves after three days?\n\n### Decision\nx\n\n### Recommended choice\nYes, auto-answer\n' > "$CRRB"
@@ -508,8 +527,17 @@ ask_body "Please look at this when you get a chance" "A fact." "Nothing moves." 
 "$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a verb outside the fixed set -> exit 1" || pass "check-ask: a verb outside the fixed set -> exit 1"
 ask_body "Approve $(printf 'x%.0s' $(seq 1 90))" "A fact." "Nothing moves." "Yes | No"
 "$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: an Ask over 80 chars -> exit 1" || pass "check-ask: an Ask over 80 chars -> exit 1"
-ask_body "Approve the wider access" "$(printf 'x%.0s' $(seq 1 141))" "Nothing moves." "Yes | No"
-"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a Because line over 140 chars -> exit 1" || pass "check-ask: a Because line over 140 chars -> exit 1"
+ask_body "Approve the wider access" "$(printf 'x%.0s' $(seq 1 121))" "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a Because line over 120 chars -> exit 1" || pass "check-ask: a Because line over 120 chars -> exit 1"
+ask_body "Approve the wider access" "$(printf 'x%.0s' $(seq 1 120))" "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && pass "check-ask: a Because line at exactly 120 chars -> exit 0" || fail "check-ask: a Because line at exactly 120 chars -> exit 0"
+ask_body "Approve the wider access" "A fact." "$(printf 'x%.0s' $(seq 1 121))" "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: an If-nothing over 120 chars -> exit 1" || pass "check-ask: an If-nothing over 120 chars -> exit 1"
+# The caps are the FILE's, not the script's: swap the file, the rule changes.
+jq '.caps.becauseChars = 12' "$ROOT/scripts/card-grammar.json" > "$SANDBOX/card-grammar.json"
+ask_body "Approve the wider access" "A fact that runs past twelve characters." "Nothing moves." "Yes | No"
+CARD_GRAMMAR="$SANDBOX/card-grammar.json" "$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a cap lowered in card-grammar.json is enforced" || pass "check-ask: a cap lowered in card-grammar.json is enforced"
+CARD_GRAMMAR="$SANDBOX/no-such-card-grammar.json" "$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a missing card grammar -> exit 1 (fails closed)" || pass "check-ask: a missing card grammar -> exit 1 (fails closed)"
 ask_body "Approve the wider access" "A fact." "Nothing moves." "Only one"
 "$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: fewer than 2 Options -> exit 1" || pass "check-ask: fewer than 2 Options -> exit 1"
 ask_body "Approve the wider access" "A fact." "Nothing moves." "A | B | C | D | E"
@@ -546,6 +574,82 @@ for phrase in "Close or re-spec the change" "Confirm it is done on your phone" "
   "$CA" "$CAB" >/dev/null 2>&1 || fail "check-ask: the fixed phrase '$phrase' is accepted"
 done
 pass "check-ask: every phrase in the fixed verb set is accepted"
+
+echo "== card-grammar.json (the fleet's ONE file of caps) =="
+# One cap for every record's plain line 1, set here and nowhere else: this
+# repo's check-record.sh and check-ask.sh read it, overlord's check-goal and
+# check-intent read their vendored copy, and overlord-ui's renderer imports
+# it. A number typed in four places is four numbers eventually (L-007), so
+# these assertions prove the file is the number AND that the prose in
+# docs/ATTENTION.md states the same numbers the file does.
+CG="$ROOT/scripts/card-grammar.json"
+jq . "$CG" >/dev/null 2>&1 && pass "card-grammar.json is valid JSON" || fail "card-grammar.json is valid JSON"
+[ "$(jq -r '.version' "$CG" 2>/dev/null)" = "1" ] && pass "card-grammar.json declares version 1" || fail "card-grammar.json declares version 1"
+for key in headlineChars headlineWords lineChars lineWords askChars becauseChars ifNothingChars optionChars becauseLines; do
+  v=$(jq -r ".caps.$key // empty" "$CG" 2>/dev/null)
+  case "$v" in
+    ''|*[!0-9]*) fail "card-grammar.json caps.$key is missing or not a number (got '$v')" ;;
+    *) pass "card-grammar.json caps.$key = $v" ;;
+  esac
+done
+[ "$(jq -r '.caps.options | length' "$CG" 2>/dev/null)" = "2" ] && pass "card-grammar.json caps.options is a [min, max] pair" || fail "card-grammar.json caps.options is a [min, max] pair"
+[ "$(jq -r '.verbs | length' "$CG" 2>/dev/null)" = "6" ] && pass "card-grammar.json names the six fixed verbs" || fail "card-grammar.json names the six fixed verbs"
+# The checkers enforce the FILE's numbers, not their own: read the cap the
+# script would use and compare it to the JSON.
+for pair in "headlineChars:80" "askChars:80" "becauseChars:120" "ifNothingChars:120" "optionChars:30" "headlineWords:12"; do
+  key=${pair%%:*}; want=${pair##*:}
+  got=$(jq -r ".caps.$key" "$CG" 2>/dev/null)
+  [ "$got" = "$want" ] && pass "card-grammar.json caps.$key is the agreed $want" || fail "card-grammar.json caps.$key is $got, the fleet agreed $want"
+done
+# Doc-vs-JSON: every character/word cap ATTENTION.md states must BE a cap in
+# the file. This is the guard that catches prose left saying 160 (or 140)
+# after the number moved.
+GRAMMAR_NUMBERS=$(jq -r '[.caps | to_entries[] | .value] | flatten | .[] | tostring' "$CG" 2>/dev/null | sort -u)
+stale=""
+for n in $(grep -ohE '≤ ?[0-9]+ (chars|characters|words)|[0-9]+ (characters|words) or fewer' "$ROOT/docs/ATTENTION.md" | grep -oE '[0-9]+' | sort -u); do
+  printf '%s\n' "$GRAMMAR_NUMBERS" | grep -qx "$n" || stale="$stale $n"
+done
+[ -z "$stale" ] && pass "every character/word cap docs/ATTENTION.md states is a cap in card-grammar.json" || fail "docs/ATTENTION.md states cap(s)$stale that card-grammar.json does not carry — the prose and the file disagree"
+for n in $(jq -r '.caps.headlineChars, .caps.headlineWords' "$CG"); do
+  grep -q "$n " "$ROOT/docs/ATTENTION.md" && pass "docs/ATTENTION.md states the headline cap $n" || fail "docs/ATTENTION.md never states the headline cap $n"
+done
+
+echo "== vendor-grammar.sh (the named vendoring mechanism) =="
+# Copying by hand is how three copies of one list drifted apart. This is that
+# copy, done the same way every time, and the pin it writes is what overlord
+# and overlord-ui fail their builds on.
+VG="$ROOT/scripts/vendor-grammar.sh"
+[ -x "$VG" ] && pass "vendor-grammar.sh is executable" || fail "vendor-grammar.sh is executable"
+"$VG" >/dev/null 2>&1; [ $? -eq 64 ] && pass "vendor-grammar.sh: no argument -> exit 64 (usage)" || fail "vendor-grammar.sh: no argument -> exit 64 (usage)"
+"$VG" "$SANDBOX/no-such-consumer" >/dev/null 2>&1; [ $? -eq 64 ] && pass "vendor-grammar.sh: a consumer path that does not exist -> exit 64" || fail "vendor-grammar.sh: a consumer path that does not exist -> exit 64"
+VGC="$SANDBOX/vendor-consumer"
+mkdir -p "$VGC"
+if "$VG" "$VGC" >/dev/null 2>&1; then
+  pass "vendor-grammar.sh vendors into a fresh checkout"
+else
+  fail "vendor-grammar.sh vendors into a fresh checkout"
+fi
+VGS="$VGC/scripts/vendored-from-janus.sums"
+if [ ! -f "$VGS" ]; then
+  fail "vendor-grammar.sh wrote no scripts/vendored-from-janus.sums"
+else
+  vg_n=0; vg_bad=""
+  while read -r want path; do
+    case "$want" in \#*|"") continue ;; esac
+    vg_n=$((vg_n + 1))
+    src="$ROOT/${path#scripts/}"; src="$ROOT/scripts/${path#scripts/}"
+    if [ ! -f "$VGC/$path" ]; then vg_bad="$vg_bad $path(absent)"; continue; fi
+    got=$(if command -v sha256sum >/dev/null 2>&1; then sha256sum "$VGC/$path"; else shasum -a 256 "$VGC/$path"; fi | cut -d' ' -f1)
+    here=$(if command -v sha256sum >/dev/null 2>&1; then sha256sum "$src"; else shasum -a 256 "$src"; fi | cut -d' ' -f1)
+    { [ "$got" = "$want" ] && [ "$got" = "$here" ]; } || vg_bad="$vg_bad $path"
+  done < "$VGS"
+  [ "$vg_n" -ge 8 ] && pass "vendor-grammar.sh pins $vg_n files (grammar, deny-list, both gates, four ask fixtures)" || fail "vendor-grammar.sh pinned only $vg_n files — expected at least 8"
+  [ -z "$vg_bad" ] && pass "every vendored file matches janus byte for byte and its written pin" || fail "vendored copies disagree with janus or with the pin:$vg_bad"
+fi
+# The vendored gates RUN in the consumer, reading the consumer's own grammar.
+"$VGC/scripts/check-ask.sh" "$VGC/scripts/fixtures/ask-pass.md" >/dev/null 2>&1 && pass "the vendored check-ask.sh runs in the consumer checkout" || fail "the vendored check-ask.sh runs in the consumer checkout"
+printf '### In plain words\nThe app opens in under two seconds.\n\n### Done means\nx\n' > "$SANDBOX/vendored-record.md"
+"$VGC/scripts/check-record.sh" "$SANDBOX/vendored-record.md" >/dev/null 2>&1 && pass "the vendored check-record.sh runs in the consumer checkout" || fail "the vendored check-record.sh runs in the consumer checkout"
 
 echo "== deny-list.json (the fleet's one vocabulary list) =="
 # janus owns this file; overlord and overlord-ui vendor it by content and test

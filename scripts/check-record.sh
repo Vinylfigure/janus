@@ -13,6 +13,13 @@
 # "### Recommended choice" heading (the question.yml field) is a question
 # and must also carry Options; any other body is checked for the plain line
 # only.
+#
+# The caps are NOT typed here. `scripts/card-grammar.json` is the fleet's one
+# file of them, and this check reads it: one cap for every record's plain
+# line 1 — 80 characters, 12 words, one sentence — shared with check-ask.sh,
+# with overlord's check-goal/check-intent, and with overlord-ui's renderer.
+# A number typed in four places is four numbers eventually (L-007), so the
+# number lives in the file and every consumer vendors the file by content.
 set -uo pipefail
 
 BODY_FILE="${1:?usage: check-record.sh <body-file> [--ready-for-review]}"
@@ -51,13 +58,63 @@ section() {
 
 DENY='fixtures?|reconcil[a-z]*|canonical|machine-decidable|decidable|protocol v[0-9]|schema|drift(ed)?|marker|orphan|sha256|\<P[0-9][a-z]?\>|\<R[0-9]+\>|\<L-?[0-9]{3,}\>|DL-|goal/[0-9]+|Drone'
 
-plain=$(section "In plain words" "$BODY_FILE" | sed '/^[[:space:]]*$/d' | tr '\n' ' ' | sed -E 's/ +/ /g; s/^ //; s/ $//')
+# --- the caps, read from the one file --------------------------------------
+# Grep/awk only, like every other gate here: a child runs this before any
+# stack is bootstrapped, so no jq and no python for the caps.
+GRAMMAR_FILE="${CARD_GRAMMAR:-$(dirname "$0")/card-grammar.json}"
+[ -f "$GRAMMAR_FILE" ] || { echo "not compliant: card grammar not found: $GRAMMAR_FILE"; exit 1; }
+
+json_number() { # json_number <key> <file> — the integer value of "<key>": N
+  awk -v key="$1" '
+    match($0, "\"" key "\"[ \t]*:[ \t]*-?[0-9]+") {
+      piece = substr($0, RSTART, RLENGTH)
+      sub(/^[^:]*:[ \t]*/, "", piece)
+      print piece
+      exit
+    }' "$2"
+}
+
+HEADLINE_CHARS=$(json_number headlineChars "$GRAMMAR_FILE")
+HEADLINE_WORDS=$(json_number headlineWords "$GRAMMAR_FILE")
+for cap_name in HEADLINE_CHARS HEADLINE_WORDS; do
+  eval "cap_value=\$$cap_name"
+  case "$cap_value" in
+    ''|*[!0-9]*) echo "not compliant: card grammar has no usable $cap_name: $GRAMMAR_FILE"; exit 1 ;;
+  esac
+done
+
+# Line 1 is the headline; the caps apply to IT, never to the section joined
+# into one string. The old join capped a two-line section at 160 characters
+# and let a 150-character first line through — the very line a card clips.
+plain_body=$(section "In plain words" "$BODY_FILE" | sed '/^[[:space:]]*$/d')
+plain=$(printf '%s\n' "$plain_body" | head -1 | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+plain_all=$(printf '%s\n' "$plain_body" | tr '\n' ' ' | sed -E 's/ +/ /g; s/^ //; s/ $//')
 [ -n "$plain" ] || { echo "not compliant: missing '### In plain words' line"; exit 1; }
-[ "${#plain}" -le 160 ] || { echo "not compliant: In plain words is ${#plain} chars, must be <=160"; exit 1; }
-case "$plain" in *'`'*) echo "not compliant: In plain words contains backticks"; exit 1 ;; esac
-echo "$plain" | grep -qiE "$DENY" && { echo "not compliant: In plain words uses protocol/jargon wording: $plain"; exit 1; }
+[ "${#plain}" -le "$HEADLINE_CHARS" ] || { echo "not compliant: In plain words line 1 is ${#plain} chars, must be <=$HEADLINE_CHARS"; exit 1; }
+plain_words=$(printf '%s\n' "$plain" | wc -w | tr -d ' ')
+[ "$plain_words" -le "$HEADLINE_WORDS" ] || { echo "not compliant: In plain words line 1 is $plain_words words, must be <=$HEADLINE_WORDS"; exit 1; }
+# One sentence: at most one terminator, and it ends the line. Two sentences
+# on line 1 means the card shows half a thought and drops the rest.
+terminators=$(printf '%s' "$plain" | tr -cd '.?!' | wc -c | tr -d ' ')
+last_char=$(printf '%s' "$plain" | tail -c 1)
+if [ "$terminators" -gt 1 ]; then
+  echo "not compliant: In plain words line 1 is more than one sentence: $plain"; exit 1
+fi
+if [ "$terminators" -eq 1 ]; then
+  case "$last_char" in
+    .|\?|\!) ;;
+    *) echo "not compliant: In plain words line 1 is more than one sentence: $plain"; exit 1 ;;
+  esac
+fi
+case "$plain_all" in *'`'*) echo "not compliant: In plain words contains backticks"; exit 1 ;; esac
+echo "$plain_all" | grep -qiE "$DENY" && { echo "not compliant: In plain words uses protocol/jargon wording: $plain_all"; exit 1; }
 
 if grep -qE '^#+[[:space:]]*Recommended choice' "$BODY_FILE"; then
+  # A question's plain line is the question itself, asked: it ends in a
+  # question mark, so a surface renders it as a question rather than as a
+  # statement the operator is asked to agree with.
+  [ "$last_char" = '?' ] \
+    || { echo "not compliant: a question's In plain words line must end with '?': $plain"; exit 1; }
   opts=$(section "Options" "$BODY_FILE" | sed '/^[[:space:]]*$/d')
   n=$(printf '%s\n' "$opts" | grep -c .)
   { [ -n "$opts" ] && [ "$n" -ge 2 ] && [ "$n" -le 4 ]; } \

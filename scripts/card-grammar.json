@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "caps": {
+    "headlineChars": 80,
+    "headlineWords": 12,
+    "lineChars": 100,
+    "lineWords": 14,
+    "askChars": 80,
+    "becauseChars": 120,
+    "ifNothingChars": 120,
+    "optionChars": 30,
+    "becauseLines": 3,
+    "options": [2, 4]
+  },
+  "verbs": [
+    "Approve",
+    "Answer",
+    "Do this",
+    "Confirm it is done",
+    "Close or re-spec",
+    "Merge"
+  ]
+}
