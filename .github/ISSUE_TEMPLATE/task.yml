@@ -36,6 +36,14 @@ body:
     validations:
       required: false
   - type: textarea
+    id: parent-goal
+    attributes:
+      label: Parent goal
+      description: "The Goal this task delivers against, as `goal/<n>` (the Vinylfigure/overlord issue number — `goal/207` anywhere means Vinylfigure/overlord#207). Leave empty for work not under a Goal."
+      placeholder: "goal/207"
+    validations:
+      required: false
+  - type: textarea
     id: human-check
     attributes:
       label: Human check
@@ -50,7 +58,7 @@ body:
         #### URL
         https://...
 
-        #### Pass criteria
+        #### Pass
         what the operator must observe for this to pass
     validations:
       required: false

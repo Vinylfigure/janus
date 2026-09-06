@@ -20,13 +20,32 @@ MODE="${2:-filing}"
 case "$MODE" in filing|--ready-for-review) ;; *) echo "unknown check mode: $MODE"; exit 64 ;; esac
 [ -f "$BODY_FILE" ] || { echo "not compliant: body file not found: $BODY_FILE"; exit 1; }
 
-# section <heading> <file> — lines under the first ### heading matching <heading>
+# section <heading> <file> — lines under the first ### heading matching
+# <heading>. The heading form (`### In plain words`) is the only form this
+# repo's templates and skills EMIT. The bold form (`**In plain words:** …`,
+# with the sentence on the same line) is still READ, because records filed
+# before the two forms were reconciled carry it and a body already on the
+# record cannot be rewritten. A bold section ends at the next heading of
+# either form; a `###` section ends at the next `###`, exactly as before.
 section() {
   awk -v h="$1" '
-    /^#+[ \t]*/ { line=$0; sub(/^#+[ \t]*/,"",line)
+    function norm(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); sub(/:$/, "", s); return tolower(s) }
+    /^#+[ \t]*/ {
+      line = $0; sub(/^#+[ \t]*/, "", line)
       if (found) exit
-      if (tolower(line) == tolower(h)) { found=1; next }
+      if (norm(line) == norm(h)) { found = 1 }
       next }
+    /^[ \t]*\*\*[^*]+\*\*/ {
+      if (found && bold) exit
+      if (!found) {
+        label = $0; sub(/^[ \t]*\*\*/, "", label); sub(/\*\*.*$/, "", label)
+        if (norm(label) == norm(h)) {
+          found = 1; bold = 1
+          rest = $0; sub(/^[ \t]*\*\*[^*]+\*\*[ \t]*/, "", rest)
+          if (rest != "") print rest
+        }
+        next
+      } }
     found { print }' "$2"
 }
 
@@ -57,12 +76,16 @@ match = re.search(r"^### Human check[ \t]*\n(.*?)(?=^#{1,3}[ \t]|\Z)", body, re.
 if not match:
     print("not ready for review: missing Human check section"); sys.exit(1)
 raw = match[1]
-def field(name, legacy):
-    match = re.search(r"^#### " + re.escape(name) + r"[ \t]*\n(.*?)(?=^#{1,4}[ \t]|\Z)", raw, re.M | re.S)
-    if match: return match[1].strip()
+# `headings` is a list because a sub-heading may have more than one accepted
+# spelling: the producer template now emits `#### Pass`, and `#### Pass
+# criteria` (every body written before that) stays readable forever.
+def field(headings, legacy):
+    for heading in headings:
+        match = re.search(r"^#### " + re.escape(heading) + r"[ \t]*\n(.*?)(?=^#{1,4}[ \t]|\Z)", raw, re.M | re.S)
+        if match and match[1].strip(): return match[1].strip()
     match = re.search(r"^" + legacy + r":[ \t]*(.+)$", raw, re.M | re.I)
     return match[1].strip() if match else ""
-values = {name: field(name, legacy) for name, legacy in [("Surface", "Surface"), ("Instruction", "Instruction"), ("URL", "URL"), ("Pass criteria", "Pass")]}
+values = {name: field(headings, legacy) for name, headings, legacy in [("Surface", ["Surface"], "Surface"), ("Instruction", ["Instruction"], "Instruction"), ("URL", ["URL"], "URL"), ("Pass", ["Pass", "Pass criteria"], "Pass")]}
 placeholders={"what to do, in one or two steps", "what the operator must observe for this to pass", "the deployed preview / the phone / the rendered artifact"}
 for name, value in values.items():
     if not value or value == "_No response_" or value in placeholders or re.match(r"^(?:TBD|TODO|https?://\.\.\.)$", value, re.I):
