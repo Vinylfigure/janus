@@ -120,9 +120,11 @@ ask=$(field Ask)
 # token let "Close it immediately without review" and "Confirm the sky is blue"
 # through — a legal opening word with an arbitrary tail, which is exactly the
 # free prose the marker exists to end. The multi-word verbs must appear
-# verbatim; the single-word ones may carry the rest of the sentence.
+# verbatim; the single-word ones may carry the rest of the sentence, and each
+# needs its own boundary — a bare `"Merge"*` let "Merged without review",
+# "Merges", and "Mergers" through, so it is a bare Merge or Merge plus a space.
 case "$ask" in
-  "Approve "*|"Answer "*|"Do this"*|"Confirm it is done"*|"Close or re-spec"*|"Merge"*) ;;
+  "Approve "*|"Answer "*|"Do this"*|"Confirm it is done"*|"Close or re-spec"*|"Merge "*|"Merge") ;;
   *) fail "Ask must open with a phrase from the fixed verb set (Approve … · Answer … · Do this … · Confirm it is done … · Close or re-spec … · Merge …), got: $ask" ;;
 esac
 deny_scan "Ask" "$ask"

@@ -537,7 +537,11 @@ ask_body "Confirm the sky is blue" "A plain fact." "Nothing moves." "Yes | No"
 "$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: 'Confirm' with a tail that is not 'it is done' -> exit 1" || pass "check-ask: 'Confirm' with a tail that is not 'it is done' -> exit 1"
 ask_body "Do the needful before Friday" "A plain fact." "Nothing moves." "Yes | No"
 "$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: 'Do' with a tail that is not 'this' -> exit 1" || pass "check-ask: 'Do' with a tail that is not 'this' -> exit 1"
-for phrase in "Close or re-spec the change" "Confirm it is done on your phone" "Do this before Friday" "Merge it" "Approve the wider access" "Answer the pricing question"; do
+ask_body "Merged without review" "A plain fact." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: 'Merge' without a word boundary (Merged) -> exit 1" || pass "check-ask: 'Merge' without a word boundary (Merged) -> exit 1"
+ask_body "Mergers are not the ask here" "A plain fact." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: 'Merge' without a word boundary (Mergers) -> exit 1" || pass "check-ask: 'Merge' without a word boundary (Mergers) -> exit 1"
+for phrase in "Close or re-spec the change" "Confirm it is done on your phone" "Do this before Friday" "Merge it" "Merge" "Approve the wider access" "Answer the pricing question"; do
   ask_body "$phrase" "A plain fact." "Nothing moves." "Yes | No"
   "$CA" "$CAB" >/dev/null 2>&1 || fail "check-ask: the fixed phrase '$phrase' is accepted"
 done
