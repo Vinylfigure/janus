@@ -124,7 +124,7 @@ else
            .github/workflows/gate-integrity.yml .github/loops.yaml .github/CODEOWNERS \
            .github/ISSUE_TEMPLATE/task.yml .github/ISSUE_TEMPLATE/question.yml \
            .github/ISSUE_TEMPLATE/inbox.yml .github/ISSUE_TEMPLATE/config.yml \
-           docs/ATTENTION.md \
+           docs/ATTENTION.md scripts/deny-list.json \
            .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/sources-seen.md; do
     if [ -e "$ROOT/$p" ]; then pass "component-map path $p exists"; else fail "component-map path $p missing from tree"; fi
   done
@@ -528,6 +528,60 @@ ask_body "Merge the change once the queue is clear" "The grant is missing pull-r
 "$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: an ask naming a permission key -> exit 1" || pass "check-ask: an ask naming a permission key -> exit 1"
 "$CA" "$SANDBOX/no-such-ask.md" >/dev/null 2>&1 && fail "check-ask: missing body file -> exit 1 (fails closed)" || pass "check-ask: missing body file -> exit 1 (fails closed)"
 "$CA" >/dev/null 2>&1; [ $? -eq 64 ] && pass "check-ask: no argument -> exit 64 (usage)" || fail "check-ask: no argument -> exit 64 (usage)"
+
+# The fixed set is six PHRASES. Matching the first token only would let a legal
+# opening word carry an arbitrary tail — the free prose the marker replaces.
+ask_body "Close it immediately without review" "A plain fact." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: 'Close' with a tail that is not 'or re-spec' -> exit 1" || pass "check-ask: 'Close' with a tail that is not 'or re-spec' -> exit 1"
+ask_body "Confirm the sky is blue" "A plain fact." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: 'Confirm' with a tail that is not 'it is done' -> exit 1" || pass "check-ask: 'Confirm' with a tail that is not 'it is done' -> exit 1"
+ask_body "Do the needful before Friday" "A plain fact." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: 'Do' with a tail that is not 'this' -> exit 1" || pass "check-ask: 'Do' with a tail that is not 'this' -> exit 1"
+for phrase in "Close or re-spec the change" "Confirm it is done on your phone" "Do this before Friday" "Merge it" "Approve the wider access" "Answer the pricing question"; do
+  ask_body "$phrase" "A plain fact." "Nothing moves." "Yes | No"
+  "$CA" "$CAB" >/dev/null 2>&1 || fail "check-ask: the fixed phrase '$phrase' is accepted"
+done
+pass "check-ask: every phrase in the fixed verb set is accepted"
+
+echo "== deny-list.json (the fleet's one vocabulary list) =="
+# janus owns this file; overlord and overlord-ui vendor it by content and test
+# equality against it (docs/ATTENTION.md). These assertions prove check-ask.sh
+# reads the FILE rather than a copy of the words baked into the script.
+DL="$ROOT/scripts/deny-list.json"
+jq . "$DL" >/dev/null 2>&1 && pass "deny-list.json is valid JSON" || fail "deny-list.json is valid JSON"
+for key in identifiers machine_words hedges artifact_subjects; do
+  n=$(jq -r --arg k "$key" '.[$k] | length' "$DL" 2>/dev/null)
+  [ "${n:-0}" -gt 0 ] && pass "deny-list.json carries a non-empty $key list ($n)" || fail "deny-list.json $key is missing or empty"
+done
+[ "$(jq -r '.version' "$DL" 2>/dev/null)" = "1" ] && pass "deny-list.json declares version 1" || fail "deny-list.json declares version 1"
+# Every word in the file is actually enforced — the file IS the list.
+missed=""
+while IFS= read -r w; do
+  ask_body "Approve the wider access" "The queue $w was left behind." "Nothing moves." "Yes | No"
+  "$CA" "$CAB" >/dev/null 2>&1 && missed="$missed $w"
+done < <(jq -r '.machine_words[], .hedges[]' "$DL")
+[ -z "$missed" ] && pass "check-ask: every machine word and hedge in deny-list.json is rejected" || fail "check-ask: deny-list words not enforced:$missed"
+missed=""
+while IFS= read -r sub; do
+  ask_body "Approve the wider access" "$sub was filed twice." "Nothing moves." "Yes | No"
+  "$CA" "$CAB" >/dev/null 2>&1 && missed="$missed [$sub]"
+done < <(jq -r '.artifact_subjects[]' "$DL")
+[ -z "$missed" ] && pass "check-ask: every artifact subject in deny-list.json is rejected" || fail "check-ask: deny-list subjects not enforced:$missed"
+# The two words the operator named: the ask must not speak about its own machinery.
+ask_body "Approve the wider access" "The fixture proved the queue was wrong." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: an ask saying 'fixture' -> exit 1" || pass "check-ask: an ask saying 'fixture' -> exit 1"
+ask_body "Approve the wider access" "The marker was never written to the record." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: an ask saying 'marker' -> exit 1" || pass "check-ask: an ask saying 'marker' -> exit 1"
+ask_body "Approve the wider access" "The result is Likely correct." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a hedge in any casing -> exit 1" || pass "check-ask: a hedge in any casing -> exit 1"
+# Swapping the file swaps the rules: proof that nothing is baked into the script.
+jq '.machine_words = ["banana"] | .hedges = ["banana"] | .identifiers = ["ZZZZ-no-such-pattern"] | .artifact_subjects = ["Banana"]' "$DL" > "$SANDBOX/deny-list.json"
+ask_body "Approve the wider access" "The banana was left behind." "Nothing moves." "Yes | No"
+CHECK_ASK_DENY_LIST="$SANDBOX/deny-list.json" "$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a word added to the deny-list file is enforced" || pass "check-ask: a word added to the deny-list file is enforced"
+ask_body "Approve the wider access" "The proof is in #249." "Nothing moves." "Yes | No"
+CHECK_ASK_DENY_LIST="$SANDBOX/deny-list.json" "$CA" "$CAB" >/dev/null 2>&1 && pass "check-ask: a pattern removed from the deny-list file stops being enforced" || fail "check-ask: a pattern removed from the deny-list file stops being enforced"
+ask_body "Approve the wider access" "A plain fact." "Nothing moves." "Yes | No"
+CHECK_ASK_DENY_LIST="$SANDBOX/no-such-deny-list.json" "$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a missing deny-list -> exit 1 (fails closed)" || pass "check-ask: a missing deny-list -> exit 1 (fails closed)"
 
 echo "== harvest-ledgers.sh (reverse heredity, janus#38) =="
 HV="$ROOT/scripts/harvest-ledgers.sh"

@@ -12,7 +12,7 @@
 #
 # Deliberately grep/awk only, like every other gate here: children run it
 # before any stack is bootstrapped, and the emitting skill's tool grant is a
-# shell one-liner.
+# shell one-liner. That includes reading the deny-list — no jq, no python.
 set -uo pipefail
 
 BODY_FILE="${1:-}"
@@ -21,32 +21,81 @@ BODY_FILE="${1:-}"
 
 fail() { echo "not an ask: $1"; exit 1; }
 
-# The vocabulary deny-list, applied to Ask / Because / If-nothing. Same intent
-# as check-record.sh's jargon list: the operator reads these lines, so the
-# machine's own nouns never appear in them. Each entry is <ERE>@@<reason>; the
-# scanned text is padded with spaces, so a pattern never needs ^ or $.
-DENY_PATTERNS=(
-  '#[0-9]+@@names an issue or pull request number'
-  '[A-Za-z0-9_-]+/[A-Za-z0-9_-]+\.[A-Za-z0-9]+@@names a file path'
-  '\.(sh|mjs|ya?ml)[^A-Za-z0-9]@@names a script or config file'
-  '(L-[0-9]|DL-|goal/[0-9])@@names a rule, decision, or goal id'
-  '(contents|pull-requests|issues):@@names a permission key'
-  '[^A-Za-z](may|might|probably|seems)[^A-Za-z]@@hedges (may / might / probably / seems)'
-)
+# --- the deny-list -------------------------------------------------------
+# `scripts/deny-list.json` is the fleet's ONE vocabulary list, and this repo is
+# where it lives: overlord and overlord-ui vendor the file by content and test
+# equality against it (docs/ATTENTION.md). Three lists drifting apart is the
+# failure this replaces, so nothing below hard-codes a word — the file is the
+# list. It is applied to Ask / Because / If-nothing: the operator reads those
+# three lines, so the machine's own nouns never appear in them.
+DENY_FILE="${CHECK_ASK_DENY_LIST:-$(dirname "$0")/deny-list.json}"
+[ -f "$DENY_FILE" ] || { echo "not an ask: deny-list not found: $DENY_FILE"; exit 1; }
+
+# Flat JSON arrays of strings, one element per line — the shape this repo
+# writes and the fixture suite pins against jq. Unescapes \\ and \" and
+# nothing else, because nothing else appears in the list.
+json_array() { # json_array <key> <file>
+  awk -v key="$1" '
+    !ing && $0 ~ ("\"" key "\"[ \t]*:[ \t]*\\[") { ing = 1; next }
+    ing && /^[ \t]*\]/ { exit }
+    ing {
+      line = $0
+      first = index(line, "\"")
+      if (first == 0) next
+      line = substr(line, first + 1)
+      last = 0
+      for (i = length(line); i > 0; i--) if (substr(line, i, 1) == "\"") { last = i; break }
+      if (last == 0) next
+      value = substr(line, 1, last - 1)
+      gsub(/\\"/, "\"", value)
+      gsub(/\\\\/, "\\", value)
+      print value
+    }' "$2"
+}
+
+read_list() { # read_list <array-name> <key> — bash 3.2 ships no mapfile
+  local line
+  eval "$1=()"
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    eval "$1+=(\"\$line\")"
+  done < <(json_array "$2" "$DENY_FILE")
+}
+
+read_list DENY_IDENTIFIERS identifiers
+read_list DENY_MACHINE_WORDS machine_words
+read_list DENY_HEDGES hedges
+read_list DENY_ARTIFACT_SUBJECTS artifact_subjects
+{ [ "${#DENY_IDENTIFIERS[@]}" -gt 0 ] && [ "${#DENY_MACHINE_WORDS[@]}" -gt 0 ] \
+  && [ "${#DENY_HEDGES[@]}" -gt 0 ] && [ "${#DENY_ARTIFACT_SUBJECTS[@]}" -gt 0 ]; } \
+  || { echo "not an ask: deny-list is missing a category: $DENY_FILE"; exit 1; }
+
+# Word lists become one alternation each, matched case-insensitively against
+# space-padded text, so neither pattern needs ^ or $ and both are
+# word-boundaried by construction.
+join_alternation() { local IFS='|'; printf '%s' "$*"; }
+MACHINE_WORDS_RE="[^A-Za-z0-9]($(join_alternation "${DENY_MACHINE_WORDS[@]}"))[^A-Za-z0-9]"
+HEDGES_RE="[^A-Za-z0-9]($(join_alternation "${DENY_HEDGES[@]}"))[^A-Za-z0-9]"
 
 deny_scan() { # deny_scan <field-name> <text>
-  local field="$1" text="$2" entry pattern reason
-  case "$text" in
-    "This PR"*|"This issue"*|"This change"*)
-      fail "$field makes the artifact the subject (starts with This PR / This issue / This change): $text" ;;
-  esac
-  for entry in "${DENY_PATTERNS[@]}"; do
-    pattern="${entry%%@@*}"
-    reason="${entry##*@@}"
-    if printf ' %s \n' "$text" | grep -qE "$pattern"; then
-      fail "$field $reason: $text"
+  local field="$1" text="$2" pattern subject padded
+  padded=$(printf ' %s ' "$text")
+  for subject in "${DENY_ARTIFACT_SUBJECTS[@]}"; do
+    case "$text" in
+      "$subject"*) fail "$field makes the artifact the subject (opens with \"$subject\"): $text" ;;
+    esac
+  done
+  for pattern in "${DENY_IDENTIFIERS[@]}"; do
+    if printf '%s\n' "$padded" | grep -qE "$pattern"; then
+      fail "$field names an identifier the operator does not use (matched /$pattern/): $text"
     fi
   done
+  if printf '%s\n' "$padded" | grep -qiE "$MACHINE_WORDS_RE"; then
+    fail "$field uses a machine word from the deny-list: $text"
+  fi
+  if printf '%s\n' "$padded" | grep -qiE "$HEDGES_RE"; then
+    fail "$field hedges — a fact stated is a fact checked: $text"
+  fi
 }
 
 # --- shape ---------------------------------------------------------------
@@ -67,10 +116,14 @@ done
 ask=$(field Ask)
 [ -n "$ask" ] || fail "Ask is empty"
 [ "${#ask}" -le 80 ] || fail "Ask is ${#ask} chars, must be <=80"
-verb=${ask%% *}
-case "$verb" in
-  Approve|Answer|Do|Confirm|Close|Merge) ;;
-  *) fail "Ask must open with the fixed verb set (Approve · Answer · Do this · Confirm it is done · Close or re-spec · Merge), got '$verb'" ;;
+# The fixed set is six PHRASES, not six first words. Matching only the first
+# token let "Close it immediately without review" and "Confirm the sky is blue"
+# through — a legal opening word with an arbitrary tail, which is exactly the
+# free prose the marker exists to end. The multi-word verbs must appear
+# verbatim; the single-word ones may carry the rest of the sentence.
+case "$ask" in
+  "Approve "*|"Answer "*|"Do this"*|"Confirm it is done"*|"Close or re-spec"*|"Merge"*) ;;
+  *) fail "Ask must open with a phrase from the fixed verb set (Approve … · Answer … · Do this … · Confirm it is done … · Close or re-spec … · Merge …), got: $ask" ;;
 esac
 deny_scan "Ask" "$ask"
 

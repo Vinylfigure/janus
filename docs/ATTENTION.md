@@ -301,8 +301,12 @@ Source-revision: <head sha for a PR, or the record's updated_at timestamp>
 ```
 
 The fixed verb set for `Ask:` — **Approve · Answer · Do this · Confirm it is
-done · Close or re-spec · Merge**. The verb is the first word, so a reader
-turns it into a button without reading the sentence.
+done · Close or re-spec · Merge**. Six phrases, not six opening words:
+`Approve`, `Answer` and `Merge` carry the rest of the sentence, while `Do
+this`, `Confirm it is done` and `Close or re-spec` appear verbatim before
+theirs. A reader turns the phrase into a button without parsing the sentence,
+and "Close it immediately without review" is free prose wearing a legal first
+word — `scripts/check-ask.sh` rejects it.
 
 The six rules:
 
@@ -313,16 +317,32 @@ The six rules:
 2. **Vocabulary.** `Ask:`, `Because:` and `If-nothing:` pass the fleet
    deny-list: no issue or pull request numbers, file paths, script or
    function names, branch or label names, permission keys, config fields,
-   command syntax, or ids of the rule / decision / goal form. Glossary
-   nouns are carried verbatim. `scripts/check-ask.sh` is that list,
-   executable — the emitting skill runs it on the drafted body **before**
-   posting, and a failing ask is not posted at all.
+   command syntax, ids of the rule / decision / goal form, and none of the
+   machine's own nouns for its own workings. Glossary nouns are carried
+   verbatim. `scripts/check-ask.sh` is that list, executable — the emitting
+   skill runs it on the drafted body **before** posting, and a failing ask
+   is not posted at all.
+
+   **The list is one file, and it lives here.** `scripts/deny-list.json` is
+   the fleet's single source: `version`, `identifiers` (regular expressions,
+   matched against the field padded with spaces so none needs an anchor),
+   `machine_words`, `hedges`, and `artifact_subjects`. `check-ask.sh` reads
+   the file rather than carrying a copy of the words, and the fixture suite
+   proves it by swapping the file and watching the rules change. Overlord
+   and overlord-ui **vendor this file by content** — a byte copy, not a
+   re-typing — and each ships a test asserting its copy equals this one.
+   Three lists that drift apart is the failure this replaces: an ask that
+   passes in the repo that wrote it and fails in the surface that renders
+   it is worse than no check. Adding a word is a change to this file, and
+   the vendored copies follow.
 3. **The subject is never the artifact.** "The check refused a repository
-   that was configured correctly" passes; a line opening "This PR…", "This
-   issue…" or "This change…" fails. The operator cares what became true,
-   not what a diff contains.
-4. **No hedges.** `may`, `might`, `probably`, `seems` are rejected. An
-   uncertain fact is left out; a fact stated is a fact checked.
+   that was configured correctly" passes; a line opening with any entry in
+   `artifact_subjects` — "This PR…", "This pull request…", "This issue…",
+   "This change…", "This record…" — fails. The operator cares what became
+   true, not what a diff contains.
+4. **No hedges.** `may`, `might`, `probably`, `seems`, `perhaps`, `likely`
+   are rejected, in any casing and as whole words. An uncertain fact is
+   left out; a fact stated is a fact checked.
 5. **Who posts one.** Any session or engine that leaves a PR in draft for
    the operator, or holds one (a hold comment gains an `Ask:` line and is
    read as the ask when no `janus:ask:v1` exists), or changes its mind. A
