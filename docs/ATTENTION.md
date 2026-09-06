@@ -177,8 +177,22 @@ section with stable sub-headings:
 
 `Surface` · `Instruction` · `URL` · `Pass criteria`
 
-Delivering such a task applies `human-check:` — machine work and automated
+Only delivery applies `human-check:`: the artifact exists, machine work and automated
 verification are done, and the operator's experiential check gates the merge.
+Drafting a Human check section does not request review. Before labeling, run
+`scripts/check-record.sh <body-file> --ready-for-review`; it accepts the canonical
+four sub-headings and legacy colon fields, rejects missing criteria and placeholder
+artifact URLs. Use `scripts/request-human-check.sh` for the label transition: it invokes the
+field checker, reads the artifact and successful Actions run, compares PR heads
+when the artifact is a PR, rechecks the supplied source version, and writes a
+`janus:human-check-request:v1` receipt before applying the label. It is read-only
+unless passed `--write`. For other preview URLs, availability and the recorded
+verification revision are checked; mapping a preview deployment to that revision
+is still the delivering agent's responsibility. A repeat review after a current
+human verdict requires evidence from a newer run and
+`Supersedes-review-operation` naming that latest verdict exactly, including a
+pass that followed an earlier failure. Field validation alone
+is not proof of delivery.
 A control surface renders `[Open preview] [Pass] [Something's wrong]` from
 these fields.
 

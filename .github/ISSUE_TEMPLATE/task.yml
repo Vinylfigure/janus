@@ -39,7 +39,7 @@ body:
     id: human-check
     attributes:
       label: Human check
-      description: Fill only when delivery needs the operator's eyes before merge. Keep the four sub-headings — they are the v1 machine interface (docs/ATTENTION.md); delivery with this section applies the `human-check:` label.
+      description: Fill only when delivery needs the operator's eyes before merge. Keep the four sub-headings — they are the v1 machine interface (docs/ATTENTION.md); drafting this section does not request review. At delivery, replace the URL with the real artifact and pass check-record.sh --ready-for-review before applying `human-check:`.
       placeholder: |
         #### Surface
         the deployed preview / the phone / the rendered artifact
