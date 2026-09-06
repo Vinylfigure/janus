@@ -120,6 +120,16 @@ document stays byte-identical, so a body written under the original
 protocol is still fully valid v1 (the heading is simply absent, and a
 reader treats that the same as "not yet in plain words").
 
+**One form, emitted; two, read.** `### In plain words` — an H3 heading, the
+sentence on the line below — is the only spelling any form, skill, or
+conductor in this fleet writes. The bold-emphasis spelling some earlier
+dispatches used, with a colon and the sentence on the same line, is a
+reading concession only: `scripts/check-record.sh` still parses it, because
+a body already on the record cannot be rewritten, and a surface that failed
+to read it would silently mute a card that does have a plain line. Nothing
+emits it. The same rule holds for every heading in this document: one
+spelling out, every spelling ever shipped in.
+
 The reading contract: a control surface renders `### In plain words`
 verbatim as the card's headline. When it is absent, the surface falls back
 to the first sentence of `### Decision` (questions) or the raw title —
@@ -162,27 +172,50 @@ defined in Vinylfigure/overlord `docs/GOAL.md` (`overlord:goal:v1`).
 
 Two more headings are additive v1.1, required for filers, optional for
 readers (see "In plain words — required at filing" above): `In plain
-words` (rendered first, before `Decision`) and `Options` (rendered between
-`Decision` and `Recommended choice`). Neither renames nor reorders the
-seven original headings; a reader must still treat their absence as valid
-v1.
+words` and `Options`, in that order, both rendered **before** `Decision`.
+The two lines a card needs — the headline and the buttons — are the two
+the form asks for first, so a surface never walks the body to find them.
+Neither renames nor reorders the seven original headings; a reader must
+still treat their absence as valid v1, and a parser keys on heading text,
+never on position.
 
 A question arrives with a recommendation — "what should I do?" with no
 explored options is an unfinished exploration, not a decision request.
+
+## Task schema — the v1 body API
+
+`task.yml` renders these stable headings; `In plain words` and `Done means`
+are required at filing, the rest are optional and additive:
+
+`In plain words` · `Done means` · `Discovered from` · `Blocked by` ·
+`Parent goal` · `Human check` · `Priority`
+
+`Parent goal` is additive v1.1 and optional: `goal/<n>`, the same reference
+form a question uses (`goal/207` anywhere means Vinylfigure/overlord#207).
+It is how a task joins the Goal graph, so a delivered task can be counted
+against the goal it was filed under instead of being read as unattached
+work. A body without it is valid v1; a parser treats its absence as "no
+parent goal", never as an error.
 
 ## Human check — the v1 task section
 
 A task whose delivery needs the operator's eyes carries a `Human check`
 section with stable sub-headings:
 
-`Surface` · `Instruction` · `URL` · `Pass criteria`
+`Surface` · `Instruction` · `URL` · `Pass`
+
+`Pass` is the heading the form now renders — one word, the operator's own,
+matching the `Pass` wording the Goal protocol uses for a met signal. The
+earlier `Pass criteria` spelling stays READABLE forever: a body written
+under it is still valid v1 and `check-record.sh` accepts either, along with
+the legacy `Pass:` colon field. Only the producing template changed.
 
 Only delivery applies `human-check:`: the artifact exists, machine work and automated
 verification are done, and the operator's experiential check gates the merge.
 Drafting a Human check section does not request review. Before labeling, run
 `scripts/check-record.sh <body-file> --ready-for-review`; it accepts the canonical
-four sub-headings and legacy colon fields, rejects missing criteria and placeholder
-artifact URLs. Use `scripts/request-human-check.sh` for the label transition: it invokes the
+four sub-headings (either `Pass` spelling) and legacy colon fields, rejects missing
+criteria and placeholder artifact URLs. Use `scripts/request-human-check.sh` for the label transition: it invokes the
 field checker, reads the artifact and successful Actions run, compares PR heads
 when the artifact is a PR, rechecks the supplied source version, and writes a
 `janus:human-check-request:v1` receipt before applying the label. It is read-only
@@ -229,6 +262,118 @@ accompanying prose (prose is welcome; it is for humans).
 
 "Yeah looks pretty good to me!" is a reply to a human; the marker comment is
 the event. A surface that records the human's action writes both.
+
+## Canonical comments
+
+Every machine-readable comment opens with its marker on its own first line.
+A reader keys on the marker and on the field names under it; everything else
+in the comment is prose for humans and is never parsed.
+
+| Marker | Written by | Carries | Read as |
+|---|---|---|---|
+| `<!-- janus:ask:v1 -->` | any session or engine parking work for the operator | `Ask` · `Because` · `If-nothing` · `Options` · `Supersedes` · `Source-revision` | what the machine needs from the operator, newest wins |
+| `<!-- janus:decision:v1 -->` | the surface recording the operator's answer | `Decision:` | a `question:` is resolved |
+| `<!-- janus:human-check:v1 -->` | the surface recording the operator's verdict | `Result:` | an experiential check passed or failed |
+| `<!-- janus:human-check-request:v1 -->` | `scripts/request-human-check.sh` | `Source-version` · `Operation` · `Artifact` · `Evidence` · `Source-revision` · `Status` | the receipt binding a review request to a delivered revision |
+| `<!-- janus:attention:v1 -->` | an app filing an issue outside the forms | — | provenance only, never the protocol identifier |
+
+`<!-- overlord:held-for-operator:v1 -->` is **retired**: read it as a hold
+reason (why a session stopped), never as an ask. A record carrying only that
+marker has not stated what it needs.
+
+## The recorded ask (`janus:ask:v1`)
+
+The attention contract at the top of this document says every interruption
+has one ask, one reason, one consequence, and a bounded set of actions. This
+is that contract as a fact on the record rather than as prose a reader has to
+infer. A session that parks work for the operator posts one comment:
+
+```
+<!-- janus:ask:v1 -->
+Ask: <one line, ≤80 chars, opening with a verb from the fixed set>
+Because:
+- <fact, ≤140 chars>
+- <fact, ≤140 chars>            (1–3 lines)
+If-nothing: <one line, ≤140 chars>
+Options: <Name A> | <Name B> [| <Name C> | <Name D>]   (2–4 names, ≤30 chars each)
+Supersedes: <the previous ask's comment id on this record, or none>
+Source-revision: <head sha for a PR, or the record's updated_at timestamp>
+```
+
+The fixed verb set for `Ask:` — **Approve · Answer · Do this · Confirm it is
+done · Close or re-spec · Merge**. Six phrases, not six opening words:
+`Approve`, `Answer` and `Merge` carry the rest of the sentence, while `Do
+this`, `Confirm it is done` and `Close or re-spec` appear verbatim before
+theirs. A reader turns the phrase into a button without parsing the sentence,
+and "Close it immediately without review" is free prose wearing a legal first
+word — `scripts/check-ask.sh` rejects it.
+
+The six rules:
+
+1. **Newest wins.** The ask in force is the `janus:ask:v1` comment with the
+   latest creation time. `Supersedes:` is informational — a parser never
+   needs it to resolve which ask is current. A change of mind is a newer
+   ask, never a retraction a reader has to reconcile.
+2. **Vocabulary.** `Ask:`, `Because:` and `If-nothing:` pass the fleet
+   deny-list: no issue or pull request numbers, file paths, script or
+   function names, branch or label names, permission keys, config fields,
+   command syntax, ids of the rule / decision / goal form, and none of the
+   machine's own nouns for its own workings. Glossary nouns are carried
+   verbatim. `scripts/check-ask.sh` is that list, executable — the emitting
+   skill runs it on the drafted body **before** posting, and a failing ask
+   is not posted at all.
+
+   **The list is one file, and it lives here.** `scripts/deny-list.json` is
+   the fleet's single source: `version`, `identifiers` (regular expressions,
+   matched against the field padded with spaces so none needs an anchor),
+   `machine_words`, `hedges`, and `artifact_subjects`. `check-ask.sh` reads
+   the file rather than carrying a copy of the words, and the fixture suite
+   proves it by swapping the file and watching the rules change. Overlord
+   and overlord-ui **vendor this file by content** — a byte copy, not a
+   re-typing — and each ships a test asserting its copy equals this one.
+   Three lists that drift apart is the failure this replaces: an ask that
+   passes in the repo that wrote it and fails in the surface that renders
+   it is worse than no check. Adding a word is a change to this file, and
+   the vendored copies follow.
+3. **The subject is never the artifact.** "The check refused a repository
+   that was configured correctly" passes; a line opening with any entry in
+   `artifact_subjects` — "This PR…", "This pull request…", "This issue…",
+   "This change…", "This record…" — fails. The operator cares what became
+   true, not what a diff contains.
+4. **No hedges.** `may`, `might`, `probably`, `seems`, `perhaps`, `likely`
+   are rejected, in any casing and as whole words. An uncertain fact is
+   left out; a fact stated is a fact checked.
+5. **Who posts one.** Any session or engine that leaves a PR in draft for
+   the operator, or holds one (a hold comment gains an `Ask:` line and is
+   read as the ask when no `janus:ask:v1` exists), or changes its mind. A
+   `question:` or `human-check:` record needs no marker: its `### In plain
+   words` + `### Options` (or `### Instruction` + `### Pass`) already are
+   the ask, which is why those two headings are the first the forms ask for.
+6. **Retired marker.** `overlord:held-for-operator:v1` is a hold reason, not
+   an ask. A held record with neither a `janus:ask:v1` comment nor a hold
+   comment carrying `Ask:` has not stated what it needs, and a surface says
+   exactly that rather than guessing from the thread.
+
+## What a card renders
+
+The render contract every control surface inherits, so a card is assembled
+from record fields rather than summarized from prose. Source order is
+first-hit-wins, left to right:
+
+| Card line | Rule | Source order |
+|---|---|---|
+| Headline, ≤80 chars | "<subject> is <state now>" — who is stuck, never the artifact | the operator's own wording → `### In your words` → `### In plain words` → newest ask's `Ask:` → a summarizer's guess, marked inferred → the raw title, muted |
+| Your part, 1 line | one verb from the fixed set: Approve / Answer / Do this / Confirm it is done / Close or re-spec / Merge | goal → Approve; question → `### Options`; human check → `### Instruction`; PR → newest ask's verb, else a summarizer's guess, marked |
+| What yes does / cost of nothing, 1 line each | what becomes true, and what stays broken | `### If you do nothing` → newest ask's `If-nothing:` → the hold's consequence → the fixed line for that kind |
+| Buttons | the actions themselves, never a menu | question `### Options` → human check It works / Needs work → newest ask's `Options:` → the fixed set for that kind |
+| Read more, ≤4 facts | statements, each traceable to the record; vocabulary rules above | newest ask's `Because:` lines, then failing checks under their plain-language names |
+| The checks | the check's id translated to its plain meaning | the fleet check glossary, sourced from the workflow files — a raw check id never reaches a card |
+
+Two marks are part of the contract, not decoration: a card built from a
+summarizer rather than a stated ask carries "machine guess, not stated by
+the agent", and a held record with no ask at all renders "the agent did not
+say what it needs" as its headline, with "Send it back" as the only action.
+Non-compliance is a visible signal; it is never a plausible headline.
 
 ## Label vocabulary
 

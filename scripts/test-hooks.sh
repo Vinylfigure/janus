@@ -124,7 +124,7 @@ else
            .github/workflows/gate-integrity.yml .github/loops.yaml .github/CODEOWNERS \
            .github/ISSUE_TEMPLATE/task.yml .github/ISSUE_TEMPLATE/question.yml \
            .github/ISSUE_TEMPLATE/inbox.yml .github/ISSUE_TEMPLATE/config.yml \
-           docs/ATTENTION.md \
+           docs/ATTENTION.md scripts/deny-list.json \
            .claude/settings.json .claude/memory/LEARNINGS.md .claude/memory/sources-seen.md; do
     if [ -e "$ROOT/$p" ]; then pass "component-map path $p exists"; else fail "component-map path $p missing from tree"; fi
   done
@@ -445,6 +445,17 @@ printf '### In plain words\nShould low-stakes questions answer themselves after 
 printf '### In plain words\nShould low-stakes questions answer themselves after three days?\n\n### Decision\nx\n\n### Recommended choice\nYes, auto-answer\n' > "$CRRB"
 "$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: question without Options -> exit 1" || pass "check-record: question without Options -> exit 1"
 "$CRR" "$SANDBOX/no-such-record.md" >/dev/null 2>&1 && fail "check-record: missing body file -> exit 1 (fails closed)" || pass "check-record: missing body file -> exit 1 (fails closed)"
+# One heading form is EMITTED (`### In plain words`); the older bold form is
+# still READ, because records filed under it cannot be rewritten.
+printf '**In plain words:** The app opens in under two seconds.\n\n**Done means:** it works\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && pass "check-record: a legacy bold In plain words line is still read" || fail "check-record: a legacy bold In plain words line is still read"
+printf '**In plain words:** The record reconciles against the canonical schema.\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: a legacy bold line still faces the jargon deny-list -> exit 1" || pass "check-record: a legacy bold line still faces the jargon deny-list -> exit 1"
+if grep -rn -- '\*\*In plain words' "$ROOT/docs" "$ROOT/.claude/skills" "$ROOT/.github" >/dev/null 2>&1; then
+  fail "one heading form: the bold '**In plain words:**' spelling is still emitted somewhere"
+else
+  pass "one heading form: nothing in docs/, skills/ or .github/ emits the bold In plain words spelling"
+fi
 
 # Render the actual producer template's Human check placeholder into a task.
 # It is a drafting aid, not a delivered review request.
@@ -464,16 +475,117 @@ PYREVIEW
 "$CRR" "$CRRB" --ready-for-review >/dev/null 2>&1 && pass "review readiness: producer headings and concrete artifact parse" || fail "review readiness: producer headings and concrete artifact parse"
 python3 - "$CRRB" <<'PYREVIEW'
 import sys
-p=sys.argv[1]; text=open(p).read().split("#### Pass criteria")[0]+"#### Pass criteria\n_No response_\n"
+p=sys.argv[1]; text=open(p).read().split("#### Pass")[0]+"#### Pass\n_No response_\n"
 open(p,"w").write(text)
 PYREVIEW
 "$CRR" "$CRRB" --ready-for-review >/dev/null 2>&1 && fail "review readiness: missing pass criteria fails" || pass "review readiness: missing pass criteria fails"
 printf '### In plain words\nReview the delivered change.\n### Human check\nSurface: Preview\nInstruction: Open and refresh the page.\nURL: https://github.com/o/app/pull/9\nPass: The saved value remains.\n' > "$CRRB"
 "$CRR" "$CRRB" --ready-for-review >/dev/null 2>&1 && pass "review readiness: legacy colon fields remain accepted" || fail "review readiness: legacy colon fields remain accepted"
+printf '### In plain words\nReview the delivered change.\n### Human check\n#### Surface\nDelivered change\n#### Instruction\nOpen and refresh the page.\n#### URL\nhttps://github.com/o/app/pull/9\n#### Pass criteria\nThe saved value remains.\n' > "$CRRB"
+"$CRR" "$CRRB" --ready-for-review >/dev/null 2>&1 && pass "review readiness: the older Pass criteria heading remains readable" || fail "review readiness: the older Pass criteria heading remains readable"
 printf '### In plain words\nCreate the connection.\n### Done means\nThe connection works.\n' > "$CRRB"
 "$CRR" "$CRRB" --ready-for-review >/dev/null 2>&1 && fail "review readiness: ordinary work is not a delivered review" || pass "review readiness: ordinary work is not a delivered review"
 
 python3 "$ROOT/scripts/test-review-request.py" && pass "review producer: source-bound delivery transitions" || fail "review producer: source-bound delivery transitions"
+
+echo "== check-ask.sh (the recorded ask, self-test on fixtures) =="
+# The ask a session posts when it parks work for the operator (docs/ATTENTION.md,
+# "The recorded ask"). Shipped fixtures cover the wording rules; the generated
+# bodies below cover the shape rules.
+CA="$ROOT/scripts/check-ask.sh"
+CAF="$ROOT/scripts/fixtures"
+"$CA" "$CAF/ask-pass.md" >/dev/null 2>&1 && pass "check-ask: a well-formed ask -> exit 0" || fail "check-ask: a well-formed ask -> exit 0"
+"$CA" "$CAF/ask-fail-names-a-script.md" >/dev/null 2>&1 && fail "check-ask: an ask naming a script -> exit 1" || pass "check-ask: an ask naming a script -> exit 1"
+"$CA" "$CAF/ask-fail-hedges.md" >/dev/null 2>&1 && fail "check-ask: an ask that hedges -> exit 1" || pass "check-ask: an ask that hedges -> exit 1"
+"$CA" "$CAF/ask-fail-subject-is-the-artifact.md" >/dev/null 2>&1 && fail "check-ask: an ask whose subject is the artifact -> exit 1" || pass "check-ask: an ask whose subject is the artifact -> exit 1"
+CAB="$SANDBOX/ask-body.md"
+ask_body() { # ask_body <Ask> <Because line> <If-nothing> <Options>
+  printf '<!-- janus:ask:v1 -->\nAsk: %s\nBecause:\n- %s\nIf-nothing: %s\nOptions: %s\nSupersedes: none\nSource-revision: 6d7c507\n' "$1" "$2" "$3" "$4" > "$CAB"
+}
+ask_body "Approve the wider access" "The sweep cannot reach two projects without it." "The queue keeps showing finished work." "Widen it | Leave it"
+"$CA" "$CAB" >/dev/null 2>&1 && pass "check-ask: a minimal one-fact ask -> exit 0" || fail "check-ask: a minimal one-fact ask -> exit 0"
+ask_body "Please look at this when you get a chance" "A fact." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a verb outside the fixed set -> exit 1" || pass "check-ask: a verb outside the fixed set -> exit 1"
+ask_body "Approve $(printf 'x%.0s' $(seq 1 90))" "A fact." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: an Ask over 80 chars -> exit 1" || pass "check-ask: an Ask over 80 chars -> exit 1"
+ask_body "Approve the wider access" "$(printf 'x%.0s' $(seq 1 141))" "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a Because line over 140 chars -> exit 1" || pass "check-ask: a Because line over 140 chars -> exit 1"
+ask_body "Approve the wider access" "A fact." "Nothing moves." "Only one"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: fewer than 2 Options -> exit 1" || pass "check-ask: fewer than 2 Options -> exit 1"
+ask_body "Approve the wider access" "A fact." "Nothing moves." "A | B | C | D | E"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: more than 4 Options -> exit 1" || pass "check-ask: more than 4 Options -> exit 1"
+printf '<!-- janus:ask:v1 -->\nAsk: Approve the wider access\nBecause:\n- One.\n- Two.\n- Three.\n- Four.\nIf-nothing: Nothing moves.\nOptions: Yes | No\nSupersedes: none\nSource-revision: 6d7c507\n' > "$CAB"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: more than 3 Because lines -> exit 1" || pass "check-ask: more than 3 Because lines -> exit 1"
+printf '<!-- janus:ask:v1 -->\nAsk: Approve the wider access\nBecause:\n- One.\nIf-nothing: Nothing moves.\nOptions: Yes | No\nSupersedes: none\n' > "$CAB"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a missing required field -> exit 1" || pass "check-ask: a missing required field -> exit 1"
+printf 'Ask: Approve the wider access\nBecause:\n- One.\nIf-nothing: Nothing moves.\nOptions: Yes | No\nSupersedes: none\nSource-revision: 6d7c507\n' > "$CAB"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: no janus:ask:v1 marker -> exit 1" || pass "check-ask: no janus:ask:v1 marker -> exit 1"
+ask_body "Merge the change once the queue is clear" "The fix is proved by run 42." "The queue stays wrong." "Merge it | Send it back"
+"$CA" "$CAB" >/dev/null 2>&1 && pass "check-ask: a plain fact naming no identifier -> exit 0" || fail "check-ask: a plain fact naming no identifier -> exit 0"
+ask_body "Merge the change once the queue is clear" "The proof is in #249." "The queue stays wrong." "Merge it | Send it back"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: an ask naming an issue number -> exit 1" || pass "check-ask: an ask naming an issue number -> exit 1"
+ask_body "Merge the change once the queue is clear" "The grant is missing pull-requests: write." "The queue stays wrong." "Merge it | Send it back"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: an ask naming a permission key -> exit 1" || pass "check-ask: an ask naming a permission key -> exit 1"
+"$CA" "$SANDBOX/no-such-ask.md" >/dev/null 2>&1 && fail "check-ask: missing body file -> exit 1 (fails closed)" || pass "check-ask: missing body file -> exit 1 (fails closed)"
+"$CA" >/dev/null 2>&1; [ $? -eq 64 ] && pass "check-ask: no argument -> exit 64 (usage)" || fail "check-ask: no argument -> exit 64 (usage)"
+
+# The fixed set is six PHRASES. Matching the first token only would let a legal
+# opening word carry an arbitrary tail — the free prose the marker replaces.
+ask_body "Close it immediately without review" "A plain fact." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: 'Close' with a tail that is not 'or re-spec' -> exit 1" || pass "check-ask: 'Close' with a tail that is not 'or re-spec' -> exit 1"
+ask_body "Confirm the sky is blue" "A plain fact." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: 'Confirm' with a tail that is not 'it is done' -> exit 1" || pass "check-ask: 'Confirm' with a tail that is not 'it is done' -> exit 1"
+ask_body "Do the needful before Friday" "A plain fact." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: 'Do' with a tail that is not 'this' -> exit 1" || pass "check-ask: 'Do' with a tail that is not 'this' -> exit 1"
+ask_body "Merged without review" "A plain fact." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: 'Merge' without a word boundary (Merged) -> exit 1" || pass "check-ask: 'Merge' without a word boundary (Merged) -> exit 1"
+ask_body "Mergers are not the ask here" "A plain fact." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: 'Merge' without a word boundary (Mergers) -> exit 1" || pass "check-ask: 'Merge' without a word boundary (Mergers) -> exit 1"
+for phrase in "Close or re-spec the change" "Confirm it is done on your phone" "Do this before Friday" "Merge it" "Merge" "Approve the wider access" "Answer the pricing question"; do
+  ask_body "$phrase" "A plain fact." "Nothing moves." "Yes | No"
+  "$CA" "$CAB" >/dev/null 2>&1 || fail "check-ask: the fixed phrase '$phrase' is accepted"
+done
+pass "check-ask: every phrase in the fixed verb set is accepted"
+
+echo "== deny-list.json (the fleet's one vocabulary list) =="
+# janus owns this file; overlord and overlord-ui vendor it by content and test
+# equality against it (docs/ATTENTION.md). These assertions prove check-ask.sh
+# reads the FILE rather than a copy of the words baked into the script.
+DL="$ROOT/scripts/deny-list.json"
+jq . "$DL" >/dev/null 2>&1 && pass "deny-list.json is valid JSON" || fail "deny-list.json is valid JSON"
+for key in identifiers machine_words hedges artifact_subjects; do
+  n=$(jq -r --arg k "$key" '.[$k] | length' "$DL" 2>/dev/null)
+  [ "${n:-0}" -gt 0 ] && pass "deny-list.json carries a non-empty $key list ($n)" || fail "deny-list.json $key is missing or empty"
+done
+[ "$(jq -r '.version' "$DL" 2>/dev/null)" = "1" ] && pass "deny-list.json declares version 1" || fail "deny-list.json declares version 1"
+# Every word in the file is actually enforced — the file IS the list.
+missed=""
+while IFS= read -r w; do
+  ask_body "Approve the wider access" "The queue $w was left behind." "Nothing moves." "Yes | No"
+  "$CA" "$CAB" >/dev/null 2>&1 && missed="$missed $w"
+done < <(jq -r '.machine_words[], .hedges[]' "$DL")
+[ -z "$missed" ] && pass "check-ask: every machine word and hedge in deny-list.json is rejected" || fail "check-ask: deny-list words not enforced:$missed"
+missed=""
+while IFS= read -r sub; do
+  ask_body "Approve the wider access" "$sub was filed twice." "Nothing moves." "Yes | No"
+  "$CA" "$CAB" >/dev/null 2>&1 && missed="$missed [$sub]"
+done < <(jq -r '.artifact_subjects[]' "$DL")
+[ -z "$missed" ] && pass "check-ask: every artifact subject in deny-list.json is rejected" || fail "check-ask: deny-list subjects not enforced:$missed"
+# The two words the operator named: the ask must not speak about its own machinery.
+ask_body "Approve the wider access" "The fixture proved the queue was wrong." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: an ask saying 'fixture' -> exit 1" || pass "check-ask: an ask saying 'fixture' -> exit 1"
+ask_body "Approve the wider access" "The marker was never written to the record." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: an ask saying 'marker' -> exit 1" || pass "check-ask: an ask saying 'marker' -> exit 1"
+ask_body "Approve the wider access" "The result is Likely correct." "Nothing moves." "Yes | No"
+"$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a hedge in any casing -> exit 1" || pass "check-ask: a hedge in any casing -> exit 1"
+# Swapping the file swaps the rules: proof that nothing is baked into the script.
+jq '.machine_words = ["banana"] | .hedges = ["banana"] | .identifiers = ["ZZZZ-no-such-pattern"] | .artifact_subjects = ["Banana"]' "$DL" > "$SANDBOX/deny-list.json"
+ask_body "Approve the wider access" "The banana was left behind." "Nothing moves." "Yes | No"
+CHECK_ASK_DENY_LIST="$SANDBOX/deny-list.json" "$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a word added to the deny-list file is enforced" || pass "check-ask: a word added to the deny-list file is enforced"
+ask_body "Approve the wider access" "The proof is in #249." "Nothing moves." "Yes | No"
+CHECK_ASK_DENY_LIST="$SANDBOX/deny-list.json" "$CA" "$CAB" >/dev/null 2>&1 && pass "check-ask: a pattern removed from the deny-list file stops being enforced" || fail "check-ask: a pattern removed from the deny-list file stops being enforced"
+ask_body "Approve the wider access" "A plain fact." "Nothing moves." "Yes | No"
+CHECK_ASK_DENY_LIST="$SANDBOX/no-such-deny-list.json" "$CA" "$CAB" >/dev/null 2>&1 && fail "check-ask: a missing deny-list -> exit 1 (fails closed)" || pass "check-ask: a missing deny-list -> exit 1 (fails closed)"
 
 echo "== harvest-ledgers.sh (reverse heredity, janus#38) =="
 HV="$ROOT/scripts/harvest-ledgers.sh"
@@ -728,16 +840,22 @@ PYEOF
     pass "question.yml parses as YAML with a body of labeled fields"
   fi
   EXPECTED_V1=$'Decision\nRecommended choice\nWhy\nIf you do nothing\nReversible?\nNeeded by\nBlocks'
-  EXPECTED_FULL=$'In plain words\nDecision\nOptions\nRecommended choice\nWhy\nIf you do nothing\nReversible?\nNeeded by\nBlocks\nParent goal\nGates signal\nKind'
+  EXPECTED_FULL=$'In plain words\nOptions\nDecision\nRecommended choice\nWhy\nIf you do nothing\nReversible?\nNeeded by\nBlocks\nParent goal\nGates signal\nKind'
   if [ "$Q_LABELS" = "$EXPECTED_FULL" ]; then
-    pass "question.yml labels, in order: In plain words, then Decision, Options, the rest of v1, then Parent goal, Gates signal, Kind"
+    pass "question.yml labels, in order: In plain words, Options, then the 7 v1 headings, then Parent goal, Gates signal, Kind"
   else
-    fail "question.yml label order != In plain words + Decision + Options + v1 + Parent goal/Gates signal/Kind (got: $(echo "$Q_LABELS" | tr '\n' '|'))"
+    fail "question.yml label order != In plain words + Options + v1 + Parent goal/Gates signal/Kind (got: $(echo "$Q_LABELS" | tr '\n' '|'))"
+  fi
+  Q_SECOND=$(echo "$Q_LABELS" | sed -n 2p)
+  if [ "$Q_SECOND" = "Options" ]; then
+    pass "question.yml renders Options second, before Decision (the card's buttons are the second thing filed)"
+  else
+    fail "question.yml second label != Options (got: $Q_SECOND)"
   fi
   # `In plain words` and `Options` are v1.1 additions — the original 7 must
-  # still appear, unrenamed, in their original relative order (they are no
-  # longer required to be contiguous: Options now sits between Decision and
-  # Recommended choice).
+  # still appear, unrenamed, in their original relative order. They are no
+  # longer required to be first: the two lines a card needs (headline and
+  # buttons) are filed ahead of them, and parsers key on heading text.
   V1_SUBSEQ=$(printf '%s\n' "$Q_LABELS" | grep -xF -f <(printf '%s\n' "$EXPECTED_V1"))
   if [ "$V1_SUBSEQ" = "$EXPECTED_V1" ]; then
     pass "question.yml still carries the 7 v1 headings, unrenamed, in original relative order"
@@ -782,6 +900,28 @@ PYEOF
       fail "$tf first label != In plain words (got: $T_FIRST)"
     fi
   done
+
+  # task.yml's v1.1 additions: an optional Parent goal (the Goal graph join)
+  # and the `#### Pass` spelling in the Human check placeholder.
+  T_LABELS=$(python3 - "$ROOT/.github/ISSUE_TEMPLATE/task.yml" <<'PYEOF'
+import sys, yaml
+doc = yaml.safe_load(open(sys.argv[1]))
+for field in doc["body"]:
+    label = field.get("attributes", {}).get("label")
+    if label:
+        print(label)
+PYEOF
+)
+  if printf '%s\n' "$T_LABELS" | grep -qx "Parent goal"; then
+    pass "task.yml carries the optional Parent goal field"
+  else
+    fail "task.yml is missing the Parent goal field (got: $(echo "$T_LABELS" | tr '\n' '|'))"
+  fi
+  if grep -qE '^[[:space:]]*#### Pass[[:space:]]*$' "$ROOT/.github/ISSUE_TEMPLATE/task.yml"; then
+    pass "task.yml Human check placeholder uses the #### Pass heading"
+  else
+    fail "task.yml Human check placeholder does not use '#### Pass'"
+  fi
 fi
 
 echo

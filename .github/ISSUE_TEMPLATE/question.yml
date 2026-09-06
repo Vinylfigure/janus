@@ -12,6 +12,16 @@ body:
     validations:
       required: true
   - type: textarea
+    id: options
+    attributes:
+      label: Options
+      description: 2-4 named answers, one per line, in the operator's own words — these become the card's buttons.
+      placeholder: |
+        Yes, auto-answer after three days
+        No, always wait for me
+    validations:
+      required: true
+  - type: textarea
     id: decision
     attributes:
       label: Decision
@@ -20,16 +30,6 @@ body:
         Should X or Y own Z?
         - X: pro..., con...
         - Y: pro..., con...
-    validations:
-      required: true
-  - type: textarea
-    id: options
-    attributes:
-      label: Options
-      description: 2-4 named answers, one per line, in the operator's own words — these become the card's buttons.
-      placeholder: |
-        Yes, auto-answer after three days
-        No, always wait for me
     validations:
       required: true
   - type: textarea

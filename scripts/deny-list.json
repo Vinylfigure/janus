@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "identifiers": [
+    "#[0-9]+",
+    "[A-Za-z0-9_-]+/[A-Za-z0-9_-]+\\.[A-Za-z0-9]+",
+    "\\.(sh|mjs|ya?ml)[^A-Za-z0-9]",
+    "L-[0-9]",
+    "DL-",
+    "goal/[0-9]",
+    "(contents|pull-requests|issues):"
+  ],
+  "machine_words": [
+    "fixture",
+    "fixtures",
+    "reconcile",
+    "reconciled",
+    "reconciliation",
+    "canonical",
+    "decidable",
+    "machine-decidable",
+    "schema",
+    "drift",
+    "drifted",
+    "marker",
+    "orphan",
+    "orphaned",
+    "sha256",
+    "Drone"
+  ],
+  "hedges": [
+    "may",
+    "might",
+    "probably",
+    "seems",
+    "perhaps",
+    "likely"
+  ],
+  "artifact_subjects": [
+    "This PR",
+    "This pull request",
+    "This issue",
+    "This change",
+    "This record"
+  ]
+}
