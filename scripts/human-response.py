@@ -67,8 +67,8 @@ def parse_response(body):
         raise ValueError('Human response Target number is not safe')
     if values['Max characters'] != '220' or values['Completion'] != 'saved-outcome':
         raise ValueError('Human response requires 220 characters and saved-outcome completion')
-    if 'Repair marker' in values and values['Repair marker'] != 'yes':
-        raise ValueError('Repair marker must be yes or omitted')
+    if 'Repair marker' in values and values['Repair marker'] not in ('yes', 'no'):
+        raise ValueError('Repair marker must be yes, no, or omitted')
     return values
 
 

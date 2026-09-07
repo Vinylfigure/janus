@@ -66,7 +66,7 @@ body:
     id: human-response
     attributes:
       label: Human response
-      description: "Fill only when the operator must write an outcome, not review finished work. File with human-action: and task: labels. Target is the record to edit, independent of Parent goal. Preserve these fields; omit Repair marker unless a missing marker was verified. The explicit Save button records exact wording and verifies it before closure."
+      description: "Fill only when the operator must write an outcome, not review finished work. File with human-action: and task: labels. Target is the record to edit, independent of Parent goal. Preserve these fields; use Repair marker yes only for a verified missing marker; no or omission disallows repair. The explicit Save button records exact wording and verifies it before closure."
       placeholder: |
         Type: write-outcome
         Target: owner/repo#184

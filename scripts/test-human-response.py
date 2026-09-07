@@ -33,8 +33,19 @@ class HumanResponse(unittest.TestCase):
         result = subprocess.run(['python3', str(ROOT / 'scripts/human-response.py'), str(ROOT / 'scripts/fixtures/human-response-write-outcome.md')], capture_output=True, text=True)
         self.assertEqual(result.stdout.strip(), 'write-outcome')
 
+    def test_explicit_no_is_valid_and_never_requests_marker_repair(self):
+        from runpy import run_path
+        parse = run_path(str(ROOT / 'scripts/human-response.py'))['parse_response']
+        for value in ('yes', 'no'):
+            body = FIXTURE.replace('Repair marker: yes', 'Repair marker: ' + value)
+            self.assertEqual(self.run_body(body).returncode, 0)
+            self.assertEqual(parse(body)['Repair marker'], value)
+        omitted = FIXTURE.replace('Repair marker: yes\n', '')
+        self.assertNotIn('Repair marker', parse(omitted))
+        self.assertEqual(self.run_body(omitted).returncode, 0)
+
     def test_invalid_and_ambiguous_declarations_are_rejected(self):
-        for old, new in [('Target: Vinylfigure/overlord#184', 'Target: #184'), ('Max characters: 220', 'Max characters: 221'), ('Field: Outcome', 'Field: Body'), ('Completion: saved-outcome', 'Completion: accepted-result'), ('Type: write-outcome', 'Type: review'), ('Repair marker: yes', 'Repair marker: no'), ('Type: write-outcome', 'Type: write-outcome\nType: write-outcome')]:
+        for old, new in [('Target: Vinylfigure/overlord#184', 'Target: #184'), ('Max characters: 220', 'Max characters: 221'), ('Field: Outcome', 'Field: Body'), ('Completion: saved-outcome', 'Completion: accepted-result'), ('Type: write-outcome', 'Type: review'), ('Repair marker: yes', 'Repair marker: maybe'), ('Type: write-outcome', 'Type: write-outcome\nType: write-outcome')]:
             with self.subTest(new=new):
                 self.assertNotEqual(self.run_body(FIXTURE.replace(old, new)).returncode, 0)
         duplicated = FIXTURE.replace('### Parent goal', '### Human response\nType: write-outcome\n\n### Parent goal')

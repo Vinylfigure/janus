@@ -228,7 +228,8 @@ Max characters: 220
 Completion: saved-outcome
 ```
 
-Only add `Repair marker: yes` after verifying a missing target marker. The
+Only add `Repair marker: yes` after verifying a missing target marker. Explicit
+`Repair marker: no` and omission both disallow repairing the marker. The
 editor must re-read both request and target revisions before acting. This
 metadata supplies bounded semantics; it grants no credentials or execution
 permission. Unknown types, fields, duplicate fields, invalid targets, and
