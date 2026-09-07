@@ -15,6 +15,8 @@ fail() { echo "  FAIL: $1" >&2; FAILS=$((FAILS + 1)); }
 
 command -v jq >/dev/null 2>&1 || { echo "test-hooks.sh requires jq" >&2; exit 1; }
 
+node --test "$ROOT/scripts/effect-policy.test.mjs" "$ROOT/scripts/effect-policy-read.test.mjs" "$ROOT/scripts/policy-approval.test.mjs" "$ROOT/scripts/weekly-learning.test.mjs" || fail "policy and weekly learning tests"
+
 echo "== static checks =="
 for f in "$ROOT"/.claude/hooks/*.sh "$ROOT"/scripts/*.sh; do
   if bash -n "$f" 2>/dev/null; then pass "bash -n $(basename "$f")"; else fail "bash -n $(basename "$f")"; fi
@@ -512,6 +514,7 @@ printf '### In plain words\nReview the delivered change.\n### Human check\n#### 
 printf '### In plain words\nCreate the connection.\n### Done means\nThe connection works.\n' > "$CRRB"
 "$CRR" "$CRRB" --ready-for-review >/dev/null 2>&1 && fail "review readiness: ordinary work is not a delivered review" || pass "review readiness: ordinary work is not a delivered review"
 
+python3 "$ROOT/scripts/test-human-response.py" && pass "human responses: typed writing requests cannot become review or worker work" || fail "human responses: typed request contract"
 python3 "$ROOT/scripts/test-review-request.py" && pass "review producer: source-bound delivery transitions" || fail "review producer: source-bound delivery transitions"
 
 echo "== check-ask.sh (the recorded ask, self-test on fixtures) =="
@@ -890,6 +893,7 @@ git init -q -b main "$MG" 2>/dev/null || git init -q "$MG"
 git -C "$MG" config user.email t@t
 git -C "$MG" config user.name t
 cp "$ROOT/scripts/check-machinery-gate.sh" "$MG/scripts/check-machinery-gate.sh"
+cp "$ROOT/scripts/effect-policy.mjs" "$ROOT/scripts/effect-policy-cli.mjs" "$ROOT/scripts/effect-policy-read.mjs" "$ROOT/scripts/policy-approval.mjs" "$MG/scripts/"
 printf 'pass "alpha holds"\nfail "alpha holds"\npass "beta holds"\nfail "beta holds"\n' > "$MG/scripts/test-hooks.sh"
 printf 'name: ci\n' > "$MG/.github/workflows/ci.yml"
 printf 'echo hi\n' > "$MG/scripts/helper.sh"
@@ -910,15 +914,15 @@ out=$(mg_run); rc=$?
 printf 'pass "alpha holds"\nfail "alpha holds"\npass "beta holds"\nfail "beta holds"\npass "gamma holds"\nfail "gamma holds"\n' > "$MG/scripts/test-hooks.sh"
 git -C "$MG" add -A >/dev/null && git -C "$MG" commit -qm additive
 out=$(mg_run); rc=$?
-[ "$rc" -eq 0 ] && pass "machinery gate: assertion added -> exit 0" || fail "machinery gate: assertion added -> exit 0 (rc=$rc, out=$out)"
-echo "$out" | grep -q "additive change, allowed" && pass "machinery gate: additive change is named in the output" || fail "machinery gate: additive change is named in the output (got: $out)"
+[ "$rc" -eq 1 ] && pass "machinery gate: executable assertion additions require effect review" || fail "machinery gate: executable assertion additions must hold (rc=$rc, out=$out)"
+echo "$out" | grep -q "unclassified-machinery-change" && pass "machinery gate: unclassified effect is named in the output" || fail "machinery gate: unclassified effect is named in the output (got: $out)"
 
 # 3. assertion removed -> blocked
 printf 'pass "alpha holds"\nfail "alpha holds"\n' > "$MG/scripts/test-hooks.sh"
 git -C "$MG" add -A >/dev/null && git -C "$MG" commit -qm weaken
 out=$(mg_run); rc=$?
 [ "$rc" -eq 1 ] && pass "machinery gate: assertion removed -> exit 1" || fail "machinery gate: assertion removed -> exit 1 (rc=$rc, out=$out)"
-echo "$out" | grep -q 'assertion removed.*beta holds' && pass "machinery gate: names the removed assertion" || fail "machinery gate: names the removed assertion (got: $out)"
+echo "$out" | grep -q 'unclassified-machinery-change' && pass "machinery gate: names the unclassified executable effect" || fail "machinery gate: names the unclassified executable effect (got: $out)"
 
 # 4. workflow modified -> blocked even with no assertion loss
 git -C "$MG" reset -q --hard "$BASE_SHA"

@@ -26,8 +26,8 @@ DEST="${1:-}"
 [ -n "$DEST" ] || { echo "usage: vendor-grammar.sh <consumer-checkout>"; exit 64; }
 [ -d "$DEST" ] || { echo "no such checkout: $DEST"; exit 64; }
 
-OWNED="card-grammar.json deny-list.json check-record.sh check-ask.sh"
-FIXTURES="ask-pass.md ask-fail-hedges.md ask-fail-names-a-script.md ask-fail-subject-is-the-artifact.md"
+OWNED="card-grammar.json deny-list.json check-record.sh check-ask.sh human-response.py"
+FIXTURES="human-response-write-outcome.md ask-pass.md ask-fail-hedges.md ask-fail-names-a-script.md ask-fail-subject-is-the-artifact.md"
 
 mkdir -p "$DEST/scripts/fixtures" || exit 1
 

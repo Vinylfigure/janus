@@ -56,3 +56,23 @@ loops:
     allowed_tools: []
     owner: Vinylfigure
     notes: "dashboard + aging ladder + branch-without-PR detector; detect-only reconciliation of this manifest"
+
+  - name: weekly-learning
+    schedule: "47 9 * * 1"
+    driver: github-action
+    workflow: weekly-learning.yml
+    enabled: true
+    armed_by: "merging weekly-learning.yml installs the Monday 09:47 UTC schedule"
+    allowed_tools: []
+    owner: Vinylfigure
+    notes: "Separate child-ledger harvest and one bounded implementation task; ordinary work-loop remains paused. FLEET_TOKEN must read configured children and write Janus runtime/tasks as a User. Missing access is failed/partial coverage, never healthy empty."
+
+  - name: auto-merge
+    schedule: "29 */6 * * *"
+    driver: github-action
+    workflow: auto-merge.yml
+    enabled: true
+    armed_by: "merging the versioned repo-scoped shared policy arm"
+    allowed_tools: []
+    owner: Vinylfigure
+    notes: "Merge only current verified ordinary changes or exactly authorized protected effects; no dispatch and no human verdicts."

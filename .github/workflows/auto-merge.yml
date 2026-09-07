@@ -1,0 +1,71 @@
+name: auto-merge
+
+# The merge arm (docs/MERGE-POLICY.md, DL-2026-08-25-merge-boundary):
+# maintenance-grade PRs in this repo build and merge themselves; Intent-tier
+# work and operator-boundary files never do. Runs on Actions for the same
+# reason the watchdog does — no model, no permission prompts, nothing to
+# deadlock — and the boundary lives in scripts/auto-merge.sh, not in this
+# token. Every act and every skip is a report line in the run log; the
+# script exits non-zero only when a RUN-LEVEL read failed (open-PR list,
+# label set, human-check list), so an outage is a red run, never "nothing
+# to do".
+#
+# The three read scopes: `gh pr checks` reads statusCheckRollup and each
+# check suite's workflowRun, and one denied field fails the whole query —
+# without checks:/statuses:/actions: read the token sees NO checks, every
+# PR reports "checks not all green", and the arm merges nothing while its
+# fixtures stay green (overlord-ui fleet-status.yml, 2026-09-02; #275 F14).
+# The probe step turns that failure into a red run with the reason.
+#
+# The Goal evaluator and outcome sweep no longer ride this cron: the armed
+# evaluator runs from goal-evaluate.yml under FLEET_TOKEN, and the sweep's
+# dry run is that workflow's second job (#275 PR-4). Hence no `issues: write`.
+# `issues: read` stays: the engine lists open `human-check:` issues once per
+# run (MERGE-POLICY rule 3), and a `permissions:` block that omits `issues`
+# sets it to none — #282 dropped it with the write scope, and every PR was
+# held on "could not list open human-check: issues (HTTP 403)" from the next
+# firing on (#288; runs 33601983164, 33624913529).
+
+on:
+  schedule:
+    - cron: "29 */6 * * *"   # never :00 — GitHub cron delay peaks on the hour
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read     # the open human-check: listing — a run-level read; 403 holds every PR (#288)
+  checks: read     # gh pr checks reads statusCheckRollup; without it the token sees no checks
+  statuses: read
+  actions: read    # gh pr checks also asks checkSuite.workflowRun; one denied field fails the whole query
+
+concurrency:
+  group: auto-merge
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      # Capability canary: can this token see checks at all? Exits 1 with the
+      # reason when it cannot, so the failure is a red run instead of an
+      # inferred skip. Guarded so an engine without --probe (an older body)
+      # is never run unflagged — the old engine treated an unknown flag as a
+      # full armed pass.
+      - name: Probe — can this token see checks?
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if grep -q -- '--probe' scripts/auto-merge.sh; then
+            ./scripts/auto-merge.sh --probe
+          else
+            echo "auto-merge: this engine has no --probe mode yet; skipping the canary" >&2
+          fi
+      - name: Merge qualifying PRs, request rebases on conflicting ones
+        id: merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Read-only selected-repository credential; used only by execution-gate.
+          EXECUTION_SOURCE_TOKEN: ${{ secrets.EXECUTION_SOURCE_TOKEN }}
+        run: ./scripts/auto-merge.sh

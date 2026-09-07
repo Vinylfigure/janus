@@ -1,0 +1,27 @@
+name: weekly-learning
+
+# Distinct from the intentionally paused ordinary Janus work-loop.
+on:
+  schedule:
+    - cron: "47 9 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: weekly-learning
+  cancel-in-progress: false
+jobs:
+  learn:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Harvest or resume one verified improvement
+        env:
+          # Existing user credential is necessary to trigger the issue channel.
+          # It reads registered child ledgers and writes only Janus runtime/tasks.
+          GH_TOKEN: ${{ secrets.FLEET_TOKEN }}
+        run: node scripts/weekly-learning-cli.mjs --write

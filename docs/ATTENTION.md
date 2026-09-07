@@ -113,7 +113,7 @@ firings is the operator's veto window.
 
 Every `inbox:`, `task:`, and `question:` issue form opens with a required
 `### In plain words` heading: one sentence, in the operator's own words,
-stating what is being asked or what becomes true — no ids, file paths,
+stating what is being asked or what becomes true — no file paths,
 backticks, or protocol nouns, 80 characters or fewer and 12 words or fewer.
 A `question:`'s line is the question itself, asked, so it ends with `?`.
 This is an ADDITION
@@ -202,7 +202,7 @@ explored options is an unfinished exploration, not a decision request.
 are required at filing, the rest are optional and additive:
 
 `In plain words` · `Done means` · `Discovered from` · `Blocked by` ·
-`Parent goal` · `Human check` · `Priority`
+`Parent goal` · `Human check` · `Human response` · `Priority`
 
 `Parent goal` is additive v1.1 and optional: `goal/<n>`, the same reference
 form a question uses (`goal/207` anywhere means Vinylfigure/overlord#207).
@@ -210,6 +210,47 @@ It is how a task joins the Goal graph, so a delivered task can be counted
 against the goal it was filed under instead of being read as unattached
 work. A body without it is valid v1; a parser treats its absence as "no
 parent goal", never as an error.
+
+## Human response — a writing request
+
+Use a top-level `### Human response` when the operator must supply their own
+outcome wording. This is distinct from reviewing something already delivered.
+File it with `task:` and `human-action:`; legacy records may still carry
+`human-check:`, but the explicit writing declaration takes precedence. The
+`Parent goal` relation provides background, never the destination of a write.
+
+```text
+### Human response
+Type: write-outcome
+Target: owner/repo#184
+Field: Outcome
+Max characters: 220
+Completion: saved-outcome
+```
+
+Only add `Repair marker: yes` after verifying a missing target marker. Explicit
+`Repair marker: no` and omission both disallow repairing the marker. The
+editor must re-read both request and target revisions before acting. This
+metadata supplies bounded semantics; it grants no credentials or execution
+permission. Unknown types, fields, duplicate fields, invalid targets, and
+unsupported limits fail `check-record.sh`. Any nonempty declaration remains
+human-owned even when malformed. Fenced examples and content below `### Context`
+are background, never declarations. Empty optional form sections are ignored.
+
+The surface shows the simple request, short explanation, linked current target,
+then the user's part beside the text field and its character counter. The
+explicit Save button saves the exact wording. Blank or over-limit text is
+rejected on client and server. Save preserves unrelated target sections and
+original capture, uses the target write lock, retains failed drafts, and writes
+a durable revision receipt. Readback and outcome validation establish completion;
+a generic passed review or green build cannot close this request. Saving never
+approves or activates the target or starts work. Report save and verification
+separately. `scripts/fixtures/human-response-write-outcome.md` is the shared
+regression example; replace identities and source context for each real request.
+
+The 160-character / 28-word request headline caps preserve the action target and
+input constraint. Ordinary headlines retain their existing caps. Necessary issue
+references are allowed. A length limit must never erase what the user must do.
 
 ## Human check — the v1 task section
 
@@ -370,24 +411,23 @@ The six rules:
 
 ## What a card renders
 
-The render contract every control surface inherits, so a card is assembled
-from record fields rather than summarized from prose. Source order is
-first-hit-wins, left to right:
+The card order is stable; its controls follow the declared action, not just a
+label. Writing, deciding, authorizing, reviewing and external tasks remain
+separate. A `human-check:` label alone must not select result-review controls.
 
-| Card line | Rule | Source order |
-|---|---|---|
-| Headline, ≤80 chars | "<subject> is <state now>" — who is stuck, never the artifact | the operator's own wording → `### In your words` → `### In plain words` → newest ask's `Ask:` → a summarizer's guess, marked inferred → the raw title, muted |
-| Your part, 1 line | one verb from the fixed set: Approve / Answer / Do this / Confirm it is done / Close or re-spec / Merge | goal → Approve; question → `### Options`; human check → `### Instruction`; PR → newest ask's verb, else a summarizer's guess, marked |
-| What yes does / cost of nothing, 1 line each | what becomes true, and what stays broken | `### If you do nothing` → newest ask's `If-nothing:` → the hold's consequence → the fixed line for that kind |
-| Buttons | the actions themselves, never a menu | question `### Options` → human check It works / Needs work → newest ask's `Options:` → the fixed set for that kind |
-| Read more, ≤4 facts | statements, each traceable to the record; vocabulary rules above | newest ask's `Because:` lines, then failing checks under their plain-language names |
-| The checks | the check's id translated to its plain meaning | the fleet check glossary, sourced from the workflow files — a raw check id never reaches a card |
+| Card part | Source and behavior |
+|---|---|
+| Title | A plain sentence explaining the request or proposed outcome, preserving its target and essential constraint. |
+| Short explanation | Specific source-backed context needed to understand this request, without repeated generic purpose text. |
+| Your part and controls | `Human response` → input and Save; decision → named options; outcome approval → authorization; delivered `Human check` → artifact and review; external task → actionable instructions and destination. |
+| Consequence | The actual effect of this action. Approval authorizes work; it does not claim execution has started. |
+| More | “What you originally wrote” for original capture, “What this means” for interpretation, “System checks” for detailed evidence, plus connections and history. Show only sourced, relevant sections. |
 
-Two marks are part of the contract, not decoration: a card built from a
-summarizer rather than a stated ask carries "machine guess, not stated by
-the agent", and a held record with no ask at all renders "the agent did not
-say what it needs" as its headline, with "Send it back" as the only action.
-Non-compliance is a visible signal; it is never a plausible headline.
+Cards and Explain use the same request interpretation. Copy generated at authoring
+or refresh is cached against request and target revisions; page rendering does
+not wait for a model. Generated prose cannot establish a write destination or
+permission. Unknown semantics remain visibly incomplete rather than gaining
+plausible but unsupported buttons. Required action context stays above More.
 
 ## Label vocabulary
 
