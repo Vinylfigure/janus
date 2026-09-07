@@ -10,7 +10,12 @@
     "ifNothingChars": 120,
     "optionChars": 30,
     "becauseLines": 3,
-    "options": [2, 4]
+    "options": [
+      2,
+      4
+    ],
+    "requestHeadlineChars": 160,
+    "requestHeadlineWords": 28
   },
   "verbs": [
     "Approve",

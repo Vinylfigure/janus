@@ -27,6 +27,9 @@ MODE="${2:-filing}"
 case "$MODE" in filing|--ready-for-review) ;; *) echo "unknown check mode: $MODE"; exit 64 ;; esac
 [ -f "$BODY_FILE" ] || { echo "not compliant: body file not found: $BODY_FILE"; exit 1; }
 
+# Declared writing actions stay human-owned; never infer their target from a parent.
+response_kind=$(python3 "$(dirname "$0")/human-response.py" "$BODY_FILE" ${MODE/filing/}) || { echo "$response_kind"; exit 1; }
+
 # section <heading> <file> — lines under the first ### heading matching
 # <heading>. The heading form (`### In plain words`) is the only form this
 # repo's templates and skills EMIT. The bold form (`**In plain words:** …`,
@@ -76,6 +79,10 @@ json_number() { # json_number <key> <file> — the integer value of "<key>": N
 
 HEADLINE_CHARS=$(json_number headlineChars "$GRAMMAR_FILE")
 HEADLINE_WORDS=$(json_number headlineWords "$GRAMMAR_FILE")
+if [ "$response_kind" = write-outcome ]; then
+  HEADLINE_CHARS=$(json_number requestHeadlineChars "$GRAMMAR_FILE")
+  HEADLINE_WORDS=$(json_number requestHeadlineWords "$GRAMMAR_FILE")
+fi
 for cap_name in HEADLINE_CHARS HEADLINE_WORDS; do
   eval "cap_value=\$$cap_name"
   case "$cap_value" in

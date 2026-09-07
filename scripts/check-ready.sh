@@ -47,6 +47,7 @@ has_task=0
 for l in "$@"; do
   case "$l" in
     "task:") has_task=1 ;;
+    "human-action:") echo "not ready: carries human-action: — waiting on the operator"; exit 1 ;;
     "question:")    echo "not ready: carries question: — blocked on an operator decision"; exit 1 ;;
     "loop:hold")    echo "not ready: carries loop:hold — intentionally paused"; exit 1 ;;
     "inbox:")       echo "not ready: carries inbox: — a thought awaiting triage, not a spec"; exit 1 ;;
@@ -63,6 +64,15 @@ fi
 
 if [ -n "$BODY_FILE" ]; then
   [ -f "$BODY_FILE" ] || { echo "not ready: body file not found: $BODY_FILE"; exit 1; }
+  [ -f "$(dirname "$0")/human-response.py" ] || { echo "not ready: Human response reader unavailable"; exit 1; }
+  command -v python3 >/dev/null 2>&1 || { echo "not ready: Human response reader unavailable"; exit 1; }
+  python3 "$(dirname "$0")/human-response.py" "$BODY_FILE" --present
+  response_status=$?
+  case "$response_status" in
+    0) echo "not ready: Human response is waiting on the operator's wording"; exit 1 ;;
+    1) ;; # No declared writing request.
+    *) echo "not ready: Human response could not be read"; exit 1 ;;
+  esac
   grep -qiE '^#+[[:space:]]*Done means' "$BODY_FILE" \
     || { echo "not ready: body carries no 'Done means' heading — a task without a done-means is not ready"; exit 1; }
 fi

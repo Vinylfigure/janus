@@ -54,6 +54,7 @@ if [ "$DRY" -eq 0 ]; then
   gh label create "overdue"   --force --color b60205 --description ">7 days without a response"                      >/dev/null 2>&1 || true
   gh label create "dashboard" --force --color 0e8a16 --description "the regenerated status dashboard issue"          >/dev/null 2>&1 || true
   gh label create "inbox:"    --force --color c5def5 --description "a thought, not a spec — triaged, never consumed" >/dev/null 2>&1 || true
+  gh label create "human-action:" --force --color e99695 --description "the operator must write or act before work continues" >/dev/null 2>&1 || true
   gh label create "human-check:" --force --color e99695 --description "operator's eyes required before merge"        >/dev/null 2>&1 || true
   gh label create "janus:v1"  --force --color 0052cc --description "Janus Human Attention Protocol v1 (docs/ATTENTION.md)" >/dev/null 2>&1 || true
 fi
@@ -207,7 +208,7 @@ while read -r num labels; do
   [ -n "$num" ] || continue
   reason=""
   case " $labels " in
-    *" question: "*|*" loop:hold "*|*" inbox: "*|*" human-check: "*|*" intent: "*)
+    *" question: "*|*" loop:hold "*|*" inbox: "*|*" human-check: "*|*" human-action: "*|*" intent: "*)
       reason="labels: $labels" ;;
   esac
   if [ -z "$reason" ] && is_working "$num"; then

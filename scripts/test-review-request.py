@@ -58,7 +58,9 @@ class ProducerTests(unittest.TestCase):
         self.tmp.cleanup()
 
     def run_request(self, write=False, **extra):
-        args = [str(ROOT / "scripts/request-human-check.sh"), "--repo", "o/app", "--issue", "1", "--source-version", VERSION, "--evidence", "https://github.com/o/app/actions/runs/7"]
+        current = json.loads((self.root / "issue.json").read_text())
+        current_version = hashlib.sha256(json.dumps([current["title"], current["body"]], separators=(",", ":")).encode()).hexdigest()
+        args = [str(ROOT / "scripts/request-human-check.sh"), "--repo", "o/app", "--issue", "1", "--source-version", current_version, "--evidence", "https://github.com/o/app/actions/runs/7"]
         return subprocess.run(args + (["--write"] if write else []), text=True, capture_output=True,
                               env={**os.environ, "PATH": f"{self.root}:{os.environ['PATH']}", "REVIEW_FIXTURE": str(self.root), **extra})
 
@@ -68,6 +70,17 @@ class ProducerTests(unittest.TestCase):
     def test_dry_run_has_no_writes(self):
         result = self.run_request()
         self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.state()["writes"], [])
+
+    def test_writing_request_with_legacy_review_fields_never_requests_review(self):
+        issue = dict(ISSUE)
+        writing = (ROOT / "scripts/fixtures/human-response-write-outcome.md").read_text()
+        declaration = writing.split("### Human response\n")[1].split("### Done means")[0]
+        issue["body"] += "\n### Human response\n" + declaration
+        (self.root / "issue.json").write_text(json.dumps(issue))
+        result = self.run_request(write=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("writing request is not a delivered result review", result.stdout)
         self.assertEqual(self.state()["writes"], [])
 
     def test_receipt_precedes_label_and_retry_reuses_it(self):

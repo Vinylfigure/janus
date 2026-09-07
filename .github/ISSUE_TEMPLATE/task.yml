@@ -7,7 +7,7 @@ body:
     id: in-plain-words
     attributes:
       label: In plain words
-      description: One sentence, in the operator's own words — what becomes true when this ships. No ids, file paths, backticks, or protocol nouns. 80 characters or fewer, 12 words or fewer, one sentence. A control surface renders this as the card headline; without it the card shows muted, "not yet in plain words".
+      description: One sentence, in the operator's own words — what becomes true when this ships. No file paths, backticks, or protocol nouns; a necessary issue reference is allowed. 80 characters or fewer, 12 words or fewer, one sentence; an explicit Human response request may use 160 characters and 28 words to retain its target and input constraint. A control surface renders this as the card headline; without it the card shows muted, "not yet in plain words".
       placeholder: "The app opens in under two seconds and switching views is instant."
     validations:
       required: true
@@ -60,6 +60,19 @@ body:
 
         #### Pass
         what the operator must observe for this to pass
+    validations:
+      required: false
+  - type: textarea
+    id: human-response
+    attributes:
+      label: Human response
+      description: "Fill only when the operator must write an outcome, not review finished work. File with human-action: and task: labels. Target is the record to edit, independent of Parent goal. Preserve these fields; omit Repair marker unless a missing marker was verified. The explicit Save button records exact wording and verifies it before closure."
+      placeholder: |
+        Type: write-outcome
+        Target: owner/repo#184
+        Field: Outcome
+        Max characters: 220
+        Completion: saved-outcome
     validations:
       required: false
   - type: dropdown

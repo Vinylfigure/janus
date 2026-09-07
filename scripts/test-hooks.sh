@@ -512,6 +512,7 @@ printf '### In plain words\nReview the delivered change.\n### Human check\n#### 
 printf '### In plain words\nCreate the connection.\n### Done means\nThe connection works.\n' > "$CRRB"
 "$CRR" "$CRRB" --ready-for-review >/dev/null 2>&1 && fail "review readiness: ordinary work is not a delivered review" || pass "review readiness: ordinary work is not a delivered review"
 
+python3 "$ROOT/scripts/test-human-response.py" && pass "human responses: typed writing requests cannot become review or worker work" || fail "human responses: typed request contract"
 python3 "$ROOT/scripts/test-review-request.py" && pass "review producer: source-bound delivery transitions" || fail "review producer: source-bound delivery transitions"
 
 echo "== check-ask.sh (the recorded ask, self-test on fixtures) =="
