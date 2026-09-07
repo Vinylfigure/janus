@@ -114,7 +114,9 @@ firings is the operator's veto window.
 Every `inbox:`, `task:`, and `question:` issue form opens with a required
 `### In plain words` heading: one sentence, in the operator's own words,
 stating what is being asked or what becomes true — no ids, file paths,
-backticks, or protocol nouns, 160 characters or fewer. This is an ADDITION
+backticks, or protocol nouns, 80 characters or fewer and 12 words or fewer.
+A `question:`'s line is the question itself, asked, so it ends with `?`.
+This is an ADDITION
 to the v1 body API, not a rename: every existing heading string in this
 document stays byte-identical, so a body written under the original
 protocol is still fully valid v1 (the heading is simply absent, and a
@@ -129,6 +131,18 @@ a body already on the record cannot be rewritten, and a surface that failed
 to read it would silently mute a card that does have a plain line. Nothing
 emits it. The same rule holds for every heading in this document: one
 spelling out, every spelling ever shipped in.
+
+**One cap, one file.** The caps are not typed into any check: they live in
+`scripts/card-grammar.json` — line 1 of every record's plain words is 80
+characters, 12 words, and one sentence, and the recorded ask's own caps sit
+beside it. `check-record.sh` and `check-ask.sh` read that file rather than
+carrying the numbers, overlord's Goal and Intent checks read
+their vendored copy of it, and overlord-ui's renderer imports it, so the
+number the filer is held to and the number the card clips at cannot be two
+different numbers. The rule is the deny-list's rule, for the deny-list's
+reason: `scripts/vendor-grammar.sh <consumer>` copies the grammar, the
+vocabulary list and both gates into a consumer by content and re-pins the
+hashes; a cap change is a change to this file and the copies follow.
 
 The reading contract: a control surface renders `### In plain words`
 verbatim as the card's headline. When it is absent, the surface falls back
@@ -292,9 +306,9 @@ infer. A session that parks work for the operator posts one comment:
 <!-- janus:ask:v1 -->
 Ask: <one line, ≤80 chars, opening with a verb from the fixed set>
 Because:
-- <fact, ≤140 chars>
-- <fact, ≤140 chars>            (1–3 lines)
-If-nothing: <one line, ≤140 chars>
+- <fact, ≤120 chars>
+- <fact, ≤120 chars>            (1–3 lines)
+If-nothing: <one line, ≤120 chars>
 Options: <Name A> | <Name B> [| <Name C> | <Name D>]   (2–4 names, ≤30 chars each)
 Supersedes: <the previous ask's comment id on this record, or none>
 Source-revision: <head sha for a PR, or the record's updated_at timestamp>
