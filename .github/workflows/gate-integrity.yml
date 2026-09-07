@@ -1,44 +1,43 @@
 name: gate-integrity
 
-# The seatbelt: a PR that modifies a workflow, REMOVES an assertion from the
-# fixture suite, or deletes a hook/script fixture must carry the
-# `machinery-change` label. Adding assertions is allowed unlabelled — that is
-# the normal case for any PR that adds a skill, hook, agent, or script, and
-# blocking it made the gate fire on good work. The rule engine lives in
-# scripts/check-machinery-gate.sh so it can be fixture-tested.
-#
-# The label remains the declared escape hatch, and it is operator-controlled:
-# CODEOWNERS routes /.github/ and /scripts/ to the operator, so waiving the
-# gate is always a deliberate human act.
-
+# Runs only the trusted default-branch policy. Candidate code never executes.
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened, labeled, unlabeled]
-
+  issue_comment:
+    types: [created, edited]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number to recheck after a native review
+        required: true
 permissions:
   contents: read
-
+  pull-requests: read
+  issues: read
 concurrency:
-  group: gate-integrity-${{ github.ref }}
+  group: gate-integrity-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr }}
   cancel-in-progress: true
-
 jobs:
   seatbelt:
+    if: github.event_name != 'issue_comment' || github.event.issue.pull_request
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-      - name: Check machinery paths against the machinery-change label
+          ref: ${{ github.event.repository.default_branch }}
+          path: trusted-policy
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Classify effects and verify current human authorization
         env:
-          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
-          BASE_REF: ${{ github.base_ref }}
+          GH_TOKEN: ${{ github.token }}
+          POLICY_REPO: ${{ github.repository }}
+          POLICY_PR: ${{ github.event.pull_request.number || github.event.issue.number || inputs.pr }}
+          POLICY_OPERATOR_IDS: ${{ vars.POLICY_OPERATOR_IDS }}
         run: |
-          case ",$LABELS," in
-            *,machinery-change,*)
-              echo "machinery-change label present — gate waived by the operator"
-              exit 0 ;;
-          esac
-          git fetch --quiet origin "$BASE_REF"
-          exec ./scripts/check-machinery-gate.sh "origin/$BASE_REF"
+          case "$POLICY_PR" in ''|*[!0-9]*) exit 1 ;; esac
+          POLICY_HEAD=$(gh api "repos/$POLICY_REPO/pulls/$POLICY_PR" --jq .head.sha)
+          node trusted-policy/scripts/effect-policy-cli.mjs --repo="$POLICY_REPO" --pr="$POLICY_PR" --head="$POLICY_HEAD"

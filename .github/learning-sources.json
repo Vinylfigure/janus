@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "repositories": ["Vinylfigure/overlord", "Vinylfigure/overlord-ui", "Vinylfigure/aegis-sentinel", "Vinylfigure/intent-ide", "Vinylfigure/job-search", "Vinylfigure/Plutus", "Vinylfigure/drifthaven"],
+  "ledgerPaths": [".claude/memory/LEARNINGS.md", "docs/LEARNINGS.md"],
+  "loop": {"name":"weekly-learning","driver":"github-action","workflow":"weekly-learning.yml","enabled":true,"schedule":"47 9 * * 1","allowedTools":[]}
+}

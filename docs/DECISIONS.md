@@ -42,3 +42,9 @@ new entry that cites the superseded ID — never by editing history.
   transitions. Readers of a future v2 must tolerate v1, and migration never
   silently alters an unresolved human decision. Full text: docs/ATTENTION.md.
 - Supersedes: none.
+
+## DL-2026-09-07-weekly-learning · A separate weekly implementation pipeline
+
+- Decided by: operator, actionable cards follow-up plan decisions.
+- Decision: keep the ordinary Janus work-loop paused. A distinct Monday 09:47 UTC child-ledger harvest validates evidence and delivers one bounded improvement through a PR under the shared effect policy, resuming an existing operation first. Generic recalibrate remains candidate-only. Product and authority decisions remain human-owned.
+- Supersedes: no standing work-loop pause; adds the implementation owner after DL-001 harvest discovery.
