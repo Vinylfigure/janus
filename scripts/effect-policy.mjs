@@ -43,8 +43,8 @@ function cronEffect(file) {
   if(texts[0].replace(pattern,'<schedule>')!==texts[1].replace(pattern,'<schedule>'))return null;
   return record('schedule-changed',file.path,matches[0][0][3],matches[1][0][3]);
 }
-export function classifyEffects({files, complete=true, authorityPaths=[]}) {
-  if(!complete||!Array.isArray(files)||!files.length)return {verdict:'unknown',effects:[],reasons:['Complete changed-file evidence is required.']};
+export function classifyEffects({files, complete=true, authorityPaths=[],incompleteReason}) {
+  if(!complete||!Array.isArray(files)||!files.length)return {verdict:'unknown',effects:[],reasons:[incompleteReason??'Complete changed-file evidence is required.']};
   const effects=[],reasons=[];let verdict='allow';
   const hold=(kind,reason)=>{if(verdict!=='protected'||kind==='protected')verdict=kind;reasons.push(reason);};
   for(const f of files){

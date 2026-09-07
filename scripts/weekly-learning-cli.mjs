@@ -1,6 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-import {runWeekly,GitHubRuntime,harvest} from './weekly-learning.mjs';
+import {runWeekly,GitHubRuntime,harvest,weeklyConfigurationRevision,closesTask} from './weekly-learning.mjs';
 const digest=v=>createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const repo=(process.env.GITHUB_REPOSITORY??'Vinylfigure/janus').toLowerCase();
 const token=process.env.GH_TOKEN;const write=process.argv.includes('--write');
@@ -15,7 +15,7 @@ async function list(path){const out=[];for(let page=1;;page++){const batch=await
 const metadata=await api('GET',`/repos/${repo}`);
 const revision=process.env.GITHUB_SHA??(await api('GET',`/repos/${repo}/commits/${metadata.default_branch}`)).sha;
 const workflow=await api('GET',`/repos/${repo}/contents/.github/workflows/weekly-learning.yml?ref=${revision}`);
-const configurationRevision=digest({...config.loop,workflowRevision:workflow.sha});
+const configurationRevision=weeklyConfigurationRevision(config.loop,workflow.sha);
 const resource=`${repo}/github-action/weekly-learning.yml`;
 const client={
  async ownLedger(){const f=await api('GET',`/repos/${repo}/contents/.claude/memory/LEARNINGS.md?ref=${revision}`);if(f.encoding!=='base64')throw Error('Template ledger unavailable');return Buffer.from(f.content,'base64').toString('utf8');},
@@ -32,7 +32,7 @@ const client={
    const pulls=(await list(`/repos/${repo}/pulls?state=all`)).filter(p=>(p.body??'').split('\n').includes(`Weekly-operation: ${op.id}`));
    if(pulls.length>1)throw Error('Multiple PRs for one improvement require reconciliation');
    if(!pulls.length)return {complete:false};
-   const pull=await api('GET',`/repos/${repo}/pulls/${pulls[0].number}`);if(!new RegExp(`(?:Closes|Fixes|Resolves) #${task.number}(?:\\s|$)`).test(pull.body??'')||!pull.merged||!pull.merge_commit_sha)return {complete:false};
+   const pull=await api('GET',`/repos/${repo}/pulls/${pulls[0].number}`);if(!closesTask(pull.body,task.number)||!pull.merged||!pull.merge_commit_sha)return {complete:false};
    const checks=await api('GET',`/repos/${repo}/commits/${pull.merge_commit_sha}/check-runs?per_page=100`);
    if(!Array.isArray(checks.check_runs)||checks.total_count!==checks.check_runs.length||!checks.check_runs.length)return {complete:false};
    return {complete:checks.check_runs.some(c=>c.name==='hook-tests')&&checks.check_runs.every(c=>c.status==='completed'&&c.conclusion==='success')};

@@ -2,6 +2,8 @@
 import {createHash} from 'node:crypto';
 import {GitHubRuntime,claim,owned,release,transact} from './weekly-runtime.mjs';
 const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
+export function weeklyConfigurationRevision(loop,workflowRevision) { return hash({name:loop.name,driver:loop.driver,workflow:loop.workflow,enabled:loop.enabled,schedule:loop.schedule,skill:loop.skill??'',allowedTools:loop.allowedTools??[],workflowRevision}); }
+export function closesTask(body,number) { return new RegExp(`(?:Closes|Fixes|Resolves) #${number}(?:\\s|$)`).test(body??''); }
 export function observations(repo,revision,text) {
   const result=[];
   for(const chunk of text.split(/(?=^## L-)/m)){

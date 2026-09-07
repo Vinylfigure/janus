@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {runWeekly,harvest} from './weekly-learning.mjs';
+import {runWeekly,harvest,weeklyConfigurationRevision,closesTask} from './weekly-learning.mjs';
 const ledger=(origin='incident-1')=>`## L-001 · 2026-09-07 · A learning\n- Scope: portable\n- Status: candidate\n- Rule: Check a source before changing behavior.\n- Trigger: A reproduced failure at https://github.com/o/child/issues/1\n- Origin: ${origin}\n`;
 class Store{constructor(){this.n=0;this.state={version:1,generations:{},leases:{},operations:{}};}async read(){return {sha:this.n,state:structuredClone(this.state)};}async compareAndSwap(expected,state){if(expected!==this.n)return false;this.state=structuredClone(state);this.n++;return true;}}
 function setup(){const store=new Store(),tasks=[],pulses=[];let creates=0;
@@ -39,4 +39,18 @@ test('healthy empty writes only execution receipt; missing coverage never report
 });
 test('the template title filter retains the existing harvest behavior',()=>{
  assert.equal(harvest([{repo:'o/child',revision:'a',body:ledger()}],{},ledger()).candidates.length,0);
+});
+
+test('pulse configuration hash matches Harness canonical empty fields and key ordering',async()=>{
+ const {createHash}=await import('node:crypto');
+ const loop={name:'weekly-learning',driver:'github-action',workflow:'weekly-learning.yml',enabled:true,schedule:'47 9 * * 1',allowedTools:[]};
+ const expected=createHash('sha256').update(JSON.stringify({name:loop.name,driver:loop.driver,workflow:loop.workflow,enabled:loop.enabled,schedule:loop.schedule,skill:'',allowedTools:[],workflowRevision:'blob'})).digest('hex');
+ assert.equal(weeklyConfigurationRevision(loop,'blob'),expected);
+ assert.equal(weeklyConfigurationRevision({...loop,skill:''},'blob'),expected);
+ assert.notEqual(weeklyConfigurationRevision(loop,'another-blob'),expected);
+});
+test('carrier PR names exactly the delivered task including newline-delimited references',()=>{
+ assert.equal(closesTask('Weekly-operation: x\nCloses #12\nEvidence follows',12),true);
+ assert.equal(closesTask('Closes #123',12),false);
+ assert.equal(closesTask('Related to #12',12),false);
 });
