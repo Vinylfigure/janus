@@ -15,6 +15,7 @@ permissions:
   contents: read
   pull-requests: read
   issues: read
+  statuses: write
 concurrency:
   group: gate-integrity-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr }}
   cancel-in-progress: true
@@ -40,4 +41,11 @@ jobs:
         run: |
           case "$POLICY_PR" in ''|*[!0-9]*) exit 1 ;; esac
           POLICY_HEAD=$(gh api "repos/$POLICY_REPO/pulls/$POLICY_PR" --jq .head.sha)
-          node trusted-policy/scripts/effect-policy-cli.mjs --repo="$POLICY_REPO" --pr="$POLICY_PR" --head="$POLICY_HEAD"
+          POLICY_RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          gh api --method POST "repos/$POLICY_REPO/statuses/$POLICY_HEAD" -f state=pending -f context=effect-policy -f description="Checking the current change and authorization" -f target_url="$POLICY_RUN_URL"
+          POLICY_STATE=failure
+          if node trusted-policy/scripts/effect-policy-cli.mjs --repo="$POLICY_REPO" --pr="$POLICY_PR" --head="$POLICY_HEAD"; then
+            POLICY_STATE=success
+          fi
+          gh api --method POST "repos/$POLICY_REPO/statuses/$POLICY_HEAD" -f state="$POLICY_STATE" -f context=effect-policy -f description="Current revision effect policy evaluated" -f target_url="$POLICY_RUN_URL"
+          test "$POLICY_STATE" = success

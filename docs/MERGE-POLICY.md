@@ -158,3 +158,14 @@ The app must not advertise a revoke control for this channel. Changed revision
 bindings invalidate approvals, and existing human holds still stop the merger.
 A future revoke action requires a separate trusted monotonic active-authorization
 store; replayable comment ordering is insufficient.
+
+## Required check migration
+
+The trusted gate publishes commit status `effect-policy` to the evaluated PR
+head. Its target URL identifies the actual trusted gate-integrity workflow run.
+Branch rules must replace the former `seatbelt` / `gate-integrity` job context
+with `effect-policy` where that old context is required. This repository-setting
+change is an explicit external setup step; these commits do not change rulesets.
+The workflow uses statuses:write solely to publish its bound result and never
+runs candidate code. A status is an observation, not approval: the merger still
+recomputes effects and verifies the full current authorization before merging.
