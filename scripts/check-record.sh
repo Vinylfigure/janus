@@ -128,6 +128,28 @@ if grep -qE '^#+[[:space:]]*Recommended choice' "$BODY_FILE"; then
     || { echo "not compliant: question needs '### Options' with 2-4 named answers (found $n)"; exit 1; }
 fi
 
+# A blocker is a dependency, never an ancestor (docs/ATTENTION.md, "Dependencies
+# are explicit"): a task whose `### Blocked by` names its own `### Parent goal`
+# or `### Parent intent` waits on a record that closes only after the task
+# itself — a self-deadlock that read as "Blocked" on the operator's screen for
+# a week (overlord-ui#187/#188/#201). Refs compared as owner/repo#N; `goal/N`
+# resolves to the Goal's home repo, and a bare `#N` is the body's own repo, so
+# it can never equal a qualified parent and passes through.
+blocked_by=$(section "Blocked by" "$BODY_FILE")
+if [ -n "$blocked_by" ]; then
+  parents=$( { section "Parent goal" "$BODY_FILE"; section "Parent intent" "$BODY_FILE"; } \
+    | grep -oiE '([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]+|goal/[0-9]+)' \
+    | sed -E 's#^goal/#Vinylfigure/overlord\##' | tr 'A-Z' 'a-z' | sort -u)
+  blockers=$(printf '%s\n' "$blocked_by" \
+    | grep -oiE '(https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/issues/[0-9]+|[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]+|goal/[0-9]+)' \
+    | sed -E 's#^https://github\.com/([^/]+/[^/]+)/issues/#\1\##; s#^goal/#Vinylfigure/overlord\##' | tr 'A-Z' 'a-z' | sort -u)
+  for p in $parents; do
+    if printf '%s\n' "$blockers" | grep -qxF "$p"; then
+      echo "not compliant: Blocked by names this task's own parent ($p) — a parent closes after its children; provenance belongs in Discovered from"; exit 1
+    fi
+  done
+fi
+
 # Readiness is a delivery check, not a claim inferred from a label. Prospective
 # task instructions may be drafted before an artifact exists; applying the
 # human-check label requires the artifact, review steps and observable criteria.

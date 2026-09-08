@@ -461,6 +461,17 @@ printf '### In plain words\none two three four five six seven eight nine ten ele
 "$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: a 13-word plain line -> exit 1" || pass "check-record: a 13-word plain line -> exit 1"
 printf '### In plain words\nThe app opens fast. Switching views is instant.\n\n### Done means\nx\n' > "$CRRB"
 "$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: a two-sentence plain line -> exit 1" || pass "check-record: a two-sentence plain line -> exit 1"
+# A blocker is a dependency, never an ancestor: a task whose Blocked by names
+# its own Parent goal / Parent intent would wait on a record that closes only
+# after the task itself (overlord-ui#187/#188/#201 sat "Blocked" a week).
+printf '### In plain words\nSchedules read in words on the settings screen.\n\n### Parent goal\ngoal/283\n\n### Blocked by\nVinylfigure/overlord#283 — built in a worktree from the operator'"'"'s session.\n\n### Done means\nx\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: Blocked by naming the task's own Parent goal -> exit 1" || pass "check-record: Blocked by naming the task's own Parent goal -> exit 1"
+printf '### In plain words\nSchedules read in words on the settings screen.\n\n### Parent intent\nVinylfigure/overlord#262\n\n### Blocked by\nhttps://github.com/Vinylfigure/overlord/issues/262\n\n### Done means\nx\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: Blocked by naming the task's own Parent intent by URL -> exit 1" || pass "check-record: Blocked by naming the task's own Parent intent by URL -> exit 1"
+printf '### In plain words\nSchedules read in words on the settings screen.\n\n### Parent goal\ngoal/283\n\n### Blocked by\nNothing.\n\n### Done means\nx\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && pass "check-record: Blocked by of Nothing. under a parent -> exit 0" || fail "check-record: Blocked by of Nothing. under a parent -> exit 0"
+printf '### In plain words\nSchedules read in words on the settings screen.\n\n### Parent goal\ngoal/283\n\n### Blocked by\n#12, Vinylfigure/overlord#328\n\n### Done means\nx\n' > "$CRRB"
+"$CRR" "$CRRB" >/dev/null 2>&1 && pass "check-record: Blocked by naming other records under a parent -> exit 0" || fail "check-record: Blocked by naming other records under a parent -> exit 0"
 printf '### In plain words\nShould low-stakes questions answer themselves after three days\n\n### Decision\nx\n\n### Options\nYes, auto-answer\nNo, always wait\n\n### Recommended choice\nYes, auto-answer\n' > "$CRRB"
 "$CRR" "$CRRB" >/dev/null 2>&1 && fail "check-record: a question whose plain line has no question mark -> exit 1" || pass "check-record: a question whose plain line has no question mark -> exit 1"
 # The cap is the FILE's, not the script's.

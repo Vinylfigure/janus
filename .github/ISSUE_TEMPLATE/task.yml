@@ -31,7 +31,7 @@ body:
     id: blocked-by
     attributes:
       label: Blocked by
-      description: Explicit dependencies the executor checks before consuming — issue refs only (`#123`, `owner/repo#123`, or a full issue URL), one or comma-separated. The consumption gate treats this issue as blocked while any listed issue is open (docs/ATTENTION.md). Prose references elsewhere in the body do not gate.
+      description: Explicit dependencies the executor checks before consuming — issue refs only (`#123`, `owner/repo#123`, or a full issue URL), one or comma-separated. The consumption gate treats this issue as blocked while any listed issue is open (docs/ATTENTION.md). Prose references elsewhere in the body do not gate. Never this task's own Parent goal or Parent intent, and never where it was built — that is provenance and goes in Discovered from.
       placeholder: "#123"
     validations:
       required: false
