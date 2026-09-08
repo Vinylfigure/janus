@@ -62,6 +62,17 @@ jobs:
           else
             echo "auto-merge: this engine has no --probe mode yet; skipping the canary" >&2
           fi
+      # The ready step (scripts/ready-drafts.sh): a draft the engine below
+      # would merge — eligible head, green, MERGEABLE, base is the default
+      # branch, quiet for READY_QUIET_HOURS, no gating label and NO recorded
+      # ask or hold on it — is marked ready for review here, so the engine can
+      # act in this same firing. Drafts open first by design (L-097); this is
+      # the exit that discipline was missing. A session that wants a draft
+      # held records the ask; that is the hold signal, never the draft flag.
+      - name: Mark green, unheld drafts ready for review
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/ready-drafts.sh
       - name: Merge qualifying PRs, request rebases on conflicting ones
         id: merge
         env:

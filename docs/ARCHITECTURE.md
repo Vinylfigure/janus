@@ -33,6 +33,8 @@ scripts/
   request-human-check.sh      validates the current review request and delivered revision before recording a receipt and applying human-check; dry-run by default
   check-machinery-gate.sh     the seatbelt's rule engine, called by .github/workflows/gate-integrity.yml — blocks a workflow edit, a removed test-hooks.sh assertion, or a deleted fixture/hook unless the PR carries `machinery-change`; additive fixture changes pass (0 clean / 1 blocked)
   fleet-status.sh             dashboard + aging engine behind fleet-status.yml (--dry-run is fixture-smoked)
+  auto-merge.sh               the merge arm's engine body (docs/MERGE-POLICY.md pins its sha) under this repo's janus:merge-config block; run by workflows/auto-merge.yml
+  ready-drafts.sh             the ready step, run just before the engine in the same firing: a draft the engine would merge — eligible head (read from auto-merge.sh's own config block), green, MERGEABLE, base is the default branch, quiet for READY_QUIET_HOURS, no gating label, no recorded ask or hold comment — is marked ready for review; every other draft is a reported skip. Drafts open first by design (L-097); this is the exit. Fixtured in test-hooks.sh with a stubbed gh
 .github/
   loops.yaml                  declarative loop manifest: the automations this repo EXPECTS (detect-only reconciliation)
   workflows/verify.yml        CI: runs verify.sh full on every push/PR — the same entry point a developer runs
