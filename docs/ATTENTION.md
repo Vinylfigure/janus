@@ -300,6 +300,29 @@ accompanying prose (prose is welcome; it is for humans).
 
   (or `Decision: <named option>`). The `question:` label is removed and the
   issue closed; tasks blocked on it become eligible.
+- `decision_resolved` **on a pull request** — the operator's answer to a
+  `janus:ask:v1` on a PR is the same marker, posted on the PR:
+
+  ```
+  <!-- janus:decision:v1 -->
+  Decision: <named option, verbatim from Options:>
+  Option-id: <the option's position, 1-based>
+  Operation: <the surface's operation id>
+  Action-version: <the head sha the answer was given against>
+  Conditions:
+  - <what the operator asked to change, one line each — only after a soft yes>
+  ```
+
+  No label changes. The mechanical effect is keyed on the ask's **verb**,
+  never on the option's words alone: a `Close or re-spec` ask answered with a
+  no-word opening with "Close" closes the PR after the comment; a `Merge` ask
+  answered `Merge it` merges through the surface's merge path and `Send it
+  back` posts the note; every other verb and option records the decision
+  only, and the comment ends with the coding agent's mention so the child
+  acts on it. A PR whose newest ask has a newer `janus:decision:v1` is
+  **decided**: a surface shows "You chose <option>" and offers no answer
+  until a newer ask supersedes it; an engine reading the thread acts on the
+  named option.
 - `human_check_requested` — the `human-check:` label is applied at delivery.
 - `human_check_passed` — a comment beginning:
 
@@ -327,7 +350,7 @@ in the comment is prose for humans and is never parsed.
 | Marker | Written by | Carries | Read as |
 |---|---|---|---|
 | `<!-- janus:ask:v1 -->` | any session or engine parking work for the operator | `Ask` · `Because` · `If-nothing` · `Options` · `Supersedes` · `Source-revision` | what the machine needs from the operator, newest wins |
-| `<!-- janus:decision:v1 -->` | the surface recording the operator's answer | `Decision:` | a `question:` is resolved |
+| `<!-- janus:decision:v1 -->` | the surface recording the operator's answer | `Decision:` (+ `Option-id` · `Operation` · `Action-version` · `Conditions`) | a `question:` is resolved, or a PR's newest ask is answered — newest after the ask wins |
 | `<!-- janus:human-check:v1 -->` | the surface recording the operator's verdict | `Result:` | an experiential check passed or failed |
 | `<!-- janus:human-check-request:v1 -->` | `scripts/request-human-check.sh` | `Source-version` · `Operation` · `Artifact` · `Evidence` · `Source-revision` · `Status` | the receipt binding a review request to a delivered revision |
 | `<!-- janus:attention:v1 -->` | an app filing an issue outside the forms | — | provenance only, never the protocol identifier |
@@ -408,6 +431,20 @@ The six rules:
    an ask. A held record with neither a `janus:ask:v1` comment nor a hold
    comment carrying `Ask:` has not stated what it needs, and a surface says
    exactly that rather than guessing from the thread.
+7. **Three answers.** A surface offers every decision as three controls —
+   **Yes** (a green button), **Yes, if…** (a yellow diamond: a soft yes that
+   opens a conversation about what to change and records nothing until the
+   operator returns to yes or no) and **No** (a red square) — so `Options:`
+   names are drawn from three families the surface can place without
+   inference: yes-words (`Merge it`, `Approve`, `Yes…`, `Done`, `Pass`),
+   if-words (`Re-spec it`, `Change it`, `Yes, if…`, `Partly`) and no-words
+   (`Close it`, `Not yet`, `No…`, `Send it back`, `Something's wrong`). A name
+   outside the families is still a valid option; it renders as a plain named
+   button with no tone. The families are convention, not a gate:
+   `check-ask.sh` does not reject a name outside them. Above the controls the
+   card carries two labelled lines, *If yes* (what the yes does) and *If not*
+   (the `If-nothing:` line); nothing unlabelled sits between the headline and
+   the buttons.
 
 ## What a card renders
 
@@ -419,8 +456,8 @@ separate. A `human-check:` label alone must not select result-review controls.
 |---|---|
 | Title | A plain sentence explaining the request or proposed outcome, preserving its target and essential constraint. |
 | Short explanation | Specific source-backed context needed to understand this request, without repeated generic purpose text. |
-| Your part and controls | `Human response` → input and Save; decision → named options; outcome approval → authorization; delivered `Human check` → artifact and review; external task → actionable instructions and destination. |
-| Consequence | The actual effect of this action. Approval authorizes work; it does not claim execution has started. |
+| Your part and controls | `Human response` → input and Save; decision → the three answers (yes · yes, if… · no), each labelled with the record's own option name, a tone the record does not offer left out with one sentence saying why; outcome approval → authorization; delivered `Human check` → artifact and review; external task → actionable instructions and destination. |
+| Consequence | Two labelled lines above the controls — *If yes*: the actual effect of the yes (approval authorizes work; it does not claim execution has started) and *If not*: the `If-nothing:` line. Each control also carries its own consequence as its help text; a consequence is never a free-standing sentence that names a control. |
 | More | “What you originally wrote” for original capture, “What this means” for interpretation, “System checks” for detailed evidence, plus connections and history. Show only sourced, relevant sections. |
 
 Cards and Explain use the same request interpretation. Copy generated at authoring
