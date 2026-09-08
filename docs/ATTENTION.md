@@ -98,7 +98,12 @@ decision is wrong regardless of timing (#42).
 `### Blocked by` field (issue refs: `#123`, `owner/repo#123`, or a full issue
 URL). Executors evaluate that field only — never prose references. A
 question's `Blocks` heading is for humans reading the question; the dependent
-task's `### Blocked by` is what the executor checks.
+task's `### Blocked by` is what the executor checks. A reference to the task's
+own `### Parent goal` or `### Parent intent` is not a dependency and must not
+appear there — a parent closes after its children, so a task naming its own
+parent blocks itself forever (overlord-ui#187/#188/#201, 2026-09-02). Where a
+task was built (a worktree, a session, a plan name) is provenance and belongs
+under `### Discovered from`; `check-record.sh` refuses a self-parent blocker.
 
 ## Inbox ≠ Ready
 
