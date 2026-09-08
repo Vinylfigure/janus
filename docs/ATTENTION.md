@@ -168,6 +168,23 @@ buttons; `### Recommended choice` must name one of them, verbatim — a
 question without named options is not ready to file, and a surface with no
 `### Options` falls back to the first sentence of `### Recommended choice`.
 
+An option may declare a stable id and its effect, so a surface can key a
+decision on the id and the execution contract can read the effect without
+guessing from the words:
+
+```markdown
+### Options
+- [allow-provider; resolved] Allow the scoped connection — enables this provider
+- [deny-provider; denied] Do not connect — its dependent work remains blocked
+- [revisit-provider; deferred] Revisit after the account review — this prerequisite remains unresolved
+```
+
+`resolved` permits the dependent step, `denied` refuses it, `deferred`
+postpones it; a surface infers the effect of an unannotated option from its
+opening words ("no", "not now", "later"…) and marks that inference. Ids are
+stable for the life of the record: a refinement (below) adds options and
+never renames one.
+
 ## Question schema — the v1 body API
 
 `question.yml` renders these stable headings; they ARE the machine interface
@@ -300,6 +317,23 @@ accompanying prose (prose is welcome; it is for humans).
 
   (or `Decision: <named option>`). The `question:` label is removed and the
   issue closed; tasks blocked on it become eligible.
+- `operator_reply` — a comment beginning:
+
+  ```
+  <!-- overlord:operator-reply:v1 -->
+  Reply-kind: question
+  ```
+
+  followed by the operator's words and, for a `question:` or `human-action:`
+  record, the coding agent's mention. It is NOT a decision: the `question:`
+  label stays, the issue stays open, nothing blocked on it becomes eligible.
+  The mention resumes the agent in a bounded role
+  (`.claude/skills/respond-to-operator/SKILL.md`): refine the record's
+  `### Options` and `### Recommended choice` from what the operator said,
+  answer them in one comment without a marker or a mention, and leave the
+  decision to the operator's next tap. The dispatch workflow accepts this
+  comment from the operator's app (`allowed_bots` in `claude.yml`) and from
+  no other bot.
 - `human_check_requested` — the `human-check:` label is applied at delivery.
 - `human_check_passed` — a comment beginning:
 
@@ -328,6 +362,7 @@ in the comment is prose for humans and is never parsed.
 |---|---|---|---|
 | `<!-- janus:ask:v1 -->` | any session or engine parking work for the operator | `Ask` · `Because` · `If-nothing` · `Options` · `Supersedes` · `Source-revision` | what the machine needs from the operator, newest wins |
 | `<!-- janus:decision:v1 -->` | the surface recording the operator's answer | `Decision:` | a `question:` is resolved |
+| `<!-- overlord:operator-reply:v1 -->` | the surface sending the operator's note | `Reply-kind:` | the agent refines the record and re-asks; never a decision |
 | `<!-- janus:human-check:v1 -->` | the surface recording the operator's verdict | `Result:` | an experiential check passed or failed |
 | `<!-- janus:human-check-request:v1 -->` | `scripts/request-human-check.sh` | `Source-version` · `Operation` · `Artifact` · `Evidence` · `Source-revision` · `Status` | the receipt binding a review request to a delivered revision |
 | `<!-- janus:attention:v1 -->` | an app filing an issue outside the forms | — | provenance only, never the protocol identifier |
@@ -419,7 +454,7 @@ separate. A `human-check:` label alone must not select result-review controls.
 |---|---|
 | Title | A plain sentence explaining the request or proposed outcome, preserving its target and essential constraint. |
 | Short explanation | Specific source-backed context needed to understand this request, without repeated generic purpose text. |
-| Your part and controls | `Human response` → input and Save; decision → named options; outcome approval → authorization; delivered `Human check` → artifact and review; external task → actionable instructions and destination. |
+| Your part and controls | `Human response` → input and Save; decision → named options; outcome approval → authorization; delivered `Human check` → artifact and review; external task → actionable instructions and destination. Every kind that an agent can act on also offers a note to the agent: the note is sent (`operator_reply`), the surface reports whether the agent started, the record is refined, and the card returns for the decision. |
 | Consequence | The actual effect of this action. Approval authorizes work; it does not claim execution has started. |
 | More | “What you originally wrote” for original capture, “What this means” for interpretation, “System checks” for detailed evidence, plus connections and history. Show only sourced, relevant sections. |
 

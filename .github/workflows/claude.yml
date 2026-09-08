@@ -40,16 +40,32 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
+      # An operator note from the app arrives as a comment beginning
+      # `<!-- overlord:operator-reply:v1 -->` with the agent mention appended.
+      # This step hands the run its bounded role for that one case; every
+      # other trigger runs unchanged (the variable stays empty).
+      - name: Reply-mode arguments
+        if: github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '<!-- overlord:operator-reply:v1 -->')
+        run: |
+          echo 'OVERLORD_REPLY_ARGS=--append-system-prompt "Operator note mode. Follow .claude/skills/respond-to-operator/SKILL.md exactly: revise the question options in its body, post one reply without the agent mention, never post a decision comment, never close or relabel."' >> "$GITHUB_ENV"
       # Floating major includes the >= v1.0.94 bot-trigger security fix
-      # (CVE-2025-66032). Dispatch issues are NOT bot-authored — the overlord
-      # writes as `Vinylfigure` (type User) via the connector app; only this
-      # repo's own comments are `claude[bot]`. The pin is ordinary dependency
-      # hygiene, not a response to bot-authored dispatch.
-      # Echo-retrigger needs no actor guard: `allowed_bots` defaults to "",
-      # so no bot can trigger this workflow at all.
+      # (CVE-2025-66032). The pin is ordinary dependency hygiene.
+      # FOUR principals write on these records, verified against the API
+      # (overlord docs/MASTER-PLAN.md, and overlord#328 / run 34173388589 on
+      # 2026-09-08): `Vinylfigure` (type User, via the connector app) authors
+      # dispatches; `claude[bot]` authors this repo's own run comments;
+      # `github-actions[bot]` authors the branch push; `overlord-ui-joe[bot]`
+      # (the operator's app) authors the operator's taps — decisions, checks,
+      # and notes to the agent. `allowed_bots` names exactly that fourth
+      # principal, because every mention the app writes is an operator tap
+      # (overlord-ui pins this with a test: the mention appears only in
+      # tap-driven actions, never in a sweep or an API route). Never `*`: it
+      # would let `claude[bot]` retrigger this workflow on its own comments.
+      # The action strips `[bot]` and lowercases before comparing.
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: overlord-ui-joe
           # --max-turns is the runaway bound, not the effort budget; per-order
           # effort budgets live in the work-order spec. Raised 120 -> 150
           # 2026-09-01: a run that finished successfully at turn 121 was
@@ -91,4 +107,4 @@ jobs:
           # "Closing:" on an issue that then stays open is the failure it
           # ends. `check-ask.sh` is the recorded-ask gate the same skill runs
           # before it posts an ask (docs/ATTENTION.md).
-          claude_args: --model sonnet --max-turns 150 --allowedTools "Read,Glob,Grep,Edit,Write,Bash(./scripts/verify.sh:*),Bash(scripts/verify.sh:*),Bash(bash scripts/verify.sh:*),Bash(./scripts/test-hooks.sh:*),Bash(scripts/test-hooks.sh:*),Bash(bash scripts/test-hooks.sh:*),Bash(./scripts/check-loops.sh:*),Bash(scripts/check-loops.sh:*),Bash(./scripts/check-ready.sh:*),Bash(scripts/check-ready.sh:*),Bash(./scripts/check-record.sh:*),Bash(scripts/check-record.sh:*),Bash(./scripts/check-ask.sh:*),Bash(scripts/check-ask.sh:*),Bash(./scripts/request-human-check.sh:*),Bash(scripts/request-human-check.sh:*),Bash(./scripts/generate-agents-md.sh:*),Bash(scripts/generate-agents-md.sh:*),Bash(./scripts/check-ledger-aging.sh:*),Bash(scripts/check-ledger-aging.sh:*),Bash(bash -n:*),Bash(git status:*),Bash(git diff:*),Bash(git add:*),Bash(git checkout:*),Bash(git branch:*),Bash(git commit:*),Bash(git push:*),Bash(git log:*),Bash(gh pr:*),Bash(gh issue:*),Bash(gh issue close:*)"
+          claude_args: --model sonnet --max-turns 150 ${{ env.OVERLORD_REPLY_ARGS }} --allowedTools "Read,Glob,Grep,Edit,Write,Bash(./scripts/verify.sh:*),Bash(scripts/verify.sh:*),Bash(bash scripts/verify.sh:*),Bash(./scripts/test-hooks.sh:*),Bash(scripts/test-hooks.sh:*),Bash(bash scripts/test-hooks.sh:*),Bash(./scripts/check-loops.sh:*),Bash(scripts/check-loops.sh:*),Bash(./scripts/check-ready.sh:*),Bash(scripts/check-ready.sh:*),Bash(./scripts/check-record.sh:*),Bash(scripts/check-record.sh:*),Bash(./scripts/check-ask.sh:*),Bash(scripts/check-ask.sh:*),Bash(./scripts/request-human-check.sh:*),Bash(scripts/request-human-check.sh:*),Bash(./scripts/generate-agents-md.sh:*),Bash(scripts/generate-agents-md.sh:*),Bash(./scripts/check-ledger-aging.sh:*),Bash(scripts/check-ledger-aging.sh:*),Bash(bash -n:*),Bash(git status:*),Bash(git diff:*),Bash(git add:*),Bash(git checkout:*),Bash(git branch:*),Bash(git commit:*),Bash(git push:*),Bash(git log:*),Bash(gh pr:*),Bash(gh issue:*),Bash(gh issue close:*)"

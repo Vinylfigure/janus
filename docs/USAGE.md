@@ -55,6 +55,7 @@ goal. What fires when:
 | `/add-skill` | a procedure got repeated or explained twice | `/evolve` promotes procedure-shaped lessons | — (retire before adding) |
 | `/decision-lock` | a discussion resolves a product/design question ("lock this") | — | — (append-only to docs/DECISIONS.md; amendments cite the superseded ID) |
 | `/work-loop` | a scheduled firing (or the user) says to work the backlog | the routine declared in `.github/loops.yaml` (armed at `/bootstrap`) | — (one ready `task:` per firing, PR delivery; idle firings only propose) |
+| `/respond-to-operator` | a dispatched run was started by an operator note (`<!-- overlord:operator-reply:v1 -->`) on a `question:` or `human-action:` record | `claude.yml`'s reply-mode system prompt | — (edits only Options/Recommended choice; never decides, closes or relabels) |
 
 **The modality ladder** — Claude proposes the level that fits the observable
 shape of the work, and escalation is always proposed, never silent:
