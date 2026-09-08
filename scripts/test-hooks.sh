@@ -1053,6 +1053,83 @@ PYEOF
   fi
 fi
 
+echo "== ready-drafts.sh (stubbed gh: a green, unheld, quiet draft is marked ready; everything else holds) =="
+# The ready step reads its allowlist from an engine's config block, so the
+# fixture ships its own block — the assertions must not drift with this repo's
+# real ELIGIBLE_PREFIXES. Every gh shape the script asks for has a case; the
+# mutating verbs record a count so idempotence and --dry-run are provable.
+RD="$SANDBOX/ready-drafts"; mkdir -p "$RD/bin"
+cat > "$RD/engine.sh" <<'EOF'
+# janus:merge-config:start
+MERGE_METHOD="merge"
+ELIGIBLE_PREFIXES="task/ claude/"
+FORBIDDEN_PREFIXES="intent/ heartbeat/"
+# janus:merge-config:end
+EOF
+cat > "$RD/bin/gh" <<'EOF'
+#!/usr/bin/env bash
+args="$*"
+pr() { printf '{"number":%s,"headRefName":"%s","baseRefName":"%s","isDraft":%s,"labels":[%s],"mergeable":"%s","headRefOid":"%s","reviews":[],"reviewDecision":""}' "$@"; }
+case "$args" in
+  *"repo view --json defaultBranchRef"*) echo '{"defaultBranchRef":{"name":"main"}}' ;;
+  *"pr list --state open"*)
+    if [ -n "${RD_LIST_FAILS:-}" ]; then echo "stub: list refused" >&2; exit 1; fi
+    printf '[%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s]\n' \
+      "$(pr 600 task/fix-y main true '' MERGEABLE old600)" \
+      "$(pr 601 codex/x main true '' MERGEABLE old601)" \
+      "$(pr 602 task/stacked task/fix-y true '' MERGEABLE old602)" \
+      "$(pr 603 task/held main true '' MERGEABLE old603)" \
+      "$(pr 604 task/young main true '' MERGEABLE young604)" \
+      "$(pr 605 task/red main true '' MERGEABLE old605)" \
+      "$(pr 606 task/blind main true '' MERGEABLE old606)" \
+      "$(pr 607 task/asked main true '{"name":"question:"}' MERGEABLE old607)" \
+      "$(pr 608 task/conflict main true '' CONFLICTING old608)" \
+      "$(pr 609 intent/phase main true '' MERGEABLE old609)" \
+      "$(pr 610 task/shipped main false '' MERGEABLE old610)" \
+      "$(pr 611 task/acted main true '' MERGEABLE old611)" ;;
+  *"issues/603/comments"*) echo '[{"body":"<!-- janus:ask:v1 -->\nAsk: Merge or send it back"}]' ;;
+  *"issues/611/comments"*) echo '[{"body":"<!-- janus:ready-drafts:v1 -->\nAction: marked-ready\nHead: old611"}]' ;;
+  *"issues/"*"/comments"*) echo '[]' ;;
+  *"commits/young604"*) printf '{"commit":{"committer":{"date":"%s"}}}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" ;;
+  *"commits/"*) echo '{"commit":{"committer":{"date":"2020-01-01T00:00:00Z"}}}' ;;
+  *"pr checks 605"*) printf 'ci\tfail\t1m\thttps://example.invalid\n' ;;
+  *"pr checks 606"*) : ;;
+  *"pr checks"*) printf 'ci\tpass\t1m\thttps://example.invalid\n' ;;
+  *"pr ready"*) if [ -n "${RD_MUST_NOT_WRITE:-}" ]; then echo "MUST NOT BE CALLED: $args" >&2; exit 1; fi; echo "$args" >> "$RD_LOG"; exit 0 ;;
+  *"pr comment"*) if [ -n "${RD_MUST_NOT_WRITE:-}" ]; then echo "MUST NOT BE CALLED: $args" >&2; exit 1; fi; echo "$args" >> "$RD_LOG"; exit 0 ;;
+  *) echo "stub: unexpected gh $args" >&2; exit 1 ;;
+esac
+EOF
+chmod +x "$RD/bin/gh"
+: > "$RD/log"
+out=$(GITHUB_REPOSITORY=example/rd READY_DRAFTS_ENGINE="$RD/engine.sh" RD_LOG="$RD/log" PATH="$RD/bin:$PATH" bash "$ROOT/scripts/ready-drafts.sh"); rc=$?
+[ "$rc" -eq 0 ] && pass "ready-drafts: complete pass exits 0" || fail "ready-drafts: complete pass exits 0 (got $rc: $out)"
+echo "$out" | grep -qF "$(printf '600\tready\tmarked ready for review (head old600)')" && pass "ready-drafts: green, quiet, unheld eligible draft is marked ready" || fail "ready-drafts: green draft marked ready (got: $out)"
+grep -q "^pr ready 600$" "$RD/log" && pass "ready-drafts: gh pr ready was called for the flipped PR" || fail "ready-drafts: gh pr ready called (log: $(cat "$RD/log"))"
+grep -q "^pr comment 600 --body <!-- janus:ready-drafts:v1 -->" "$RD/log" && pass "ready-drafts: the flip leaves a lifecycle comment carrying the marker" || fail "ready-drafts: lifecycle comment posted (log: $(cat "$RD/log"))"
+[ "$(grep -c '^pr ready' "$RD/log")" -eq 1 ] && pass "ready-drafts: exactly one PR was flipped" || fail "ready-drafts: exactly one PR flipped (log: $(cat "$RD/log"))"
+echo "$out" | grep -qF "$(printf '601\tskip\tunknown head prefix (codex/x)')" && pass "ready-drafts: a prefix outside the engine's allowlist is never touched" || fail "ready-drafts: unknown prefix skipped (got: $out)"
+echo "$out" | grep -qF "$(printf '602\tskip\tbase is task/fix-y, not main')" && pass "ready-drafts: a stacked PR (base != default branch) is skipped" || fail "ready-drafts: stacked PR skipped (got: $out)"
+echo "$out" | grep -qF "$(printf '603\tskip\tdraft is held by a recorded ask (janus:ask:v1)')" && pass "ready-drafts: a draft carrying a recorded ask stays the operator's" || fail "ready-drafts: recorded ask holds (got: $out)"
+echo "$out" | grep -qE "$(printf '604\tskip\thead is 0h old, younger than the 2h quiet window')" && pass "ready-drafts: a head inside the quiet window is left alone" || fail "ready-drafts: quiet window holds (got: $out)"
+echo "$out" | grep -qF "$(printf '605\tskip\tchecks not all green (1 failing: ci)')" && pass "ready-drafts: a red check holds" || fail "ready-drafts: red check holds (got: $out)"
+echo "$out" | grep -qF "$(printf '606\tskip\tchecks not all green (no checks visible to this token')" && pass "ready-drafts: unreadable checks hold — unknown is not permission" || fail "ready-drafts: unreadable checks hold (got: $out)"
+echo "$out" | grep -qF "$(printf '607\tskip\tPR carries gating label question:')" && pass "ready-drafts: a gating label holds" || fail "ready-drafts: gating label holds (got: $out)"
+echo "$out" | grep -qF "$(printf '608\tskip\tbranch conflicting with main')" && pass "ready-drafts: a conflicting branch holds" || fail "ready-drafts: conflicting holds (got: $out)"
+echo "$out" | grep -qF "$(printf '609\tskip\tIntent/heartbeat-tier head prefix (intent/phase)')" && pass "ready-drafts: a forbidden prefix holds" || fail "ready-drafts: forbidden prefix holds (got: $out)"
+echo "$out" | grep -qF "$(printf '610\tskip\tnot a draft')" && pass "ready-drafts: a non-draft is reported, not touched" || fail "ready-drafts: non-draft reported (got: $out)"
+echo "$out" | grep -qF "$(printf '611\tskip\talready marked ready for head old611')" && pass "ready-drafts: once per head SHA — an acted head is a no-op" || fail "ready-drafts: idempotent per head (got: $out)"
+: > "$RD/log"
+out=$(GITHUB_REPOSITORY=example/rd READY_DRAFTS_ENGINE="$RD/engine.sh" RD_LOG="$RD/log" RD_MUST_NOT_WRITE=1 PATH="$RD/bin:$PATH" bash "$ROOT/scripts/ready-drafts.sh" --dry-run); rc=$?
+[ "$rc" -eq 0 ] && echo "$out" | grep -qF "$(printf '600\tready\twould mark ready for review (head old600)')" && pass "ready-drafts: --dry-run previews the flip" || fail "ready-drafts: --dry-run previews the flip (rc $rc, got: $out)"
+[ ! -s "$RD/log" ] && pass "ready-drafts: --dry-run calls neither pr ready nor pr comment" || fail "ready-drafts: --dry-run mutated (log: $(cat "$RD/log"))"
+out=$(GITHUB_REPOSITORY=example/rd READY_DRAFTS_ENGINE="$RD/engine.sh" RD_LOG="$RD/log" RD_LIST_FAILS=1 PATH="$RD/bin:$PATH" bash "$ROOT/scripts/ready-drafts.sh"); rc=$?
+[ "$rc" -eq 1 ] && echo "$out" | grep -qF "HOLD: could not list open PRs" && pass "ready-drafts: an unreadable PR list is a red run, never 'nothing to do'" || fail "ready-drafts: unreadable PR list -> exit 1 with reason (rc $rc, got: $out)"
+out=$(GITHUB_REPOSITORY=example/rd READY_DRAFTS_ENGINE="$RD/no-such-engine.sh" PATH="$RD/bin:$PATH" bash "$ROOT/scripts/ready-drafts.sh" 2>&1); rc=$?
+[ "$rc" -eq 1 ] && echo "$out" | grep -qF "nothing to be eligible for" && pass "ready-drafts: no engine, no allowlist, no flip" || fail "ready-drafts: missing engine refuses (rc $rc, got: $out)"
+grep -q 'ready-drafts.sh' "$ROOT/.github/workflows/auto-merge.yml" && pass "auto-merge.yml runs the ready step" || fail "auto-merge.yml must run scripts/ready-drafts.sh before the engine"
+awk '/ready-drafts.sh/{r=NR} /run: \.\/scripts\/auto-merge.sh$/{m=NR} END{exit !(r && m && r < m)}' "$ROOT/.github/workflows/auto-merge.yml" && pass "auto-merge.yml runs the ready step BEFORE the merge pass" || fail "auto-merge.yml: the ready step must precede the armed merge pass"
+
 echo
 if [ "$FAILS" -eq 0 ]; then
   echo "ALL SCAFFOLD TESTS PASSED"

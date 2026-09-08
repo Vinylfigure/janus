@@ -101,6 +101,14 @@ repo at runtime, so no engine can be held on a cross-repo read.
   janus scaffold when it carries them; arming stays a per-child operator act.
 - **The GitHub App installation token** (#168, deferred) is the eventual fleet-wide
   runner; the body above is already the one implementation it would call.
+- **The ready step** (`scripts/ready-drafts.sh`) runs immediately before the engine
+  in the same firing and marks ready for review only a draft the engine would merge
+  next — a head in this repo's own `ELIGIBLE_PREFIXES` (read from the engine's config
+  block, so the two never disagree), base on the default branch, green, `MERGEABLE`,
+  no gating label, quiet for `READY_QUIET_HOURS` (default 2), and carrying no recorded
+  ask, held-for-operator marker or engine hold. Drafts open first by design (L-097);
+  this is their exit. **The recorded ask is the hold signal, never the draft flag**: a
+  session that wants a draft to wait for the operator records the ask on it.
 
 ## Rules every engine obeys
 
