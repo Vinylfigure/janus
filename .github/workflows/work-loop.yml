@@ -1,0 +1,106 @@
+name: work-loop
+
+# The template's own work-loop driver — declared here so this repo, not an
+# account-level scheduler, is the source of truth for whether it runs
+# (overlord docs/DECISIONS.md DL-2026-09-14-routines-in-repo). It replaced
+# the claude.ai Routine `janus work-loop` (`trig_01AW29SzxbUySGqfKNkh23G1`).
+#
+# PAUSED BY RULING — no `schedule:` block. Operator ruling 2026-08-25
+# (janus#23, `.github/loops.yaml` work-loop `enabled: false`): the template
+# does not run its own loops; loops are declared here and armed in the
+# repos stamped from it, and the template's backlog is operator-only by
+# nature (machinery, hooks, CI) — ~20 firings over five days consumed
+# nothing. Arming is one PR that adds
+#   schedule:
+#     - cron: "17 */6 * * *"
+# under `on:` and flips loops.yaml to `enabled: true`, plus a liveness-log
+# issue (the Plutus#15 / overlord#180 shape) whose number goes in
+# LIVENESS_ISSUE below. `workflow_dispatch` is the manual fire meanwhile.
+# Same shape as Vinylfigure/Plutus/.github/workflows/work-loop.yml.
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: work-loop
+  cancel-in-progress: false
+
+env:
+  # Set when arming (see header). Empty = a PR is the only artifact the
+  # delivery audit accepts.
+  LIVENESS_ISSUE: ""
+
+jobs:
+  iterate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - name: Credential present
+        id: creds
+        env:
+          TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          if [ -z "${TOKEN:-}" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN is empty or unset. Mint one with 'claude setup-token' and set it (overlord scripts/wire-secret.sh --repo Vinylfigure/janus)."
+            exit 1
+          fi
+          printf 'credential present: %s chars\n' "${#TOKEN}"
+          echo "start=$(date -u +%FT%TZ)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Prompt mode: the action runs the prompt directly. No GH_TOKEN
+      # override: the action's own token backs `gh` (Plutus#32 — the repo's
+      # "Allow GitHub Actions to create and approve pull requests" setting is
+      # on). File tools are listed EXPLICITLY — a prompt-mode run treats
+      # --allowedTools as a strict allowlist (Plutus firing #1).
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Run exactly ONE iteration of the work-loop skill at .claude/skills/work-loop/SKILL.md, following it exactly, against Vinylfigure/janus's open `task:` issues (firing #${{ github.run_number }}, run id ${{ github.run_id }}, headless in GitHub Actions). Read CLAUDE.md first. Your GitHub tool is `gh`; a PR's CI is read with `gh run list --branch <head>`.
+
+            HEADLESS PERMISSION PREFLIGHT — do this before choosing a task. You are running unattended: a permission prompt you cannot answer deadlocks the whole firing (janus#26, 2026-08-18). The platform treats these paths as sensitive regardless of the tool grant: `.claude/hooks/`, `.github/workflows/`, `.claude/settings.json`. Judge each candidate task's done-means FIRST; if delivering it requires writing any of those paths, comment on the issue naming the exact path as operator-only and pick the next ready task. If every ready task is operator-only, say so in one line and exit.
+
+            Ready means: carries a done-means, is deliverable within that constraint, and is not blocked by an unanswered `question:` or a `loop:hold` label. Verify against live issues; trust no prior summary. Consult the Status dashboard issue (#31) and open PRs first — an unmerged claude/ PR from a prior firing with red checks outranks starting new work; resume it (`gh pr checkout`) rather than opening a rival.
+
+            `scripts/verify.sh full` must be green before you push. Deliver by PR only on branch `claude/issue-<N>-<YYYYMMDD-HHMM>` — never push or merge main. Run the adversarial `verifier` agent before shipping non-trivial work (if no subagent tool is available, do the adversarial pass yourself and say so in the PR body). Descoped remainders become new `task:` issues with a `discovered-from:` ref.
+
+            If nothing is ready, file at most TWO grounded proposal `task:` issues and stop; never execute a proposal in the firing that created it.
+
+            NO SILENT FIRING: if you open no PR and a liveness-log issue exists (`gh issue list --search "loop: liveness log" --state open`), post exactly one comment there via `gh issue comment <n> --body-file <file>` whose first line is exactly `janus work-loop | <YYYY-MM-DD>T<HH:MM>Z | fired, did nothing, because <reason>`. Write multi-line bodies to a file first. End your final message stating which arm ran (consumed / proposed / empty / blocked-operator-only) and the PR link if any.
+          # claude.yml's grant plus explicit file tools, TodoWrite, and the
+          # verbs that resume a prior firing's draft (git fetch/ls-remote,
+          # gh pr checkout) and read Actions runs (gh run list/view).
+          claude_args: --max-turns 150 --allowedTools "Read,Glob,Grep,Edit,Write,TodoWrite,Bash(./scripts/verify.sh:*),Bash(scripts/verify.sh:*),Bash(bash scripts/verify.sh:*),Bash(./scripts/test-hooks.sh:*),Bash(scripts/test-hooks.sh:*),Bash(bash scripts/test-hooks.sh:*),Bash(./scripts/check-loops.sh:*),Bash(scripts/check-loops.sh:*),Bash(./scripts/check-ready.sh:*),Bash(scripts/check-ready.sh:*),Bash(./scripts/check-record.sh:*),Bash(scripts/check-record.sh:*),Bash(./scripts/check-ask.sh:*),Bash(scripts/check-ask.sh:*),Bash(./scripts/request-human-check.sh:*),Bash(scripts/request-human-check.sh:*),Bash(./scripts/generate-agents-md.sh:*),Bash(scripts/generate-agents-md.sh:*),Bash(./scripts/check-ledger-aging.sh:*),Bash(scripts/check-ledger-aging.sh:*),Bash(bash -n:*),Bash(git status:*),Bash(git diff:*),Bash(git add:*),Bash(git checkout:*),Bash(git branch:*),Bash(git commit:*),Bash(git push:*),Bash(git log:*),Bash(git fetch origin:*),Bash(git ls-remote origin:*),Bash(gh pr:*),Bash(gh issue:*),Bash(gh issue close:*),Bash(gh run list:*),Bash(gh run view:*)"
+
+      # The delivery audit: a claude/* PR created since this run started, or
+      # a liveness line on LIVENESS_ISSUE when one is configured. Neither →
+      # red, whatever the model reported.
+      - name: Delivery audit
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          START: ${{ steps.creds.outputs.start }}
+          ROUTINE: janus work-loop
+          PREFIX: claude/
+        run: |
+          set -euo pipefail
+          [ -n "${START:-}" ] || { echo "::error::no start stamp — the credential step did not run"; exit 1; }
+          pr=$(gh pr list --state all --limit 30 --json number,url,createdAt,headRefName \
+            --jq --arg p "$PREFIX" --arg s "$START" '[.[] | select(.headRefName | startswith($p)) | select(.createdAt >= $s)] | sort_by(.createdAt) | last // empty | "\(.number) \(.url)"')
+          if [ -n "$pr" ]; then echo "delivered: PR $pr"; exit 0; fi
+          if [ -n "${LIVENESS_ISSUE:-}" ]; then
+            line=$(gh issue view "$LIVENESS_ISSUE" --json comments \
+              --jq --arg n "$ROUTINE | " --arg s "$START" '[.comments[] | select(.createdAt >= $s) | .body | split("\n")[0] | select(startswith($n))] | last // empty')
+            if [ -n "$line" ]; then echo "delivered: liveness line — $line"; exit 0; fi
+          fi
+          echo "::error::$ROUTINE fired and delivered nothing: no PR on $PREFIX* since $START${LIVENESS_ISSUE:+ and no liveness line on #$LIVENESS_ISSUE}"
+          exit 1
