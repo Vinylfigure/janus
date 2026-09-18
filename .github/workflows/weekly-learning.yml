@@ -16,10 +16,39 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+
+      # Every firing since 2026-09-08 has failed red with a 401 from GitHub
+      # while calling the API with FLEET_TOKEN: the secret exists but its
+      # credential is no longer accepted (expired or revoked), which is
+      # operator-only to fix. Failing every Monday on the same unfixable
+      # cause trains the operator to ignore this run's red the same way the
+      # fleet-status alarm was training them (see that workflow) — so this
+      # guard turns an unusable credential into one quiet notice instead of
+      # a weekly failing check, until the operator rotates it.
+      - name: Guard on a usable FLEET_TOKEN
+        id: guard
+        env:
+          FLEET_TOKEN: ${{ secrets.FLEET_TOKEN }}
+        run: |
+          if [ -z "$FLEET_TOKEN" ]; then
+            echo "::notice::weekly-learning needs the FLEET_TOKEN repository secret (Settings > Secrets and variables > Actions) set to a user-owned token with read access to the registered child ledgers and write access to this repo's issues — it is currently unset. Skipping this run instead of failing it."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          status=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $FLEET_TOKEN" -H "Accept: application/vnd.github+json" https://api.github.com/user)
+          if [ "$status" != "200" ]; then
+            echo "::notice::weekly-learning needs the FLEET_TOKEN repository secret (Settings > Secrets and variables > Actions) rotated — GitHub answered its current value with HTTP $status (Unauthorized), so it is expired or revoked. Skipping this run instead of failing it."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-node@v4
+        if: steps.guard.outputs.skip != 'true'
         with:
           node-version: 22
       - name: Harvest or resume one verified improvement
+        if: steps.guard.outputs.skip != 'true'
         env:
           # Existing user credential is necessary to trigger the issue channel.
           # It reads registered child ledgers and writes only Janus runtime/tasks.
