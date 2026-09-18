@@ -8,8 +8,13 @@
 #   3. branch-without-PR detector (L-047): a claude/* head >24h old with no
 #      open PR is a red finding — "pushed" is not "delivered".
 #   4. rewrite the ONE "Status dashboard" issue body in place (never append).
-# Exits nonzero iff red findings exist, so the run itself becomes a visible
-# failing check.
+# Exits nonzero iff the dashboard write itself failed, or red findings exist
+# — the detector's own exit code is unchanged. Whether the WORKFLOW re-pages
+# the operator on a red exit is a separate, change-only decision made by
+# fleet-status.yml's final step, using the `findings_sha`/`write_failed`
+# outputs this script appends to $GITHUB_OUTPUT and the
+# `<!-- fleet-status:findings:<sha> -->` marker it embeds in the dashboard
+# body (see fingerprint_reds below, and the workflow's comment on why).
 #
 # --dry-run: gather and print the dashboard body, mutate nothing —
 # test-hooks.sh smokes this with a stubbed gh on PATH.
@@ -44,6 +49,22 @@ NOW=$(date -u +%s)
 iso_epoch() { date -u -d "$1" +%s 2>/dev/null || echo "$NOW"; }
 age_days()  { echo $(( (NOW - $(iso_epoch "$1")) / 86400 )); }
 age_hours() { echo $(( (NOW - $(iso_epoch "$1")) / 3600 )); }
+
+# Fingerprint of the current RED findings, so a re-run with the SAME known
+# finding hashes the SAME. Ages tick every run (a branch is "25h old" this
+# firing and "31h old" next), so a raw hash of the reds text would change
+# every 6h purely from the clock and re-alarm forever on a finding the
+# operator has already seen on the dashboard. Sort first (order is gather
+# order, not meaningful), then normalise the volatile counters, then hash.
+fingerprint_reds() {
+  local normalised
+  normalised=$(printf '%s' "$1" | sort | sed -E 's/[0-9]+h old/Nh old/g; s/[0-9]+d old/Nd old/g')
+  if [ -z "$normalised" ]; then
+    echo none
+  else
+    printf '%s' "$normalised" | shasum -a 256 | awk '{print $1}'
+  fi
+}
 
 # --- 1. label vocabulary (idempotent; --force updates color/description) ----
 if [ "$DRY" -eq 0 ]; then
@@ -138,6 +159,12 @@ if [ -n "$REPO" ]; then
 fi
 manifest_out=$("$ROOT/scripts/check-loops.sh" 2>&1) || \
   reds="${reds}- loop manifest failed its schema check: \`scripts/check-loops.sh\` said: ${manifest_out}"$'\n'
+
+# The reds set is final past this point — fingerprint it once, embed the
+# result in the dashboard body below, and hand it to the workflow so the
+# alarm step (fleet-status.yml) can tell "still the same finding" from "new
+# or changed" without re-deriving anything itself.
+findings_sha=$(fingerprint_reds "$reds")
 
 # --- 4. dashboard body (rewritten in place, never appended) ------------------
 pr_rows=""
@@ -289,6 +316,7 @@ $loop_rows
 
 ## Red findings
 
+<!-- fleet-status:findings:$findings_sha -->
 $reds_body
 
 ## Merged branches, not yet deleted
@@ -302,15 +330,32 @@ _Last updated: $(date -u +"%Y-%m-%dT%H:%M:%SZ") — this body is regenerated in 
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)"
 
+write_ok=1
 if [ "$DRY" -eq 1 ]; then
   printf '%s\n' "$BODY"
 else
   num=$(ghj issue list --label dashboard --state open --limit 1 --json number | jq -r '.[0].number // empty' 2>/dev/null)
   if [ -n "$num" ]; then
-    printf '%s' "$BODY" | gh issue edit "$num" --body-file - >/dev/null
+    printf '%s' "$BODY" | gh issue edit "$num" --body-file - >/dev/null || write_ok=0
   else
-    printf '%s' "$BODY" | gh issue create --title "Status dashboard" --label dashboard --body-file - >/dev/null
+    printf '%s' "$BODY" | gh issue create --title "Status dashboard" --label dashboard --body-file - >/dev/null || write_ok=0
   fi
+fi
+
+# Hand the fingerprint (and whether the write itself landed) to the workflow.
+# fleet-status.yml reads these to decide whether a red exit here is a NEW
+# finding (re-alarm) or the SAME one already on the dashboard issue
+# (change-only alarm — see the comment on that workflow's final step for why).
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  {
+    echo "findings_sha=$findings_sha"
+    if [ "$write_ok" -eq 1 ]; then echo "write_failed=false"; else echo "write_failed=true"; fi
+  } >> "$GITHUB_OUTPUT"
+fi
+
+if [ "$write_ok" -eq 0 ]; then
+  echo "fleet-status: failed to write the dashboard issue" >&2
+  exit 1
 fi
 
 if [ -n "$reds" ]; then

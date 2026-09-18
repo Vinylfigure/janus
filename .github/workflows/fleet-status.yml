@@ -5,6 +5,13 @@ name: fleet-status
 # rot (a claude/* branch with no PR, a broken loop manifest) into a failing
 # run. The logic lives in scripts/fleet-status.sh so test-hooks.sh can smoke
 # it with a stubbed gh.
+#
+# The alarm is change-only (see "Re-raise" below): the detector itself is
+# untouched and still exits nonzero on every red finding, but this run only
+# re-pages the operator when a finding is NEW or CHANGED since the last
+# firing. A finding that has sat on the dashboard issue unchanged for two
+# weeks does not need a fresh page every 6 hours — that trains the operator
+# to stop reading red altogether, which is worse than one quiet run.
 
 on:
   schedule:
@@ -25,7 +32,55 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+
+      - name: Read the previous findings fingerprint
+        id: prev_findings
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          num=$(gh issue list --label dashboard --state open --limit 1 --json number --jq '.[0].number // empty')
+          prev=""
+          if [ -n "$num" ]; then
+            prev=$(gh issue view "$num" --json body -q .body \
+              | sed -n 's/.*<!-- fleet-status:findings:\([0-9a-f]*\|none\) -->.*/\1/p' | head -1)
+          fi
+          echo "prev_sha=${prev:-none}" >> "$GITHUB_OUTPUT"
+
       - name: Regenerate the status dashboard
+        id: dashboard
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: ./scripts/fleet-status.sh
+
+      - name: Re-raise on new or changed findings
+        if: always()
+        env:
+          PREV_SHA: ${{ steps.prev_findings.outputs.prev_sha }}
+          NEW_SHA: ${{ steps.dashboard.outputs.findings_sha }}
+          WRITE_FAILED: ${{ steps.dashboard.outputs.write_failed }}
+          DASHBOARD_OUTCOME: ${{ steps.dashboard.outcome }}
+        run: |
+          # The dashboard step's own exit code conflates two different
+          # failures: the write itself breaking (always re-page — that is a
+          # broken mechanism, not a known finding) and the rot detector
+          # reporting reds (re-page only when the reds are new or changed —
+          # see the workflow-level comment above for why a known finding
+          # re-alarming every 6h for two weeks trained the operator to
+          # ignore red). findings_sha/write_failed (scripts/fleet-status.sh)
+          # and prev_sha (the step above) are what let this step tell the
+          # two apart without re-deriving anything itself.
+          if [ "$WRITE_FAILED" = "true" ]; then
+            echo "fleet-status: dashboard write failed — always alarm" >&2
+            exit 1
+          fi
+          if [ "$DASHBOARD_OUTCOME" = "failure" ]; then
+            if [ "$NEW_SHA" != "$PREV_SHA" ]; then
+              echo "fleet-status: new or changed RED findings (fingerprint $PREV_SHA -> $NEW_SHA)" >&2
+              exit 1
+            fi
+            echo "known findings unchanged since the last run — still on the dashboard issue, not re-alarming"
+            exit 0
+          fi
+          echo "fleet-status: ok"
+          exit 0
