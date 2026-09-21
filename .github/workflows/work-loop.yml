@@ -14,9 +14,9 @@ name: work-loop
 #   schedule:
 #     - cron: "17 */6 * * *"
 # under `on:` and flips loops.yaml to `enabled: true`, plus a liveness-log
-# issue (the Plutus#15 / overlord#180 shape) whose number goes in
+# issue (a private sibling's #15 / overlord#180 shape) whose number goes in
 # LIVENESS_ISSUE below. `workflow_dispatch` is the manual fire meanwhile.
-# Same shape as Vinylfigure/Plutus/.github/workflows/work-loop.yml.
+# Same shape as a private sibling's work-loop.yml.
 on:
   workflow_dispatch: {}
 
@@ -57,10 +57,10 @@ jobs:
           fetch-depth: 0
 
       # Prompt mode: the action runs the prompt directly. No GH_TOKEN
-      # override: the action's own token backs `gh` (Plutus#32 — the repo's
+      # override: the action's own token backs `gh` (a private sibling's #32 — that repo's
       # "Allow GitHub Actions to create and approve pull requests" setting is
       # on). File tools are listed EXPLICITLY — a prompt-mode run treats
-      # --allowedTools as a strict allowlist (Plutus firing #1).
+      # --allowedTools as a strict allowlist (a private sibling's first firing).
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

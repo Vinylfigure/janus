@@ -308,7 +308,7 @@ Rules for curators (`/evolve`):
 - Rule: treat an un-replicated stamp as a known failure mode — on first contact with a child that skipped /replicate, apply the heredity transforms retroactively before real work continues; nudges alone do not revive a loop that provisioning left dead
 - Scope: portable
 - Evidence: 2
-- Status: promoted:skill/replicate (retrofit mode) + hooks/session-start (heredity self-check) — 2026-08-16 audit, user-approved plan. observed: 2026-08-16 — fleet audit found two more un-replicated stamps (drifthaven: ledger untouched since initial commit; home-assistant: CLAUDE.md still "# Janus (template)"), plus job-search carrying the same fingerprint; mechanized as the session-start heredity self-check, the /bootstrap gate, and /replicate retrofit
+- Status: promoted:skill/replicate (retrofit mode) + hooks/session-start (heredity self-check) — 2026-08-16 audit, user-approved plan. observed: 2026-08-16 — fleet audit found two more un-replicated stamps (child-a: ledger untouched since initial commit; child-d: CLAUDE.md still "# Janus (template)"), plus child-e carrying the same fingerprint; mechanized as the session-start heredity self-check, the /bootstrap gate, and /replicate retrofit
 
 ## L-040 · 2026-08-16 · /evolve routes each lesson to the highest enforceable rung, not to prose by default
 - Trigger: user correction 2026-08-16, during the aegis-sentinel memory audit — "why would CLAUDE.md just track these but not build a solution to fix these?"; the routing table knew only prose targets (CLAUDE.md / rules / skills) while the scaffold already builds mechanisms where a checkable core exists (docs-consistency fixtures, per-edit verify hook, the child's redaction gate and purity tests) — the self-learning loop could promote a lesson but never escalate it into enforcement (origin: user correction)
@@ -332,7 +332,7 @@ Rules for curators (`/evolve`):
 - Status: promoted:hooks/session-start (Evidence 1 — applied on explicit user confirmation, 2026-08-16)
 
 ## L-043 · 2026-08-16 · File descoped plan parts as issues before claiming done
-- Trigger: cross-repo audit 2026-08-16 — deferred "part B" work evaporates fleet-wide: aegis-sentinel PR #16 carried three follow-ups in a docs file only; fillmore-v2 held four deferred decision items across three markdown files with zero issues; job-search stranded five promotion candidates at the evolve stage; no Janus skill files an issue and the plan template had no deferred section (origin: user report + own observation; cross-sibling evidence: aegis-sentinel, fillmore-v2, job-search)
+- Trigger: cross-repo audit 2026-08-16 — deferred "part B" work evaporates fleet-wide: aegis-sentinel PR #16 carried three follow-ups in a docs file only; child-c held four deferred decision items across three markdown files with zero issues; child-e stranded five promotion candidates at the evolve stage; no Janus skill files an issue and the plan template had no deferred section (origin: user report + own observation; cross-sibling evidence: aegis-sentinel, child-c, child-e)
 - Rule: every plan part not executed this session is filed as a `task:` issue carrying its done-means and a `discovered-from:` ref — or declared dead in one line — before done is claimed; a transcript is not a backlog
 - Scope: portable
 - Evidence: 3
