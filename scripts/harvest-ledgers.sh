@@ -16,7 +16,7 @@
 # Output: one line per harvest candidate —
 #   <child-file>\t<entry-id>\t<title>\t<evidence>
 # An entry is a candidate when its Scope is portable AND its title (the text
-# after "L-NNN · date · ") appears nowhere in the own ledger. Retired entries
+# after "<learning-id> · date · ") appears nowhere in the own ledger. Retired entries
 # are skipped. Exit 0 always: this is a survey, not a gate.
 set -uo pipefail
 
@@ -29,12 +29,11 @@ for child in "$@"; do
   awk -v own="$OWN" -v src="$child" '
     BEGIN {
       while ((getline line < own) > 0)
-        if (line ~ /^## L-/) { title = line; sub(/^## L-[0-9]+[^A-Za-z]*[0-9-]+[^A-Za-z]*/, "", title); own_titles[title] = 1 }
+        if (line ~ /^## L-/) own_titles[entry_title(line)] = 1
       close(own)
     }
     /^## L-/ {
-      emit(); id = $2; title = $0
-      sub(/^## L-[0-9]+[^A-Za-z]*[0-9-]+[^A-Za-z]*/, "", title)
+      emit(); id = $2; title = entry_title($0)
       portable = 0; retired = 0; evidence = ""
       next
     }
@@ -42,6 +41,10 @@ for child in "$@"; do
     /^- Status: retired/ { retired = 1 }
     /^- Evidence: /      { evidence = $3 }
     END { emit() }
+    function entry_title(line) {
+      sub(/^## L-[A-Za-z0-9-]+ · [0-9-]+ · /, "", line)
+      return line
+    }
     function emit() {
       if (id != "" && portable && !retired && !(title in own_titles))
         printf "%s\t%s\t%s\t%s\n", src, id, title, evidence

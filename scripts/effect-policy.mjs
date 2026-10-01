@@ -1,9 +1,9 @@
 /** Pure authority effects. Unknown syntax is a hold, never evidence of safety. */
 import { createHash } from 'node:crypto';
-export const POLICY_VERSION = 3;
+export const POLICY_VERSION = 4;
 export const hash = value => createHash('sha256').update(typeof value === 'string' ? value : stable(value)).digest('hex');
 export const stable = value => JSON.stringify(value, (_, v) => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a],[b]) => a.localeCompare(b))) : v);
-export const machineryPath = path => /^(?:\.github\/|\.claude\/(?!memory\/)|scripts\/|CLAUDE\.md$|AGENTS\.md$|(?:package(?:-lock)?\.json|yarn\.lock|pnpm-lock\.yaml)$|docs\/(?:MERGE-POLICY|DECISIONS)\.md$)/.test(path);
+export const machineryPath = path => /^(?:\.github\/|\.claude\/(?!memory\/)|\.agents\/|\.codex\/|scripts\/|CLAUDE\.md$|AGENTS\.md$|(?:package(?:-lock)?\.json|yarn\.lock|pnpm-lock\.yaml)$|docs\/(?:MERGE-POLICY|DECISIONS)\.md$)/.test(path);
 const selfPolicy = path => /(?:effect-policy|policy-approval|policy-operators|check-machinery-gate|auto-merge|gate-integrity|MERGE-POLICY|DECISIONS)/.test(path);
 const record = (kind,path,before,after) => ({kind,path,before,after});
 function strictJSON(text) {

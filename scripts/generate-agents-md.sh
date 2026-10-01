@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Regenerates AGENTS.md from CLAUDE.md — the operator's "go" decision on
 # issue #22 (L-046 watch-don't-buy resolved): CLAUDE.md stays canonical,
-# AGENTS.md mirrors it so surfaces reading the agents.md convention instead
-# of CLAUDE.md see the same content.
+# AGENTS.md carries it verbatim after a Codex adapter pointer, so shared
+# rules retain one source while execution uses the host's native tools.
 #
 # Usage: generate-agents-md.sh [--check] [SRC] [OUT]
 #   (no --check)  writes OUT from SRC (default: regenerates the real AGENTS.md)
@@ -30,7 +30,8 @@ if [ ! -r "$SRC" ]; then
 fi
 
 render() {
-  printf '<!-- GENERATED FILE — mirrors CLAUDE.md for the agents.md convention.\n     Do not hand-edit; regenerate with scripts/generate-agents-md.sh.\n     verify.sh full fails the build if this drifts from CLAUDE.md (#22). -->\n\n'
+  printf '<!-- GENERATED FILE — mirrors CLAUDE.md for the agents.md convention.\n     Do not hand-edit; regenerate with scripts/generate-agents-md.sh.\n     verify.sh full fails the build if this drifts from its generator or CLAUDE.md (#22). -->\n\n'
+  printf 'Codex: read `.agents/skills/janus-workflow/SKILL.md` before using the Janus\nprocedures below. It maps shared disciplines to native tools and preserves\nthe current task scope; Claude commands and hooks are not Codex configuration.\n\n'
   cat "$SRC"
 }
 

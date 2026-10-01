@@ -78,8 +78,9 @@ history, which is what makes the ledger a genome rather than a notebook.
 - `Scope: portable` is a promise: true in *any* repository. Judge harshly —
   a wrongly-portable entry pollutes every descendant.
 - Never delete; mark. History is data.
-- New IDs are date+slug (`L-<YYYYMMDD>-<two-word-slug>`, L-058) — collision-proof, so parallel sessions never reconcile IDs at
-  merge time (see the worktree-parallel skill).
+- New IDs are date+slug (`L-<YYYYMMDD>-<two-word-slug>`, L-058). Check uniqueness
+  before writing and after combining tracks; disambiguate colliding new entries
+  before landing. Existing IDs are immutable (see the worktree-parallel skill).
 
 ## Improving Janus itself (dogfooding)
 

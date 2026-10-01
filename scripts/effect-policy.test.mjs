@@ -9,6 +9,17 @@ test('ordinary application edits are eligible but enforcement edits need evidenc
 test('keyword camouflaged arbitrary code is never a narrowing proof',()=>{
  for(const after of ['deny bad\nexit 0 # guard','deny bad\neval "$INPUT" # test','deny bad\nreturn true // assert'])assert.equal(classify('scripts/guard.sh','deny bad',after).verdict,'unknown');
 });
+test('native Codex instructions and configuration retain machinery review holds',()=>{
+ for(const path of ['.agents/skills/janus-workflow/SKILL.md','.agents/skills/new/SKILL.md','.codex/config.toml','.codex/hooks.json']) {
+  assert.equal(classify(path,'old','new').verdict,'unknown');
+  assert.equal(classify(path,'','new').verdict,'unknown');
+  assert.equal(classify(path,undefined,'new').verdict,'unknown');
+  assert.equal(classify(path,'old','').verdict,'protected');
+  const result=bindPolicy({repo:'o/r',repoId:1,pr:2,head:'a'.repeat(40),base:'b'.repeat(40),files:[{path,before:'old',after:'new'}]},'c'.repeat(64));
+  assert.equal(approvalVerdict(result,[],[7]).allowed,false);
+ }
+ assert.equal(classify('.claude/memory/LEARNINGS.md','old','new').verdict,'allow');
+});
 test('settings support only actual permission set narrowing',()=>{
  const before=JSON.stringify({hooks:{},permissions:{allow:['Read','Write'],deny:['bad'],ask:[]}});
  const after=JSON.stringify({permissions:{ask:[],allow:['Read'],deny:['bad','worse']},hooks:{}});
@@ -38,7 +49,7 @@ test('human review binds exact policy, source and operation; later dismissal win
  const result=bindPolicy({repo:'o/r',repoId:1,pr:2,head:'a'.repeat(40),base:'b'.repeat(40),files:[{path:'scripts/check.sh',before:'old',after:'new'}]},'c'.repeat(64));
  const review={id:4,user:{id:7,type:'User'},state:'APPROVED',commit_id:result.binding.head,body:`<!-- overlord:policy-approval:v1 -->\nAction: merge\nBinding-sha256: ${hash(result.binding)}`};
  assert.equal(approvalVerdict(result,[review],[7]).allowed,true);
- for(const changed of [{...result,binding:{...result.binding,base:'d'.repeat(40)}},{...result,binding:{...result.binding,head:'d'.repeat(40)}},{...result,binding:{...result.binding,repoId:2}}])assert.equal(approvalVerdict(changed,[review],[7]).allowed,false);
+ for(const changed of [{...result,binding:{...result.binding,base:'d'.repeat(40)}},{...result,binding:{...result.binding,head:'d'.repeat(40)}},{...result,binding:{...result.binding,repoId:2}},{...result,binding:{...result.binding,policyVersion:result.binding.policyVersion-1}}])assert.equal(approvalVerdict(changed,[review],[7]).allowed,false);
  assert.equal(approvalVerdict(result,[review],[]).allowed,false);
  assert.equal(approvalVerdict(result,[{...review,user:{id:7,type:'Bot'}}],[7]).allowed,false);
  assert.equal(approvalVerdict(result,[review,{...review,state:'DISMISSED'}],[7]).allowed,false);

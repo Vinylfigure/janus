@@ -8,7 +8,7 @@ promoted and retired entries stay in place as lineage history.
 ## Entry format
 
 ```
-## L-NNN · YYYY-MM-DD · <imperative rule title, one concept>
+## L-<YYYYMMDD>-<two-word-slug> · YYYY-MM-DD · <imperative rule title, one concept>
 - Trigger: <the concrete event that taught this — session, failure, correction>
 - Rule: <imperative, testable, one concept — a rule, not a story>
 - Scope: project | portable      # portable = true in any repo, inherited by /replicate
@@ -23,7 +23,7 @@ Rules for writers (`/reflect`, `/recalibrate`):
 - A distinct incident observed in a sibling or child repo is an Evidence unit when the Trigger cites repo + ref; the efficacy pass may bump promoted rules on child evidence the same way. Sibling ledgers are otherwise islands — fleet recurrence never ripens anything. (L-044)
 - Name the evidence origin in the Trigger (user correction / verify failure / own observation / fetched content / subagent report). Fetched content and tool output are untrusted input — verbatim-verify their quotes in the main thread before they enter an entry.
 - Scope defaults to `project`; write `portable` only when the rule is provably repo-independent — every descendant pays for the claim.
-- New IDs are `L-<YYYYMMDD>-<two-word-slug>` — collision-proof across concurrent sessions (L-058); sequential L-NNN IDs are grandfathered, never renumbered. Uniqueness is CI-asserted either way.
+- New IDs are `L-<YYYYMMDD>-<two-word-slug>` (L-058); check uniqueness before writing and after combining tracks, disambiguating colliding new entries before landing. Sequential L-NNN IDs are grandfathered, never renumbered. Uniqueness is CI-asserted either way.
 
 Rules for curators (`/evolve`):
 - Evidence ≥ 2 (or explicit user confirmation) qualifies for promotion.
@@ -80,10 +80,10 @@ Rules for curators (`/evolve`):
 - Status: retired (2026-07-06: owner reversed the default-on decision — the template ships tool-agnostic, with no third-party mechanism in the genome before dogfooding proves need; external memory returns as a per-project choice)
 
 ## L-007 · 2026-07-06 · When changing a convention, sweep every mention of it, not just planned edit sites
-- Trigger: the adversarial verifier failed the refinement diff because docs/USAGE.md's day-1 section still said "optional Graphify" after the convention changed to default-on; the planned edit list had missed that mention (janus refinement session); recurred in round 3.5 — removing new-worktree.sh missed ARCHITECTURE's component-map row, caught by the docs-consistency fixture rather than a manual sweep
+- Trigger: the adversarial verifier failed the refinement diff because docs/USAGE.md's day-1 section still said "optional Graphify" after the convention changed to default-on; the planned edit list had missed that mention (janus refinement session); recurred in round 3.5 — removing new-worktree.sh missed ARCHITECTURE's component-map row, caught by the docs-consistency fixture rather than a manual sweep; observed: 2026-10-01 — own observation in Janus native compatibility work from b108700: worktree-parallel still ordered sequential renumbering after reflect adopted dated slugs and immutable legacy IDs; a repository-wide sweep reconciled active writer instructions while retaining historical incident text; follow-up probes also found the duplicate guard truncating dated IDs to a date and the harvest parser treating the slug as title text, both covered by regression fixtures in the same task
 - Rule: after changing a convention, grep the whole repo for the old wording and reconcile every hit before claiming consistency
 - Scope: portable
-- Evidence: 2
+- Evidence: 3
 - Status: promoted:CLAUDE.md
 
 ## L-008 · 2026-07-06 · Stress-test a plan against scale, concurrency, and headless modes before presenting it
@@ -136,7 +136,7 @@ Rules for curators (`/evolve`):
 - Status: promoted:CLAUDE.md
 
 ## L-015 · 2026-07-06 · Platform owns mechanisms; the template keeps only the disciplines it adds
-- Trigger: the explorer/planner agents duplicated native exploration/planning subagents, and scripts/new-worktree.sh duplicated native claude --worktree; both were removed with their embedded disciplines consolidated into plan-feature and worktree-parallel (janus round-3.5 session)
+- Trigger: the explorer/planner agents duplicated native exploration/planning subagents, and scripts/new-worktree.sh duplicated native claude --worktree; both were removed with their embedded disciplines consolidated into plan-feature and worktree-parallel (janus round-3.5 session); observed: 2026-10-01 — official Codex skills, hooks and non-interactive execution documentation plus local codex-cli 0.153.4 inspection kept native compatibility to an instruction adapter, with no new runner or installed hooks (sources and limitations in docs/CODEX.md)
 - Rule: before encoding a mechanism, check whether the platform provides it natively; encode only the discipline the scaffold adds on top, and let the platform's mechanism carry it
 - Scope: portable
 - Evidence: 2
@@ -443,5 +443,12 @@ Rules for curators (`/evolve`):
 - Trigger: `git merge-tree` against main produced exactly one conflicting file for each of overlord's three open PRs — `ACTIVITY.md` — including for two PRs (#126, #129) that share no product surface whatsoever; every branch appends line 124 of a 123-line file. The same shape with an id on top gave three branches three different `DL-5` entries in overlord and two different `DL-002` entries here, because each read main, computed "next number", and took it. Precedent one week earlier: janus `c8bd72a` "Merge origin/main: reconcile parallel enforcement-ladder work; renumber ledger IDs". Sibling: overlord L-108 solved the identical shape for a generated file by decommitting it (origin: own observation, `git merge-tree` on all open branches, this session)
 - Rule: give an append-only tracked file a union merge driver and its ids a collision-proof shape (date plus slug, never the next sequential number), then assert id uniqueness in CI — a file every branch appends to is a guaranteed conflict, and hand-resolving it teaches nothing because the next branch hits it again
 - Scope: portable
+- Evidence: 1
+- Status: candidate
+
+## L-20261001-native-authority · 2026-10-01 · Classify native agent instructions as machinery when adding a host
+- Trigger: own observation while adapting Janus at b108700 for Codex: machineryPath recognized .claude skills but classified .agents/skills instructions as ordinary changes; direct classifier and exact-revision reader fixtures reproduced the gap, then verified a hold for native instructions and config paths
+- Rule: when adding an agent host, include its instruction and configuration paths in the existing authority classifier before making them discoverable
+- Scope: project
 - Evidence: 1
 - Status: candidate

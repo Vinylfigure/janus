@@ -10,6 +10,10 @@ its own sessions and inherit what its ancestors learned.
 Janus has two faces: one looks back (distilling lessons from what happened),
 one looks forward (stamping those lessons into the next project).
 
+Codex can reuse the plan, verify, reflect and evolve disciplines through the
+native `$janus-workflow` skill. See [Codex compatibility](docs/CODEX.md) for
+explicit checks, shared learning history and the current integration boundary.
+
 ## Quickstart
 
 1. Run `/replicate` from an existing Janus repo. (GitHub's **Use this

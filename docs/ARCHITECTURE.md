@@ -8,7 +8,8 @@ several "arbitrary" numbers here are load-bearing.
 
 ```
 CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked blocks)
-AGENTS.md                     generated mirror of CLAUDE.md for the agents.md convention (#22 / L-046); never hand-edit
+AGENTS.md                     generated Codex adapter pointer + verbatim CLAUDE.md (#22 / L-046); never hand-edit
+.agents/skills/janus-workflow/ native Codex adapter; reads shared procedures on demand (docs/CODEX.md)
 .claude/
   settings.json               hook wiring + safe-command permissions
   hooks/                      4 shell hooks (protocol below)
@@ -21,7 +22,7 @@ scripts/
   test-hooks.sh               fixture suite for the scaffold plumbing — hooks + docs cross-refs (verify.sh full + CI)
   check-loops.sh              loops.yaml schema check — 0 ok / 1 missing / 2 violation (verify.sh full + CI)
   check-ledger-aging.sh       nudges on Evidence-1 ledger candidates stale >= 30d (verify.sh full; its own fixtures run in CI via test-hooks.sh; always exits 0)
-  generate-agents-md.sh       regenerates AGENTS.md from CLAUDE.md; --check is verify.sh full's drift gate — 0 ok / 1 missing source / 2 drift (#22)
+  generate-agents-md.sh       regenerates the Codex pointer + CLAUDE.md in AGENTS.md; --check is verify.sh full's drift gate — 0 ok / 1 missing source / 2 drift (#22)
   check-ready.sh              the consumption gate, executable: gating labels + `working` + done-means, fixtured (#42 / L-057) — 0 ready / 1 blocked / 64 usage
   ready-sweep.sh              the work-loop's step-1 ready sweep, mechanical half only: prints one `<number><TAB><title>` line per open task: issue the record alone proves ready (title, labels, done-means, blocked-on-open-question, no PR already delivering it); the tool-grant judgment stays with the model (.claude/skills/work-loop/SKILL.md) — exit 0 empty-or-populated / 2 the GitHub read itself failed
   check-record.sh             In plain words at filing, executable: rejects a task:/question: body whose plain LINE 1 breaks the one cap every record shares — over card-grammar.json's headlineChars, over its headlineWords, more than one sentence, a question not ending in '?' — or which carries backticks or matches the jargon deny-list, and a question: without Options, fixtured in test-hooks.sh (verify.sh full's only exercise of it — never scans live issues) — 0 compliant / 1 not compliant / 64 usage

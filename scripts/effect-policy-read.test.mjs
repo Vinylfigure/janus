@@ -26,6 +26,21 @@ test('incomplete trees and moved heads are refused',async()=>{
  await assert.rejects(readPolicySnapshot('o/r',2,'head',fixture({truncated:true}).api),/Incomplete/);
  await assert.rejects(readPolicySnapshot('o/r',2,'old',fixture().api),/identity/);
 });
+test('native Codex skill content is read at both exact revisions, not projected as ordinary',async()=>{
+ const filename='.agents/skills/janus-workflow/SKILL.md',reads=[];
+ const api=async path=>{
+  if(path==='repos/o/r/pulls/2')return {base:{sha:'base',repo:{id:1,full_name:'o/r'}},head:{sha:'head'},changed_files:1};
+  if(path.includes('/files?'))return [{filename,status:'modified',changes:1,patch:'changed instructions'}];
+  if(path.includes('/git/trees/'))return {tree:[{path:filename,mode:'100644',sha:path.endsWith('/head?recursive=1')?'new':'old'}]};
+  if(path.includes('/contents/')){reads.push(path);return {encoding:'base64',content:Buffer.from(path.endsWith('head')?'new instructions':'old instructions').toString('base64')};}
+  throw Error(path);
+ };
+ const snapshot=await readPolicySnapshot('o/r',2,'head',api);
+ assert.equal(reads.length,2);
+ assert.equal(snapshot.files[0].before,'old instructions');
+ assert.equal(snapshot.files[0].after,'new instructions');
+ assert.equal(classifyEffects(snapshot).verdict,'unknown');
+});
 test('large dependency graphs retain an exact reviewable binding without claiming allow',async()=>{
  const {bindPolicy}=await import('./effect-policy.mjs');
  const roots=Array.from({length:190},(_,n)=>`scripts/gate-${n}.mjs`),paths=[...roots,'src/app.js'];let reads=0;

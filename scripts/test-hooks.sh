@@ -15,7 +15,7 @@ fail() { echo "  FAIL: $1" >&2; FAILS=$((FAILS + 1)); }
 
 command -v jq >/dev/null 2>&1 || { echo "test-hooks.sh requires jq" >&2; exit 1; }
 
-node --test "$ROOT/scripts/effect-policy.test.mjs" "$ROOT/scripts/effect-policy-read.test.mjs" "$ROOT/scripts/policy-approval.test.mjs" "$ROOT/scripts/weekly-learning.test.mjs" || fail "policy and weekly learning tests"
+node --test "$ROOT/scripts/effect-policy.test.mjs" "$ROOT/scripts/effect-policy-read.test.mjs" "$ROOT/scripts/policy-approval.test.mjs" "$ROOT/scripts/weekly-learning.test.mjs" "$ROOT/scripts/codex-compat.test.mjs" || fail "policy, weekly learning and Codex compatibility tests"
 
 echo "== static checks =="
 for f in "$ROOT"/.claude/hooks/*.sh "$ROOT"/scripts/*.sh; do
@@ -65,6 +65,9 @@ check_frontmatter() {
 }
 for d in "$ROOT"/.claude/skills/*/; do
   check_frontmatter "$d/SKILL.md" "$SKILL_FIELDS" "$(basename "$d")" "skill $(basename "$d")"
+done
+for d in "$ROOT"/.agents/skills/*/; do
+  check_frontmatter "$d/SKILL.md" " name description " "$(basename "$d")" "Codex skill $(basename "$d")"
 done
 for f in "$ROOT"/.claude/agents/*.md; do
   check_frontmatter "$f" "$AGENT_FIELDS" "$(basename "$f" .md)" "agent $(basename "$f" .md)"
@@ -777,12 +780,24 @@ echo "== ledger and decision ids are unique (append-only union-merge guard) =="
 dupe_ids() { grep -oE "^## $2[A-Za-z0-9-]+" "$1" 2>/dev/null | sort | uniq -d; }
 d=$(dupe_ids "$ROOT/docs/DECISIONS.md" "DL-")
 [ -z "$d" ] && pass "docs/DECISIONS.md has no duplicate lock id" || fail "docs/DECISIONS.md has duplicate lock id(s): $d"
-d=$(grep -oE '^## L-[0-9]+' "$ROOT/.claude/memory/LEARNINGS.md" 2>/dev/null | sort | uniq -d)
+learning_dupes() {
+  awk '/<!-- entries below this line -->/{entries=1; next} entries && /^## L-[A-Za-z0-9-]+[[:space:]]/{print $2}' "$1" | sort | uniq -d
+}
+d=$(learning_dupes "$ROOT/.claude/memory/LEARNINGS.md")
 [ -z "$d" ] && pass "LEARNINGS.md has no duplicate learning id" || fail "LEARNINGS.md has duplicate learning id(s): $d"
 # Red-first proof the check can actually fail: a fixture file with a known dupe.
 printf '## DL-2026-01-01-a · x\n## DL-2026-01-01-a · y\n' > "$SANDBOX/dupe-fixture.md"
 d=$(dupe_ids "$SANDBOX/dupe-fixture.md" "DL-")
 [ -n "$d" ] && pass "duplicate-id check detects a planted duplicate" || fail "duplicate-id check detects a planted duplicate"
+printf '## L-20261001-first-lesson · format example\n<!-- entries below this line -->\n## L-20261001-first-lesson · real\n## L-20261001-second-lesson · distinct\n' > "$SANDBOX/learning-ids.md"
+d=$(learning_dupes "$SANDBOX/learning-ids.md")
+[ -z "$d" ] && pass "learning ids: distinct same-day slugs pass; format examples are ignored" || fail "learning ids: date was truncated or example counted ($d)"
+printf '## L-20261001-second-lesson · duplicate\n' >> "$SANDBOX/learning-ids.md"
+d=$(learning_dupes "$SANDBOX/learning-ids.md")
+[ "$d" = 'L-20261001-second-lesson' ] && pass "learning ids: duplicate dated slug is detected in full" || fail "learning ids: missed full dated duplicate ($d)"
+printf '<!-- entries below this line -->\n## L-001 · a\n## L-001 · b\n' > "$SANDBOX/learning-ids.md"
+d=$(learning_dupes "$SANDBOX/learning-ids.md")
+[ "$d" = 'L-001' ] && pass "learning ids: duplicate legacy id is still detected" || fail "learning ids: legacy duplicate missed ($d)"
 
 echo "== session-start.sh: work line (backlog visibility) =="
 # Renders only when gh + jq + a github.com origin all hold; every failure
