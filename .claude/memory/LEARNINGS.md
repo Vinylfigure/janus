@@ -447,8 +447,8 @@ Rules for curators (`/evolve`):
 - Status: candidate
 
 ## L-20261001-native-authority · 2026-10-01 · Classify native agent instructions as machinery when adding a host
-- Trigger: own observation while adapting Janus at b108700 for Codex: machineryPath recognized .claude skills but classified .agents/skills instructions as ordinary changes; direct classifier and exact-revision reader fixtures reproduced the gap, then verified a hold for native instructions and config paths
-- Rule: when adding an agent host, include its instruction and configuration paths in the existing authority classifier before making them discoverable
+- Trigger: own observation while adapting Janus at b108700 for Codex: machineryPath recognized .claude skills but classified .agents/skills instructions as ordinary changes; direct classifier and exact-revision reader fixtures reproduced the gap, then verified a hold for native instructions and config paths. Follow-up in the same task found that root-only coverage still missed overrides and nested discovery; regression probes now cover all repository depths and conservative case matching, while effective host fallback names require explicit preflight against the reviewed policy registry. This refines the same incident, not an additional Evidence unit.
+- Rule: when adding an agent host, map its effective instruction discovery paths, including overrides and nested scopes, into the existing authority classifier before making them discoverable; hold unsupported configuration explicitly
 - Scope: project
 - Evidence: 1
 - Status: candidate

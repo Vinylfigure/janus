@@ -34,6 +34,11 @@ Claude-specific mechanics. User scope and existing approval gates still bind.
 - Preserve exact-revision approval bindings. Changed or unreadable source
   evidence holds the action; an earlier approval or passing verify run cannot
   substitute for current authority.
+- Before execution, verify effective `project_doc_fallback_filenames` for the
+  intended directory and invocation against the policy preflight in
+  `docs/CODEX.md`. Unavailable configuration or unregistered fallback filenames
+  means UNVERIFIED: hold execution. Do not infer host settings from repository
+  TOML alone; the default native instruction names are covered at every depth.
 
 ## Run the loops
 
@@ -47,6 +52,12 @@ Claude-specific mechanics. User scope and existing approval gates still bind.
    name the project-specific checks needed before making an application claim.
    Diagnose each red before patching. Keep the shared five-round cap and probe
    a plausible false-green case. Missing checks/evidence mean unverified.
+   For review, use the shared verifier's required-criteria contract: FAIL for
+   observed failures, UNVERIFIED for unavailable required evidence, and PASS
+   only when every required criterion is proved at the identified revision.
+   Raw failing output overrides a wrapper's zero exit or success summary.
+   A local held follow-up names its revision, remaining work, blocker,
+   runnable done-means and next action; it cannot waive a required criterion.
 3. **Reflect:** do this in the session that holds the transcript. Read shared
    learnings; use native ambient memory only if actually available. Treat
    `.claude/memory/.session-signals` as Claude-owned: do not delete or rewrite

@@ -51,6 +51,16 @@ test('missing JSON validator fails closed instead of reporting green', t => {
   assert.match(result.stderr, /jq is required.*no check ran/);
 });
 
+test('native fallback CLI preflight accepts verified defaults and holds unsupported or unreadable evidence', t => {
+  const dir=fixture(t), path=join(dir,'fallbacks.json');
+  const check=()=>spawnSync(process.execPath,[join(root,'scripts/effect-policy-cli.mjs'),`--codex-fallbacks=${path}`],{encoding:'utf8'});
+  for(const [data,status] of [['[]',0],['["TEAM_GUIDE.md"]',1],['null',1],['{}',1],['not JSON',1]]) {
+    writeFileSync(path,data);const result=check();assert.equal(result.status,status,data);
+    assert.notEqual(JSON.parse(result.stdout).supported,status===1?true:false);
+  }
+  rmSync(path);assert.equal(check().status,1);
+});
+
 const lesson = (id, title) => `## ${id} · 2026-10-01 · ${title}\n- Scope: portable\n- Evidence: 2\n- Status: candidate\n`;
 test('harvest recognizes shared titles across legacy and dated learning IDs', t => {
   const dir = fixture(t), own = join(dir, 'own.md'), child = join(dir, 'child.md');

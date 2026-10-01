@@ -21,10 +21,32 @@ Ledger reconciliation preserves legacy IDs and checks whole dated slugs for
 uniqueness. Harvest compares lesson titles across both ID formats, so adopting
 Codex does not split an existing lesson into a second history entry.
 
-Native `.agents/` and `.codex/` changes are machinery under the existing effect
-classifier. They require current review unless a transformation is proven safe;
+Native `AGENTS.md`, `AGENTS.override.md`, `.agents/` and `.codex/` changes are
+machinery at every repository depth, with conservative case-insensitive matching.
+They require current review unless a transformation is proven safe;
 missing content holds the action. This is classification only: no sandbox,
 permission, hook trust, signed approval, workflow or schedule is configured here.
+Symbolic links at machinery paths are unsupported: either revision containing
+one makes the shared reader hold the change, including a later edit to an
+ordinary-path link target. This slice does not resolve linked instruction trees.
+
+Before adopting this bridge, read the effective Codex configuration for the
+intended working directory, profile and CLI overrides. Save its resolved
+`project_doc_fallback_filenames` as a JSON array (`[]` for a verified default),
+then run `node scripts/effect-policy-cli.mjs --codex-fallbacks=<array-file>`.
+Unavailable effective configuration or a nonzero result means UNVERIFIED:
+hold execution. Recheck when the directory or configuration changes. Arbitrary
+fallback filenames are unsupported until their literal basenames are registered
+in `CODEX_FALLBACK_FILENAMES` inside the reviewed policy module; its digest binds
+the registration. GitHub classification cannot inspect a host's global, profile
+or CLI settings and does not claim coverage of unregistered names.
+
+Independent verification reports PASS only when every required acceptance
+criterion has evidence at the identified revision. An observed failure is FAIL;
+an unavailable required check is UNVERIFIED. Raw failing output overrides a
+wrapper's zero exit. A local-only held artifact can record a non-required
+follow-up, with revision, remaining work, blocker, runnable done-means and next
+action, but cannot waive a required criterion or imply publication.
 
 ## Platform check — 2026-10-01
 
