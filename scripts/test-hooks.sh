@@ -16,6 +16,7 @@ fail() { echo "  FAIL: $1" >&2; FAILS=$((FAILS + 1)); }
 command -v jq >/dev/null 2>&1 || { echo "test-hooks.sh requires jq" >&2; exit 1; }
 
 node --test "$ROOT/scripts/effect-policy.test.mjs" "$ROOT/scripts/effect-policy-read.test.mjs" "$ROOT/scripts/policy-approval.test.mjs" "$ROOT/scripts/weekly-learning.test.mjs" || fail "policy and weekly learning tests"
+python3 "$ROOT/scripts/test-auto-merge.py" || fail "offline merge-engine behavior"
 
 echo "== static checks =="
 for f in "$ROOT"/.claude/hooks/*.sh "$ROOT"/scripts/*.sh; do

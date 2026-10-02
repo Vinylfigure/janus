@@ -40,11 +40,10 @@
 #     (`--match-head-commit`): a push between read and act fails the merge,
 #     never the gate.
 #
-# State lives in the PR's own lifecycle comments (MARKER): a rerun against an
-# unchanged head SHA is a no-op; a new push is eligible again. Conflicting
-# eligible PRs get one rebase-request comment per head SHA; PRs held on a
-# policy verdict get one "Action: held" comment per head SHA (overlord-ui
-# surfaces it). Holds caused by an unreadable read post NO comment — they are
+# State lives in the PR's own lifecycle comments (MARKER). A recorded merge is
+# terminal for that head. Holds and rebase requests are reevaluated on every
+# pass; their comments are deduplicated separately by action and head. Holds
+# caused by an unreadable read post NO comment — they are
 # transient and already on the report line; a comment per outage would spam.
 #
 # Exit status: 0 after a complete pass (every PR has a report line, holds
@@ -103,7 +102,7 @@ why() { printf '%s' "${1#"$GH_FAIL" }"; }
 ghpages() {
   local raw joined
   raw=$(ghj api --paginate "$@") || { printf '%s' "$raw"; return 1; }
-  joined=$(printf '%s' "$raw" | jq -sc 'add // []' 2>/dev/null) || { printf '%s shape: pages were not JSON arrays' "$GH_FAIL"; return 1; }
+  joined=$(printf '%s' "$raw" | jq -cse 'if length > 0 and all(.[]; type == "array") then add else error("not array pages") end' 2>/dev/null) || { printf '%s shape: pages were not JSON arrays' "$GH_FAIL"; return 1; }
   printf '%s' "$joined"
 }
 
@@ -162,6 +161,18 @@ if [ "$PROBE" -eq 1 ]; then
   esac
 fi
 
+default_branch() {
+  local data name
+  data=$(ghj repo view --json defaultBranchRef) || { printf '%s' "$data"; return 1; }
+  name=$(printf '%s' "$data" | jq -er '.defaultBranchRef.name | select(type == "string" and length > 0)' 2>/dev/null) || {
+    printf '%s default branch missing or malformed' "$GH_FAIL"; return 1;
+  }
+  printf '%s' "$name"
+}
+DEFAULT_BRANCH=$(default_branch) || {
+  printf '*\tskip\tHOLD: could not read the default branch (%s)\n' "$(why "$DEFAULT_BRANCH")"; exit 1;
+}
+
 REPORT=""
 
 # The label set: a gating label that does not exist in this repo makes that
@@ -182,13 +193,32 @@ else
   HC_UNREADABLE=""
 fi
 
-prs=$(ghj pr list --state open --limit 200 --json number,title,headRefName,body,isDraft,labels,author,reviewDecision,mergeStateStatus,changedFiles,headRefOid,mergeable,reviews)
+PR_FIELDS=number,title,headRefName,baseRefName,baseRefOid,state,body,isDraft,labels,author,reviewDecision,mergeStateStatus,changedFiles,headRefOid,mergeable,reviews
+prs=$(ghj pr list --state open --limit 200 --json "$PR_FIELDS")
 if unreadable "$prs"; then printf '%b*\tskip\tHOLD: could not list open PRs (%s)\n' "$REPORT" "$(why "$prs")"; exit 1; fi
 nprs=$(printf '%s' "$prs" | jq 'length' 2>/dev/null || echo bad)
 if [ "$nprs" = "bad" ]; then printf '%b*\tskip\tHOLD: open-PR list was not JSON\n' "$REPORT"; exit 1; fi
 if [ "$nprs" -ge 200 ]; then printf '%b*\tskip\tHOLD: open-PR list hit the 200 cap; refusing to act on a truncated view\n' "$REPORT"; exit 1; fi
 
 # --- helpers over one PR --------------------------------------------------------
+valid_pr() {
+  printf '%s' "$1" | jq -e --argjson n "$2" '
+    type == "object" and .number == $n and .state == "OPEN"
+    and (.headRefName | type == "string" and length > 0)
+    and (.baseRefName | type == "string" and length > 0)
+    and (.headRefOid | type == "string" and test("^[a-f0-9]{40}$"))
+    and (.baseRefOid | type == "string" and test("^[a-f0-9]{40}$"))
+    and (.body | type == "string") and (.title | type == "string")
+    and (.isDraft | type == "boolean") and (.labels | type == "array")
+    and all(.labels[]; type == "object" and (.name | type == "string"))
+    and (.reviews | type == "array")
+    and all(.reviews[]; type == "object" and (.state | type == "string"))
+    and (.reviewDecision | type == "string")
+    and (.mergeStateStatus | type == "string") and (.mergeable | type == "string")
+    and (.changedFiles | type == "number" and . >= 0 and . == floor)
+  ' >/dev/null 2>&1
+}
+
 prefix_class() {
   local head=$1 p
   for p in $FORBIDDEN_PREFIXES; do case "$head" in "$p"*) echo forbidden; return ;; esac; done
@@ -201,6 +231,14 @@ issue_eligibility() {
   local closes_num=$1 issue_json state title body labels tier_line is_intent k ok
   issue_json=$(ghj issue view "$closes_num" --json state,title,body,labels)
   if unreadable "$issue_json"; then echo "HOLD: could not read linked issue #$closes_num ($(why "$issue_json"))"; return; fi
+  if ! printf '%s' "$issue_json" | jq -e '
+      type == "object" and (.state | type == "string")
+      and (.title | type == "string") and (.body | type == "string")
+      and (.labels | type == "array")
+      and all(.labels[]; type == "object" and (.name | type == "string"))
+    ' >/dev/null 2>&1; then
+    echo "HOLD: linked issue #$closes_num has incomplete or malformed gate fields"; return
+  fi
   state=$(printf '%s' "$issue_json" | jq -r '.state // empty' 2>/dev/null)
   if [ -z "$state" ]; then echo "HOLD: linked issue #$closes_num has no readable state"; return; fi
   title=$(printf '%s' "$issue_json" | jq -r '.title // ""')
@@ -259,16 +297,30 @@ boundary_verdict() {
   fi
 }
 
-# 0 = acted on this head already, 1 = not acted, 2 = comments unreadable.
-# A match needs BOTH the marker and the head line in one comment body, so a
-# human quoting a SHA cannot forge "already acted".
+# 0 = this action is recorded for this head, 1 = not recorded, 2 = unknown.
+# A prior hold is evidence to reevaluate, never permission or terminal state.
 ACTED_WHY=""
 already_acted() {
-  local num=$1 sha=$2 comments
+  local num=$1 sha=$2 action=${3:-merged} comments
   comments=$(ghpages "repos/$REPO/issues/$num/comments?per_page=100")
   if unreadable "$comments"; then ACTED_WHY="$(why "$comments")"; return 2; fi
-  if printf '%s' "$comments" | jq -e --arg m "$MARKER" --arg sha "$sha" \
-      'any(.[]; (.body // "" | contains($m)) and (.body // "" | contains("Head: " + $sha)))' >/dev/null 2>&1; then
+  if ! printf '%s' "$comments" | jq -e --arg m "$MARKER" '
+      all(.[]; type == "object" and (.body | type == "string")) and
+      all(.[].body;
+        if contains($m) then split("\n") as $lines |
+          $lines[0] == $m
+          and ([$lines[] | select(contains($m))] | length) == 1
+          and ([$lines[] | select(startswith("Action:"))] | length) == 1
+          and ([$lines[] | select(test("^Action: (held|merged|rebase-requested)$"))] | length) == 1
+          and ([$lines[] | select(startswith("Head:"))] | length) == 1
+          and ([$lines[] | select(test("^Head: [a-f0-9]{40}$"))] | length) == 1
+        else true end)' >/dev/null 2>&1; then
+    ACTED_WHY="PR comments or lifecycle fields malformed"; return 2
+  fi
+  if printf '%s' "$comments" | jq -e --arg m "$MARKER" --arg sha "$sha" --arg action "$action" '
+      any(.[].body; split("\n") as $lines | $lines[0] == $m
+        and ($lines | index("Head: " + $sha)) != null
+        and ($lines | index("Action: " + $action)) != null)' >/dev/null 2>&1; then
     return 0
   fi
   return 1
@@ -289,7 +341,7 @@ post_held_comment() {
   local n=$1 s=$2 why=$3
   [ "$DRY" -eq 1 ] && return
   [ -n "$s" ] || return
-  already_acted "$n" "$s"; case $? in 0|2) return ;; esac
+  already_acted "$n" "$s" held; case $? in 0|2) return ;; esac
   gh pr comment "$n" --body "$MARKER
 Action: held
 Ask: Merge or send it back; the merge arm held this change for your decision
@@ -305,8 +357,10 @@ hold_unknown() { REPORT="${REPORT}$1\tskip\tHOLD: $2\n"; }
 while read -r num; do
   [ -n "$num" ] || continue
   pr=$(printf '%s' "$prs" | jq -c ".[] | select(.number == $num)")
+  if ! valid_pr "$pr" "$num"; then hold_unknown "$num" "PR head/base or gate fields unreadable"; continue; fi
   title=$(printf '%s' "$pr" | jq -r '.title // ""')
   head=$(printf '%s' "$pr" | jq -r '.headRefName // ""')
+  base=$(printf '%s' "$pr" | jq -r '.baseRefName')
   body=$(printf '%s' "$pr" | jq -r '.body // ""')
   draft=$(printf '%s' "$pr" | jq -r 'if has("isDraft") then (.isDraft|tostring) else "unknown" end')
   sha=$(printf '%s' "$pr" | jq -r '.headRefOid // empty')
@@ -321,6 +375,7 @@ while read -r num; do
   if [ "$draft" = "true" ]; then REPORT="${REPORT}${num}\tskip\tdraft\n"; continue; fi
   if [ "$draft" != "false" ]; then hold_unknown "$num" "draft state unreadable"; continue; fi
   if [ "$labels" = "__missing__" ]; then hold_unknown "$num" "labels unreadable"; continue; fi
+  if [ "$base" != "$DEFAULT_BRANCH" ]; then hold_unknown "$num" "base is ${base}, not ${DEFAULT_BRANCH}; stacked PR requires its owner"; continue; fi
 
   case "$(prefix_class "$head")" in
     forbidden)
@@ -350,7 +405,7 @@ while read -r num; do
 
   already_acted "$num" "$sha"; acted=$?
   if [ "$acted" -eq 2 ]; then hold_unknown "$num" "could not read PR comments; idempotency unprovable (${ACTED_WHY})"; continue; fi
-  if [ "$acted" -eq 0 ]; then REPORT="${REPORT}${num}\tskip\talready acted on head ${sha}\n"; continue; fi
+  if [ "$acted" -eq 0 ]; then REPORT="${REPORT}${num}\tskip\tmerge already recorded for head ${sha}\n"; continue; fi
 
   # Changed files: the paginated list must agree with the PR's own count, or
   # the boundary gate would be judging a partial view.
@@ -395,12 +450,25 @@ while read -r num; do
     fi
     if [ -n "$closes_num" ]; then
       reason=$(issue_eligibility "$closes_num")
-      if [ -n "$reason" ]; then hold_policy "$num" "$sha" "$reason"; continue; fi
+      if [ "$reason" != "eligible" ]; then
+        case "$reason" in HOLD:*) hold_unknown "$num" "${reason#HOLD: }" ;; *) hold_policy "$num" "$sha" "$reason" ;; esac
+        continue
+      fi
+    fi
+    # Re-read immediately before mutation. GitHub atomically matches the head,
+    # but has no expected-base merge argument; this narrows that residual race.
+    current_default=$(default_branch) || { hold_unknown "$num" "could not re-read default branch ($(why "$current_default"))"; continue; }
+    if [ "$current_default" != "$DEFAULT_BRANCH" ]; then hold_unknown "$num" "default branch changed during evaluation"; continue; fi
+    current_pr=$(ghj pr view "$num" --json "$PR_FIELDS")
+    if unreadable "$current_pr" || ! valid_pr "$current_pr" "$num"; then hold_unknown "$num" "could not re-read PR head/base and gates"; continue; fi
+    if [ "$(printf '%s' "$pr" | jq -cS .)" != "$(printf '%s' "$current_pr" | jq -cS .)" ]; then
+      hold_unknown "$num" "PR head/base or gate fields changed during evaluation"; continue
     fi
     if [ "$DRY" -eq 1 ]; then
       REPORT="${REPORT}${num}\tmerge\twould ${MERGE_METHOD}-merge head ${sha}\n"; continue
     fi
-    merge_args=(--delete-branch --match-head-commit "$sha")
+    # Branch cleanup belongs to an owner who has checked open dependents.
+    merge_args=(--match-head-commit "$sha")
     case "$MERGE_METHOD" in
       squash) merge_args+=(--squash --subject "$title") ;;
       *) merge_args+=(--merge) ;;
@@ -408,14 +476,30 @@ while read -r num; do
     errf=$(mktemp)
     if gh pr merge "$num" "${merge_args[@]}" >/dev/null 2>"$errf"; then
       rm -f "$errf"
+      # Exit zero can mean accepted/queued. Only observed MERGED state is a
+      # terminal receipt; an unknown outcome remains unconfirmed for the owner.
+      merged_pr=$(ghj pr view "$num" --json state,headRefOid,baseRefName,mergeCommit)
+      if unreadable "$merged_pr" || ! printf '%s' "$merged_pr" | jq -e --arg sha "$sha" --arg base "$DEFAULT_BRANCH" '
+          type == "object" and .state == "MERGED" and .headRefOid == $sha
+          and .baseRefName == $base
+          and (.mergeCommit.oid | type == "string" and test("^[a-f0-9]{40}$"))
+        ' >/dev/null 2>&1; then
+        REPORT="${REPORT}${num}\tskip\tHOLD: merge command accepted; result unconfirmed by matching remote merged state\n"; continue
+      fi
+      merge_commit=$(printf '%s' "$merged_pr" | jq -r '.mergeCommit.oid')
       gh pr comment "$num" --body "$MARKER
 Action: merged
-Head: $sha" >/dev/null 2>&1
-      REPORT="${REPORT}${num}\tmerged\thead ${sha}\n"
+Head: $sha
+Base: $DEFAULT_BRANCH
+Merge-commit: $merge_commit" >/dev/null 2>&1
+      REPORT="${REPORT}${num}\tmerged\thead ${sha}; merge commit ${merge_commit}\n"
     else
       REPORT="${REPORT}${num}\tskip\tmerge command failed ($(tr '\n' ' ' <"$errf" | head -c 160))\n"; rm -f "$errf"
     fi
   elif [ "$mergeable" = "CONFLICTING" ]; then
+    already_acted "$num" "$sha" rebase-requested; acted=$?
+    if [ "$acted" -eq 2 ]; then hold_unknown "$num" "could not read PR comments (${ACTED_WHY})"; continue; fi
+    if [ "$acted" -eq 0 ]; then REPORT="${REPORT}${num}\tskip\trebase already requested for head ${sha}\n"; continue; fi
     if [ "$DRY" -eq 1 ]; then
       REPORT="${REPORT}${num}\trebase\twould post rebase instruction for head ${sha}\n"; continue
     fi

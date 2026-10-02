@@ -33,7 +33,7 @@ this skill natively — the loop decides *when* to retry; this skill encodes
    - Append a line to `.claude/memory/.session-signals` (`verify-fail:loop-exhausted`) so the Stop-hook reflect nudge is guaranteed to fire.
    - File the remainder as a `task:` issue — what still fails, its done-means, and a `discovered-from:` ref — where this environment can open issues; otherwise hand the user the drafted issue text. Stuck work reported only in-chat evaporates (L-043).
    - Ask the user how to proceed.
-   - In a headless run, do not wait: push the branch as-is, open (or convert to) a draft PR whose body pastes the last red output and the five failure articulations, comment the same on the task issue, and stop — a draft PR is the hold, not a merge.
+   - In a headless run with existing publication authority, publish the branch as a draft whose body pastes the last red output and five failure articulations, comment on the task issue, and stop. Without that authority, or after a native denial, retain the local packet and report the exact blocked action per `docs/DELIVERY.md`; do not turn failed verification into a new grant. A red draft never authorizes merge.
 
 ## Before finishing
 

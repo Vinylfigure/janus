@@ -214,14 +214,14 @@ retired in favour of "retire before adding", because it never once bound.
 | Practice | Where it lives in Janus |
 |---|---|
 | Plan mode before code | `/plan-feature` (and prime directive #1) |
-| Ship as a loop — babysit CI and reviews to merged | `/ship`, plus `.github/workflows/verify.yml` running `scripts/test-hooks.sh` as the remote closed loop |
+| Ship as a loop to the authorized endpoint | `/ship` and `docs/DELIVERY.md` distinguish local/pushed/PR/CI/merged/blocked evidence; `.github/workflows/verify.yml` runs `scripts/verify.sh full` as the remote closed loop |
 | CLAUDE.md as compounding memory — "any time Claude does something wrong, add a note" | The session loop: signals → `/reflect` → ledger → `/evolve` → CLAUDE.md, with evidence thresholds so notes compound instead of accumulating |
 | Closed feedback loops — "if Claude can close the loop on its own, it will iterate until the output is right" | PostToolUse hook (inner loop) + `/verify-loop` + the verifier agent |
 | Subagents for focused work | Custom: verifier (evidence-bound judge) and memory-curator (proposal-only librarian). Scouting and independent design use Claude Code's native exploration/planning subagents — the platform owns the mechanism; the template keeps only the disciplines it adds |
 | Parallel sessions in worktrees — 3–5 at once, one task per session | `/worktree-parallel`: native `claude --worktree`, `claude agents` as the fleet view; `.claude/` is in-tree so every worktree gets the full scaffold |
 | Team-shared configuration | `.claude/settings.json` is committed; `settings.local.json` is gitignored |
 | Encoded practices drift as tools evolve | `/recalibrate` re-verifies conventions against primary sources and files drift as candidate learnings; `/evolve` keeps promotion authority; `memory/sources-seen.md` separates living sources (always re-read) from dated ones (read once); the session-start staleness nudge and the heartbeat routine keep it running |
-| Loops trigger; skills encode quality | Skills auto-invoke from their trigger descriptions (the conductor directive routes goals to skills + modality); side-effect skills carry in-body gates that degrade to PR-delivery when headless; `/goal`-style loops and the weekly heartbeat only decide *when* |
+| Loops trigger; skills encode quality | Skills auto-invoke from their trigger descriptions; side-effect skills verify existing trusted scope and stop native denials, including headless publication; `/goal`-style loops and the weekly heartbeat only decide *when* |
 
 ## Claude 5 context-engineering alignment (sources read 2026-07-24)
 

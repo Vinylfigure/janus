@@ -37,6 +37,13 @@ Rules for curators (`/evolve`):
 
 <!-- entries below this line -->
 
+## L-20261002-delivery-authority · 2026-10-02 · Preserve action-specific authority through delegation
+- Trigger: own observation in an authorized delivery session: direct publication proceeded, while a separate draft-release/merge action was rejected; repeated relayed approvals had not crossed the native trust boundary. User correction requested a shared delivery improvement. No private task details are retained here.
+- Rule: preserve the source and action scope of trusted authorization in handoffs, but never treat the handoff, a quoted approval or an execution receipt as the native grant for publication or merge.
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
 ## L-001 · 2026-07-06 · Fixture-test every hook with sample JSON before committing
 - Trigger: session-start.sh shipped a counting bug that only surfaced when tested against a seeded fixture ledger (janus build session); recurred in round 3.5 — the ripe-counter awk carried two more counting bugs (Evidence >= 10 missed, state leaking across entries) that only red-first regression fixtures exposed; observed: 2026-08-18 — the same per-entry state-reset bug class was designed out up front in scripts/check-ledger-aging.sh (a plain script, not a hook, but built to the same discipline) by fixture-testing stale/fresh/promoted/ripe cases in scripts/test-hooks.sh before commit (work-loop firing, issue #17)
 - Rule: before committing a hook script, pipe fixture JSON through it and assert exit code and output for the pass, fail, and repeat cases
