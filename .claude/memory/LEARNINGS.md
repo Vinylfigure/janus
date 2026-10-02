@@ -87,10 +87,10 @@ Rules for curators (`/evolve`):
 - Status: retired (2026-07-06: owner reversed the default-on decision — the template ships tool-agnostic, with no third-party mechanism in the genome before dogfooding proves need; external memory returns as a per-project choice)
 
 ## L-007 · 2026-07-06 · When changing a convention, sweep every mention of it, not just planned edit sites
-- Trigger: the adversarial verifier failed the refinement diff because docs/USAGE.md's day-1 section still said "optional Graphify" after the convention changed to default-on; the planned edit list had missed that mention (janus refinement session); recurred in round 3.5 — removing new-worktree.sh missed ARCHITECTURE's component-map row, caught by the docs-consistency fixture rather than a manual sweep
+- Trigger: the adversarial verifier failed the refinement diff because docs/USAGE.md's day-1 section still said "optional Graphify" after the convention changed to default-on; the planned edit list had missed that mention (janus refinement session); recurred in round 3.5 — removing new-worktree.sh missed ARCHITECTURE's component-map row, caught by the docs-consistency fixture rather than a manual sweep; observed: 2026-10-02 — own verification failure: the delivery-convention sweep missed contradictory evolve steps and README/USAGE summaries; an independent reviewer flagged them and primary-source readback confirmed them. The rule caught the omission during review but did not prevent the incomplete first sweep.
 - Rule: after changing a convention, grep the whole repo for the old wording and reconcile every hit before claiming consistency
 - Scope: portable
-- Evidence: 2
+- Evidence: 3
 - Status: promoted:CLAUDE.md
 
 ## L-008 · 2026-07-06 · Stress-test a plan against scale, concurrency, and headless modes before presenting it

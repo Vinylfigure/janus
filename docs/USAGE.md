@@ -6,7 +6,7 @@ system; this document is *how you drive it* — though mostly, it drives.
 
 **You never need to memorize the command vocabulary.** Every skill carries a
 trigger description, so Claude proposes the right one when the situation
-matches, and each side-effect skill confirms with you before doing anything
+matches, and each side-effect skill checks applicable authorization before doing anything
 irreversible. Every `/command` in this doc is an escape hatch, not a
 prerequisite.
 
@@ -41,15 +41,15 @@ CLAUDE.md's conductor directive makes Claude act on the session-start status
 and propose the route — skills, order, and *modality* — whenever you state a
 goal. What fires when:
 
-| Skill | Claude reaches for it when… | Nudged by | Confirms before |
+| Skill | Claude reaches for it when… | Nudged by | Authorization check |
 |---|---|---|---|
 | `/bootstrap` | the facts block says NOT BOOTSTRAPPED | session-start line | — |
 | `/plan-feature` | a non-trivial change is requested | — | plan sign-off |
 | `/verify-loop` | any "done" claim is near | per-edit hook runs the quick check anyway | — |
 | `/reflect` | a correction happened or the session ends | **Stop hook blocks once** when signals exist · leftover signals resurface at session start | — |
-| `/evolve` | between tasks with ripe learnings | session-start ripe count · heartbeat | **CLAUDE.md edits** (headless: PR) |
+| `/evolve` | between tasks with ripe learnings | session-start ripe count · heartbeat | Explicit scope for **CLAUDE.md edits**; headless publication stays within its grant |
 | `/recalibrate` | the status says recalibration is stale, or a documented practice misbehaves | session-start stale line · heartbeat | — (writes candidates + stamp only) |
-| `/ship` | a verified change is ready to leave the machine | — | **branch + remote** before first push (headless: PR only) |
+| `/ship` | a verified change is ready to leave the machine | — | Existing scope for **branch + remote + visibility + action**; ask only for missing authority |
 | `/worktree-parallel` | work splits into independent tracks | — | **track table** before any worktree |
 | `/replicate` | you want a new project from this scaffold | — | **name/visibility/path** before creation |
 | `/add-skill` | a procedure got repeated or explained twice | `/evolve` promotes procedure-shaped lessons | — (retire before adding) |
@@ -80,8 +80,9 @@ shape of the work, and escalation is always proposed, never silent:
   (iterates to green against a runnable check, max 5 rounds) or the
   `verifier` agent (adversarial: runs the suite *plus* probes the change
   directly, and only passes on pasted evidence).
-- **Ship when ready**: `/ship` verifies, commits, confirms branch and remote,
-  pushes, opens the PR, and babysits CI and reviews until merged.
+- **Ship when ready**: `/ship` verifies, commits, checks authorized branch and
+  remote, pushes and opens the PR, then follows CI and reviews to the permitted
+  endpoint. Publication and merge are separate actions; see [DELIVERY.md](DELIVERY.md).
 
 ## Session rituals (the self-learning loop)
 
@@ -97,7 +98,8 @@ You mostly don't have to think about this — the hooks do:
 - **When the session-start line says learnings are ripe** ("N with
   Evidence ≥ 2"), Claude proposes `/evolve` between tasks. It promotes stable
   lessons into `CLAUDE.md` rules or new skills, retires contradicted rules,
-  and enforces the budgets — asking you before it touches CLAUDE.md. This is
+  and enforces the budgets — checking explicit scope for CLAUDE.md and asking
+  only when it is missing. This is
   how corrections compound instead of repeating.
 
 You can also run `/reflect` manually any time something surprising happened —
@@ -183,8 +185,10 @@ your control surface.
 
 Two design points make this safe:
 
-- **Headless gates degrade to PRs.** `/evolve` and `/ship` never touch the
-  default branch without a user; the PR review *is* the confirmation.
+- **Headless delivery stays within its grant.** `/evolve` and `/ship` use
+  feature branches and PRs only when publication is authorized. Merge permission,
+  signed machinery approval and ordinary checks remain separate; native denials
+  stop the affected action.
 - **Loops trigger; skills encode quality** (the official loops guidance).
   The heartbeat only decides *when* — what "verified" and "promotable" mean
   live in the skills, same as in interactive sessions.

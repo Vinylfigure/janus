@@ -46,7 +46,8 @@ To make this repo itself a template: `gh repo edit <owner>/janus --template`
 
 You don't memorize these commands — every skill carries a trigger
 description, so Claude proposes the right one when the situation matches,
-and side-effect skills confirm with you before acting. Typing the
+and side-effect skills check applicable authorization before acting, asking for
+missing scope. Typing the
 `/command` is the escape hatch.
 
 | Piece | Purpose |
@@ -59,7 +60,7 @@ and side-effect skills confirm with you before acting. Typing the
 | `/recalibrate` | Re-verify encoded practices against primary sources; file drift as learnings |
 | `/plan-feature` | Plan-first workflow with explicit "done means" criteria |
 | `/verify-loop` | Iterate a change to green against a runnable check |
-| `/ship` | Verify green, commit, push, PR, then babysit CI and reviews until merged |
+| `/ship` | Verify, publish and check the authorized delivery; merge only when permitted |
 | `/worktree-parallel` | Fan out parallel sessions in git worktrees |
 | `/add-skill` | Author new skills in the canonical shape |
 | `/decision-lock` | Freeze a resolved decision as a dated record in docs/DECISIONS.md |

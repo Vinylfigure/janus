@@ -79,6 +79,10 @@ sentinel must not turn a partial payload into a newly permitted merge.
   tracked in [task #84](https://github.com/Vinylfigure/janus/issues/84), held with done-means covering paginated/unknown reads, visible
   `codex/` branches, unchanged merge eligibility and per-child reviewed adoption.
   Existing PR #80 also touches the detector; do not overwrite that work here.
+- A pre-existing malformed changed-file row can evade path classification:
+  tracked in [task #85](https://github.com/Vinylfigure/janus/issues/85), reproduced
+  offline on both base and candidate. It needs strict row validation and separate
+  verification; this change does not claim universal malformed-input rejection.
 - Creating a native authorization bridge from transcript quotes: declared dead
   for this repository. Only the execution platform can supply trusted authority.
 - Automatic merge of arbitrary stacked branches: declared dead for this slice.
@@ -112,3 +116,10 @@ results travel with the PR receipt. Local ledger-aging tests skip when GNU
 `date -d` is unavailable; Linux hosted CI must cover that leg. No live merge,
 platform authorization bridge or cross-project rollout is claimed from synthetic
 checks. Follow-up #84 owns measured monitoring/adoption after acceptance.
+
+Independent review passed the engine and three extra probe families, but rejected
+the first documentation pass: evolve steps and README/USAGE summaries retained
+superseded confirmation and until-merged wording. Those occurrences were
+reconciled, and the existing L-007 lesson records the missed first sweep. The
+pre-existing malformed-file-row counterexample is captured in task #85; it is
+not evidence of a live unauthorized merge.
