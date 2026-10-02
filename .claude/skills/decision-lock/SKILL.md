@@ -6,8 +6,8 @@ argument-hint: [the decision to lock]
 effort: high
 ---
 
-Convergently invented by two children (fillmore-v2's DL-N gating table,
-DryDock's dated owner-approved amendments): a decision nobody wrote down
+Convergently invented by two children (child-c's DL-N gating table,
+child-b's dated owner-approved amendments): a decision nobody wrote down
 gets re-litigated — or silently drifted past — by the next session.
 
 ## Hold in mind

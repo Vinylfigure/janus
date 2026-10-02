@@ -37,7 +37,7 @@ OWNER="${GITHUB_REPOSITORY_OWNER:-}"
 REPO="${GITHUB_REPOSITORY:-}"
 [ -n "$REPO" ] || REPO=$(gh repo view --json nameWithOwner --jq '.nameWithOwner' 2>/dev/null || true)
 # The L-047 detector compares every branch against this, so it must be the
-# repo's REAL default — DryDock's is `Main`, not `main`, and guessing would
+# repo's REAL default — a private sibling's is `Main`, not `main`, and guessing would
 # make every branch there look stranded.
 DEFAULT_BRANCH="${GITHUB_DEFAULT_BRANCH:-}"
 if [ -z "$DEFAULT_BRANCH" ] && [ -n "$REPO" ]; then
