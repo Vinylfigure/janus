@@ -13,7 +13,7 @@
   },
   "files": [
     {"source": ".agents/skills/janus-workflow/SKILL.md", "target": ".agents/skills/janus-workflow/SKILL.md"},
-    {"source": "templates/codex/PROJECT.md", "target": ".agents/skills/janus-workflow/PROJECT.md"},
+    {"source": ".agents/skills/janus-workflow/adoption/PROJECT.md", "target": ".agents/skills/janus-workflow/PROJECT.md"},
     {"source": ".claude/skills/plan-feature/SKILL.md", "target": ".agents/skills/janus-workflow/references/plan.md"},
     {"source": ".claude/skills/verify-loop/SKILL.md", "target": ".agents/skills/janus-workflow/references/verify.md"},
     {"source": ".claude/skills/reflect/SKILL.md", "target": ".agents/skills/janus-workflow/references/reflect.md"},

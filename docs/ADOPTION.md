@@ -1,6 +1,6 @@
 # Adopt the Codex procedure candidate
 
-`template-candidate.json` identifies `2026.10-codex-rc.1`: an additive,
+`.agents/skills/janus-workflow/adoption/candidate.json` identifies `2026.10-codex-rc.1`: an additive,
 procedure-only candidate for existing projects. Its file allowlist is the
 complete payload. It reuses the shared procedure sources as versioned
 snapshots inside one native skill directory. It is not a production release,

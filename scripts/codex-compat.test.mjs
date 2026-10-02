@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { machineryPath } from './effect-policy.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const run = (script, args, options = {}) => spawnSync('/bin/bash', [join(root, 'scripts', script), ...args], { encoding: 'utf8', ...options });
@@ -83,7 +84,9 @@ test('harvest preserves full dated ID, title and evidence for a new candidate', 
 });
 
 test('candidate payload resolves shared procedures inside one additive native skill', t => {
-  const manifest = JSON.parse(readFileSync(join(root, 'template-candidate.json'), 'utf8'));
+  assert.ok(machineryPath('.agents/skills/janus-workflow/adoption/candidate.json'));
+  assert.ok(machineryPath('.agents/skills/janus-workflow/adoption/PROJECT.md'));
+  const manifest = JSON.parse(readFileSync(join(root, '.agents/skills/janus-workflow/adoption/candidate.json'), 'utf8'));
   assert.equal(manifest.status, 'candidate');
   const targetRoot = fixture(t);
   const existing = {

@@ -7,7 +7,7 @@ Codex pointer plus the verbatim `CLAUDE.md`; shared rules and learning history
 keep one source. Claude's skills, hooks and settings keep their existing role.
 
 For an existing project, use the versioned, additive candidate in
-[ADOPTION.md](ADOPTION.md) and `template-candidate.json`. Its reviewed bindings
+[ADOPTION.md](ADOPTION.md) and `.agents/skills/janus-workflow/adoption/candidate.json`. Its reviewed bindings
 preserve the project's own instructions, ledger and verification commands.
 That procedure-only package installs no Janus policy gate or native hooks.
 
