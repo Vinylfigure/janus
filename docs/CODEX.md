@@ -6,6 +6,11 @@ the existing procedures on demand. `AGENTS.md` is generated from a small
 Codex pointer plus the verbatim `CLAUDE.md`; shared rules and learning history
 keep one source. Claude's skills, hooks and settings keep their existing role.
 
+For an existing project, use the versioned, additive candidate in
+[ADOPTION.md](ADOPTION.md) and `template-candidate.json`. Its reviewed bindings
+preserve the project's own instructions, ledger and verification commands.
+That procedure-only package installs no Janus policy gate or native hooks.
+
 Run quick checks explicitly after edits and full verification before closing a
 Codex task. Until bootstrap specializes the dispatcher, green means scaffold
 checks passed; application behavior needs its own tests. Missing `jq` makes a
@@ -79,7 +84,7 @@ end-to-end evidence that every model follows a procedure correctly.
 ## Scope of this slice
 
 This is local workflow reuse. It adds no UI, orchestrator, worker loop or
-scheduled consumer. Existing remote actor authorization work (PR #81) is a
-separate unresolved change; a green local suite cannot approve it. Recheck
+scheduled consumer. Remote actor authorization is a separate review surface;
+a green local suite cannot approve it. Recheck
 platform facts before adding native integrations; keep dated vendor facts out
 of durable learning rules.

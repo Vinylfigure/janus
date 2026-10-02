@@ -13,13 +13,16 @@ one looks forward (stamping those lessons into the next project).
 Codex can reuse the plan, verify, reflect and evolve disciplines through the
 native `$janus-workflow` skill. See [Codex compatibility](docs/CODEX.md) for
 explicit checks, shared learning history and the current integration boundary.
+For an existing repository, the [versioned adoption candidate](docs/ADOPTION.md)
+adds only a native skill and shared procedure snapshots, preserving its rules,
+checks and learning history. Hooks and runtime enforcement are not installed.
 
 ## Quickstart
 
-1. Run `/replicate` from an existing Janus repo. (GitHub's **Use this
-   template** button also works, but it copies files only — none of
-   `/replicate`'s heredity transforms run, so have the child's first session
-   run `/replicate retrofit` before real work starts.)
+1. Run `/replicate` from an existing Janus repo to prepare a reviewed local
+   child first. GitHub's **Use this template** copies executable workflows
+   before heredity or automation review; do not use it as an inert staging
+   step. For an existing copy, inventory ownership before `/replicate retrofit`.
 2. `cd` into the clone and start `claude`.
 3. Run `/bootstrap` — it detects (or asks for) your stack, wires
    `scripts/verify.sh` to your real lint/test commands, and proves the

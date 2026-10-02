@@ -10,6 +10,43 @@ Paths below are relative to the repository root. Read only the procedure
 needed for the current phase, with the Codex adaptations here applied to its
 Claude-specific mechanics. User scope and existing approval gates still bind.
 
+## Existing-project package
+
+If `PROJECT.md` exists beside this skill, read it first. It binds this versioned
+package to the project's canonical instructions, existing ledger and actual
+quick/full commands. Unfilled fields, missing files or unresolved conflicts
+mean UNVERIFIED: hold use and complete the adoption review. The project's
+instructions retain precedence; this package does not replace them.
+
+In that layout, read the corresponding `references/plan.md`, `references/verify.md`,
+`references/reflect.md`, `references/evolve.md`, `references/verifier.md`,
+`references/memory-curator.md` and `references/worktree-parallel.md`
+beside this skill instead of the source paths below.
+Apply these bindings to every shared procedure:
+
+- Substitute the bound ledger and verification commands for Janus paths.
+  Keep the existing ledger's format, IDs, statuses, evidence and history;
+  do not import Janus entries or convert a ledger just to use this skill.
+- Read the bound canonical instructions wherever a brief says CLAUDE.md.
+  Its ownership, hierarchy and budgets prevail. Evolve is a read-only proposal
+  unless the user separately authorizes the particular changes; never run
+  Janus's AGENTS generator over an existing project's instructions.
+- Claude hooks/signals, slash commands, rules directories and model metadata
+  are host-specific examples, not installed capabilities. Do not write or
+  delete Claude signal files. Run checks and reflect explicitly in-session.
+- Other Janus skills, policy scripts, issue templates and automation are not
+  included. If a requested phase requires one, record a held follow-up; do not
+  fetch, install, publish or invent a substitute to satisfy that instruction.
+- Record effective native instruction discovery, including fallback filenames,
+  in PROJECT.md's adoption evidence. Unknown effective configuration holds use.
+  This package installs no Janus effect-policy gate: the owning project's
+  approval controls govern. Keep revision-bound approvals and fail closed on
+  changed or unreadable evidence; provenance is never authorization.
+
+The Janus-root policy preflight and AGENTS regeneration below apply only to
+the original template layout. In both layouts, all explicit user scope and
+native permission boundaries remain in force.
+
 | Phase | Read on demand |
 | --- | --- |
 | Plan | `.claude/skills/plan-feature/SKILL.md` |

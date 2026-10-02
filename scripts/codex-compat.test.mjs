@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -80,4 +80,41 @@ test('harvest preserves full dated ID, title and evidence for a new candidate', 
   const result = run('harvest-ledgers.sh', [own, child]);
   assert.equal(result.status, 0);
   assert.equal(result.stdout, `${child}\tL-20261001-new-rule\t123 checks before completion\t2\n`);
+});
+
+test('candidate payload resolves shared procedures inside one additive native skill', t => {
+  const manifest = JSON.parse(readFileSync(join(root, 'template-candidate.json'), 'utf8'));
+  assert.equal(manifest.status, 'candidate');
+  const targetRoot = fixture(t);
+  const existing = {
+    'AGENTS.md': '# Existing instructions\nKeep the project aggregate.\n',
+    'CLAUDE.md': '# Existing Claude instructions\n',
+    'docs/LEARNINGS.md': '## L-001\nExisting project evidence must survive.\n',
+    '.agents/skills/project/SKILL.md': '---\nname: project\ndescription: Existing workflow\n---\n'
+  };
+  for (const [path, bytes] of Object.entries(existing)) {
+    mkdirSync(dirname(join(targetRoot, path)), { recursive: true });
+    writeFileSync(join(targetRoot, path), bytes);
+  }
+  const destinations = new Set();
+  for (const { source, target } of manifest.files) {
+    assert.match(target, /^\.agents\/skills\/janus-workflow\/(?:SKILL\.md|PROJECT\.md|references\/[a-z-]+\.md)$/);
+    assert.ok(!source.split('/').includes('..'));
+    assert.ok(!/settings|hooks|workflows|LEARNINGS|sources-seen/.test(source));
+    assert.ok(!destinations.has(target), `duplicate destination: ${target}`);
+    destinations.add(target);
+    mkdirSync(dirname(join(targetRoot, target)), { recursive: true });
+    writeFileSync(join(targetRoot, target), readFileSync(join(root, source)));
+  }
+  for (const [path, bytes] of Object.entries(existing)) {
+    assert.equal(readFileSync(join(targetRoot, path), 'utf8'), bytes);
+  }
+  const skill = readFileSync(join(targetRoot, '.agents/skills/janus-workflow/SKILL.md'), 'utf8');
+  const references = [...skill.matchAll(/`references\/([a-z-]+\.md)`/g)].map(match => match[1]);
+  assert.equal(references.length, 7);
+  for (const name of references) {
+    assert.ok(readFileSync(join(targetRoot, '.agents/skills/janus-workflow/references', name), 'utf8').length);
+  }
+  assert.match(readFileSync(join(targetRoot, '.agents/skills/janus-workflow/PROJECT.md'), 'utf8'), /UNSET/);
+  assert.match(skill, /Unfilled fields, missing files or unresolved conflicts\nmean UNVERIFIED/);
 });

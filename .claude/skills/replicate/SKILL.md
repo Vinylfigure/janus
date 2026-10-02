@@ -20,21 +20,35 @@ repository has learned that is true anywhere — heredity, not just copying.
 ## Steps
 
 1. Interview the user (skip anything already given in the argument): project name, one-line purpose, expected stack (or unknown), GitHub visibility (public/private) or local-only. Gate: restate name, visibility, and destination path, and wait for an explicit yes before creating anything.
-2. Create the child:
-   - **GitHub path** (preferred): `gh repo create <name> --template <owner>/<template-repo> --<visibility> --clone`
-   - **Local fallback**: `git clone --depth 1 <template> <name> && rm -rf <name>/.git && git -C <name> init -b main`
+2. Prepare the child locally first in a new, isolated directory. Full-scaffold
+   replication requires a reviewed, coherent payload: its checks depend on the
+   declared workflows and Claude hooks/settings. If those integrations have not
+   been specifically selected and authorized, hold full-scaffold replication;
+   do not create a partial scaffold that cannot pass its own checks. The
+   existing-project package in `docs/ADOPTION.md` is the procedure-only path.
+   Copy the selected files without the parent's Git metadata and initialize a
+   fresh local repository. Do not create a remote from the raw
+   template first: copied event/scheduled workflows can run before the later
+   declaration reset. A remote destination is a separate authorized delivery
+   step after the reviewed local candidate and its checks exist.
 3. Apply heredity, in the child:
    - From the parent's CLAUDE.md `janus:rules` block, present each rule whose ledger entry is `Scope: portable` and copy it into the child's rules block only on the user's explicit yes (keep the `(L-NNN)` citations). A declined rule is not lost — its ledger entry still crosses as `inherited` below.
    - From the parent's `LEARNINGS.md`, copy every `Scope: portable` entry (any Status except `retired`) into the child's ledger, re-marking each `Status: inherited`.
    - Copy nothing project-scoped. When in doubt, leave it behind — heredity is selective.
    - Leave `.claude/memory/recalibrated-at` absent in the child: the stamp certifies a completed `/recalibrate` run, and a provisioning stamp is a false green (L-020) — absence makes the staleness nudge fire honestly once the child bootstraps.
    - Truncate the child's `.claude/memory/sources-seen.md` to its header and marker. A fresh repo has verified nothing; inheriting the parent's watermark would make it skip sources it has never read.
-   - Reset the child's `.github/` machinery so it is born with declared loops, never inherited arming: in `loops.yaml`, set every entry `enabled: false` and clear `armed_by` (the declaration crosses; the arming is re-earned at the child's `/bootstrap`, L-048); keep the issue forms and workflows as-is; rewrite `CODEOWNERS` to the child's owner.
+   - Reset the child's declarations: in `loops.yaml`, set every entry `enabled: false` and clear `armed_by` (arming is re-earned at bootstrap, L-048). A disabled declaration does not disable a copied workflow's schedule or event trigger. Before remote delivery, review the actual triggers and grants of every selected workflow against the authorized scope; unapproved execution holds delivery. Preserve the coherent payload and issue forms; rewrite `CODEOWNERS` to the child's owner. Do not alter the parent's automation.
 4. Rewrite identity in the child: CLAUDE.md title + facts block (project name, purpose, `Stack: NOT BOOTSTRAPPED — run /bootstrap`), README title and first paragraph.
-5. Commit in the child: `chore: replicate from janus template (N learnings inherited)`.
-6. Hand off: tell the user to open a session in the child and run `/bootstrap`, and list what was inherited.
+5. In a positively identified Janus-owned generated layout, regenerate `AGENTS.md` with `scripts/generate-agents-md.sh` and run `scripts/generate-agents-md.sh --check`. Do not overwrite custom or unowned instructions. Commit in the child: `chore: replicate from janus template (N learnings inherited)`.
+6. If remote creation/publication is authorized, publish only the reviewed local candidate to the confirmed destination and visibility. Otherwise keep it local. Hand off: tell the user to open a session in the child and run `/bootstrap`, and list what was inherited and which host integrations were actually installed.
 
 ## Retrofit (a copy that skipped replication)
+
+First inventory ownership and history using `docs/ADOPTION.md`. The following
+fingerprint is only a lead, not authorization to reset an evolved child.
+Require positive evidence of an untouched template copy; unknown ownership,
+custom instructions or accumulated local learning holds retrofit for a reviewed
+adoption plan. Never renumber existing IDs or discard downstream history.
 
 The template-copy fingerprint: CLAUDE.md still titled `# Janus (template)`,
 a ledger carrying the parent's `promoted:*` and retired statuses, a non-empty
