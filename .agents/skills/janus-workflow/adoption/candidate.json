@@ -1,5 +1,5 @@
 {
-  "version": "2026.10-codex-rc.1",
+  "version": "2026.10-codex-rc.2",
   "status": "candidate",
   "mode": "existing-project-procedures",
   "installation": "reviewed additive copy; no installer",
@@ -20,6 +20,7 @@
     {"source": ".claude/skills/evolve/SKILL.md", "target": ".agents/skills/janus-workflow/references/evolve.md"},
     {"source": ".claude/agents/verifier.md", "target": ".agents/skills/janus-workflow/references/verifier.md"},
     {"source": ".claude/agents/memory-curator.md", "target": ".agents/skills/janus-workflow/references/memory-curator.md"},
-    {"source": ".claude/skills/worktree-parallel/SKILL.md", "target": ".agents/skills/janus-workflow/references/worktree-parallel.md"}
+    {"source": ".claude/skills/worktree-parallel/SKILL.md", "target": ".agents/skills/janus-workflow/references/worktree-parallel.md"},
+    {"source": "docs/DELIVERY.md", "target": ".agents/skills/janus-workflow/references/delivery.md"}
   ]
 }

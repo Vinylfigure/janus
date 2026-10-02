@@ -31,6 +31,13 @@ test('incomplete trees and moved heads are refused',async()=>{
  await assert.rejects(readPolicySnapshot('o/r',2,'head',fixture({truncated:true}).api),/Incomplete/);
  await assert.rejects(readPolicySnapshot('o/r',2,'old',fixture().api),/identity/);
 });
+test('malformed changed-file identity cannot produce ordinary allow evidence',async()=>{
+ for(const row of [{},{filename:null},{filename:7}]) {
+  const original=fixture();
+  const api=async path=>path.includes('/files?')?[row]:original.api(path);
+  await assert.rejects(readPolicySnapshot('o/r',2,'head',api));
+ }
+});
 for(const filename of ['.agents/skills/janus-workflow/SKILL.md','AGENTS.override.md','apps/api/AGENTS.md','apps/api/AGENTS.override.md','apps/api/.agents/skills/local/SKILL.md','apps/api/.codex/config.toml'])test(`native content is read at both exact revisions: ${filename}`,async()=>{
  const reads=[];
  const api=async path=>{

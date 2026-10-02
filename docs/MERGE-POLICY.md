@@ -1,7 +1,7 @@
 # Merge policy — the operator boundary, as data
 
 Policy-version: 3
-Engine-sha256: a97e128dd21db3f88f6a6ebd95e4e172fc84b076bd297f44107c126448e7b98f
+Engine-sha256: d70b8b2ab132d5803eb2867780c3d83b2ed99dfdff949bd312e8ef66714c2c38
 
 Locked by DL-2026-08-25-merge-boundary (docs/DECISIONS.md). The operator's rule,
 2026-08-25: **maintenance-grade work builds and merges itself; only work that needs a
@@ -25,7 +25,12 @@ A PR stays the operator's when ANY of these hold:
      that decides what may self-merge.
 
    `scripts/effect-policy.mjs` is the shared effect classifier, run from the
-   trusted default-branch policy by CI and the merger. It recognizes permission
+   trusted default-branch policy by CI and the merger. Every eligible PR reaches
+   this policy after file-list completeness checks; there is no shell filename
+   prefilter. Complete-tree authority can include native instruction paths,
+   registered fallback names and unchanged links to ordinary changed files.
+   Nonzero evaluator exit or a missing positive authorization holds the merge;
+   diagnostic text can never grant permission. It recognizes permission
    set narrowing and replacement of an existing literal schedule with other
    behavior unchanged. Arbitrary executable edits, aliases, renames, missing
    source and unsupported syntax remain UNKNOWN; keywords are never proof.
@@ -45,6 +50,9 @@ A PR stays the operator's when ANY of these hold:
    (`mergeStateStatus` BLOCKED / BEHIND / UNKNOWN hold; a conflicting-but-eligible PR
    gets one rebase-request comment per head SHA, never a wait on the operator — the
    standing rule from overlord-ui#23).
+   The PR base must be the repository's current default branch, including for a
+   PR already marked ready. Stacked PRs remain with their owner until retargeted
+   and reverified; the engine never retargets them or deletes their branches.
 6. **A read the decision depends on could not be completed.** Every gate input is
    tri-state — the value, or UNKNOWN — and UNKNOWN holds with the reason on the
    report line: the open-PR list, the label set, the open `human-check:` list, the
@@ -76,8 +84,9 @@ The block between `# janus:merge-config:start` and `# janus:merge-config:end` is
 the only part that differs between repos (merge method, head-prefix allowlist,
 whether a linked issue is required and which kinds count, the rebase hint).
 Everything below the end sentinel is the shared engine, and `Engine-sha256:` at the
-top of this file is the sha256 of that body: `scripts/test-hooks.sh` recomputes it
-and fails when the two disagree. A repo whose copy drifts from the contract fails its
+top of this file is the sha256 of every byte after the end-sentinel line, including
+the following blank line. `scripts/test-auto-merge.py`, invoked by
+`scripts/test-hooks.sh`, recomputes it and fails when the two disagree. A repo whose copy drifts from the contract fails its
 own fixture suite; a policy change is a body change, so it bumps the pin, touches
 this file, and therefore crosses the operator in every repo it governs (rule 2).
 Propagation is a copy of the body plus the new pin — no engine reads another
@@ -89,8 +98,10 @@ repo at runtime, so no engine can be held on a cross-repo read.
   rule-3 listing of open `human-check:` issues; a `permissions:` block that omits
   `issues` sets it to none, and rule 6 then holds every PR, #288). Eligibility is by head
   prefix because most PRs here close no issue; `LINKED_ISSUE=optional`. Fixtures,
-  including injected read failures for every gate input, live in
-  `scripts/test-hooks.sh`. **Arming is an operator act**: copy
+  for target/head races, linked-task rereads, lifecycle actions and read failures
+  live in `scripts/test-auto-merge.py`, invoked by `scripts/test-hooks.sh`. Policy
+  classification and revision-bound authorization have separate unit tests.
+  **Arming is an operator act**: copy
   `docs/setup/auto-merge.workflow.yml` to `.github/workflows/auto-merge.yml` and
   commit — workflow writes are operator-only from sessions, here as everywhere.
 - **overlord-ui**: the same body under its own block (`claude/*` heads,
@@ -115,11 +126,30 @@ repo at runtime, so no engine can be held on a cross-repo read.
 - An engine never applies a label whose meaning is "a human decided" —
   `machinery-change`, `intent:active`, waivers (L-122).
 - Every act and every skip is reported with its reason; a skip is never silent.
-- Once per head SHA: state lives in the PR's own lifecycle comments
-  (`<!-- janus:automerge:v1 -->`), never a file store.
+- Lifecycle state lives in the PR's own comments (`<!-- janus:automerge:v1 -->`),
+  never a file store. A recorded merge is terminal for that head. A recorded hold
+  or rebase request is reevaluated through all current gates; duplicate comments
+  are suppressed per action and head. Missing or malformed comment evidence holds.
+  Reconsidering a hold does not approve anything, clear an ask or label, or mark
+  a draft ready.
 - A merge engine merges; it never approves. Review-requiring rulesets stay a human
   affair (L-116: a required approval on single-owner repos deadlocks the queue —
   rulesets must not require approvals on repos an engine serves).
+- Immediately before merging, reread the default branch and PR head, base commit,
+  base name and gate fields; a change or unreadable response holds for a fresh
+  pass. The merge still atomically matches the reviewed head. GitHub's merge
+  interface has no expected-base guard here, so concurrent retargeting after the
+  last read remains a limitation. Retain branches for an owner to check their
+  dependents before cleanup; repository-side deletion settings remain external.
+- A linked task must return the explicit eligibility success result on both the
+  initial and final reads. Its state, title, body, labels and label names must
+  be present with valid types; omitted values cannot stand for empty gates.
+  A changed or unavailable final decision holds.
+- A successful merge command is not a merge receipt. Read back `MERGED` state,
+  the expected head and base name, and a concrete merge commit before writing
+  `Action: merged`. An accepted command with a queued, unavailable or mismatched
+  result stays unconfirmed. This engine does not enable a new queue policy or
+  fabricate a terminal receipt when its readback fails.
 
 ## Connected execution source checkpoint
 

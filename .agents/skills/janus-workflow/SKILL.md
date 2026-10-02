@@ -27,6 +27,9 @@ In that layout, read the corresponding `references/plan.md`, `references/verify.
 beside this skill instead of the source paths below.
 Apply these bindings to every shared procedure:
 
+- Read `references/delivery.md` wherever a bundled procedure names
+  `docs/DELIVERY.md`. It describes delivery evidence and authority boundaries;
+  its automation discussion does not install an engine or grant permission.
 - Substitute the bound ledger and verification commands for Janus paths.
   Keep the existing ledger's format, IDs, statuses, evidence and history;
   do not import Janus entries or convert a ledger just to use this skill.

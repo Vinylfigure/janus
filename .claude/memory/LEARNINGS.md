@@ -44,6 +44,13 @@ Rules for curators (`/evolve`):
 - Evidence: 1
 - Status: candidate
 
+## L-20261002-delivery-authority · 2026-10-02 · Preserve action-specific authority through delegation
+- Trigger: own observation in an authorized delivery session: direct publication proceeded, while a separate draft-release/merge action was rejected; repeated relayed approvals had not crossed the native trust boundary. User correction requested a shared delivery improvement. No private task details are retained here.
+- Rule: preserve the source and action scope of trusted authorization in handoffs, but never treat the handoff, a quoted approval or an execution receipt as the native grant for publication or merge.
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
 ## L-001 · 2026-07-06 · Fixture-test every hook with sample JSON before committing
 - Trigger: session-start.sh shipped a counting bug that only surfaced when tested against a seeded fixture ledger (janus build session); recurred in round 3.5 — the ripe-counter awk carried two more counting bugs (Evidence >= 10 missed, state leaking across entries) that only red-first regression fixtures exposed; observed: 2026-08-18 — the same per-entry state-reset bug class was designed out up front in scripts/check-ledger-aging.sh (a plain script, not a hook, but built to the same discipline) by fixture-testing stale/fresh/promoted/ripe cases in scripts/test-hooks.sh before commit (work-loop firing, issue #17)
 - Rule: before committing a hook script, pipe fixture JSON through it and assert exit code and output for the pass, fail, and repeat cases
@@ -87,7 +94,7 @@ Rules for curators (`/evolve`):
 - Status: retired (2026-07-06: owner reversed the default-on decision — the template ships tool-agnostic, with no third-party mechanism in the genome before dogfooding proves need; external memory returns as a per-project choice)
 
 ## L-007 · 2026-07-06 · When changing a convention, sweep every mention of it, not just planned edit sites
-- Trigger: the adversarial verifier failed the refinement diff because docs/USAGE.md's day-1 section still said "optional Graphify" after the convention changed to default-on; the planned edit list had missed that mention (janus refinement session); recurred in round 3.5 — removing new-worktree.sh missed ARCHITECTURE's component-map row, caught by the docs-consistency fixture rather than a manual sweep; observed: 2026-10-01 — own observation in Janus native compatibility work from b108700: worktree-parallel still ordered sequential renumbering after reflect adopted dated slugs and immutable legacy IDs; a repository-wide sweep reconciled active writer instructions while retaining historical incident text; follow-up probes also found the duplicate guard truncating dated IDs to a date and the harvest parser treating the slug as title text, both covered by regression fixtures in the same task
+- Trigger: the adversarial verifier failed the refinement diff because docs/USAGE.md's day-1 section still said "optional Graphify" after the convention changed to default-on; the planned edit list had missed that mention (janus refinement session); recurred in round 3.5 — removing new-worktree.sh missed ARCHITECTURE's component-map row, caught by the docs-consistency fixture rather than a manual sweep; observed: 2026-10-01 — own observation in Janus native compatibility work from b108700: worktree-parallel still ordered sequential renumbering after reflect adopted dated slugs and immutable legacy IDs; a repository-wide sweep reconciled active writer instructions while retaining historical incident text; follow-up probes also found the duplicate guard truncating dated IDs to a date and the harvest parser treating the slug as title text, both covered by regression fixtures in the same task; observed: 2026-10-02 — own verification failure: the delivery-convention sweep missed contradictory evolve steps and README/USAGE summaries; an independent reviewer flagged them and primary-source readback confirmed them. The rule caught the omission during review but did not prevent the incomplete first sweep.
 - Rule: after changing a convention, grep the whole repo for the old wording and reconcile every hit before claiming consistency
 - Scope: portable
 - Evidence: 3
@@ -453,9 +460,9 @@ Rules for curators (`/evolve`):
 - Evidence: 1
 - Status: candidate
 
-## L-20261001-native-authority · 2026-10-01 · Classify native agent instructions as machinery when adding a host
-- Trigger: own observation while adapting Janus at b108700 for Codex: machineryPath recognized .claude skills but classified .agents/skills instructions as ordinary changes; direct classifier and exact-revision reader fixtures reproduced the gap, then verified a hold for native instructions and config paths. Follow-up in the same task found that root-only coverage still missed overrides and nested discovery; regression probes now cover all repository depths and conservative case matching, while effective host fallback names require explicit preflight against the reviewed policy registry. This refines the same incident, not an additional Evidence unit.
+## L-20261001-native-authority · 2026-10-02 · Classify native agent instructions as machinery when adding a host
+- Trigger: own observation while adapting Janus at b108700 for Codex: machineryPath recognized .claude skills but classified .agents/skills instructions as ordinary changes; direct classifier and exact-revision reader fixtures reproduced the gap, then verified a hold for native instructions and config paths. Follow-up in the same task found that root-only coverage still missed overrides and nested discovery; regression probes now cover all repository depths and conservative case matching, while effective host fallback names require explicit preflight against the reviewed policy registry. This refines the same incident, not an additional Evidence unit. Recurred in the separate 2026-10-02 integration of candidate 9833e8e and PR86 df05a35: own real-engine offline probes found its shell path prefilter skipped the protected native paths and ordinary targets of authority links. Removing the shortcut makes every eligible PR reach the shared classifier; failing evaluator exits hold even with success-shaped JSON. This independent integration incident adds one Evidence unit; no promotion is requested.
 - Rule: when adding an agent host, map its effective instruction discovery paths, including overrides and nested scopes, into the existing authority classifier before making them discoverable; hold unsupported configuration explicitly
 - Scope: project
-- Evidence: 1
+- Evidence: 2
 - Status: candidate

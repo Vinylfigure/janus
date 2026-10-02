@@ -1,10 +1,15 @@
 # Adopt the Codex procedure candidate
 
-`.agents/skills/janus-workflow/adoption/candidate.json` identifies `2026.10-codex-rc.1`: an additive,
+`.agents/skills/janus-workflow/adoption/candidate.json` identifies `2026.10-codex-rc.2`: an additive,
 procedure-only candidate for existing projects. Its file allowlist is the
 complete payload. It reuses the shared procedure sources as versioned
 snapshots inside one native skill directory. It is not a production release,
 an installer, or evidence that any project's checks passed.
+
+This revision includes the shared delivery contract required by the bundled
+procedures. Prior rc.1 adoption receipts remain historical evidence for rc.1;
+they do not certify this combined revision. Renew the source and installed-file
+hashes and affected checks before adopting rc.2.
 
 The original Janus layout still uses [CODEX.md](CODEX.md). For a new Claude
 child, follow replicate/bootstrap with the ownership and automation gates

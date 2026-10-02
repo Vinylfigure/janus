@@ -114,10 +114,29 @@ test('candidate payload resolves shared procedures inside one additive native sk
   }
   const skill = readFileSync(join(targetRoot, '.agents/skills/janus-workflow/SKILL.md'), 'utf8');
   const references = [...skill.matchAll(/`references\/([a-z-]+\.md)`/g)].map(match => match[1]);
-  assert.equal(references.length, 7);
+  assert.equal(references.length, 8);
   for (const name of references) {
     assert.ok(readFileSync(join(targetRoot, '.agents/skills/janus-workflow/references', name), 'utf8').length);
   }
+  for (const name of ['plan.md', 'verify.md', 'evolve.md']) {
+    assert.match(readFileSync(join(targetRoot, '.agents/skills/janus-workflow/references', name), 'utf8'), /docs\/DELIVERY\.md/);
+  }
+  assert.equal(readFileSync(join(targetRoot, '.agents/skills/janus-workflow/references/delivery.md'), 'utf8'), readFileSync(join(root, 'docs/DELIVERY.md'), 'utf8'));
   assert.match(readFileSync(join(targetRoot, '.agents/skills/janus-workflow/PROJECT.md'), 'utf8'), /UNSET/);
   assert.match(skill, /Unfilled fields, missing files or unresolved conflicts\nmean UNVERIFIED/);
+});
+
+test('union-merged ledger entries retain exactly one complete field set', () => {
+  const problems = text => {
+    const entries = text.split('<!-- entries below this line -->')[1]
+      .split(/^## L-[A-Za-z0-9-]+\s/m).slice(1);
+    return entries.flatMap((entry, index) => ['Trigger', 'Rule', 'Scope', 'Evidence', 'Status']
+      .filter(field => (entry.match(new RegExp(`^- ${field}:`, 'gm')) ?? []).length !== 1)
+      .map(field => `${index}: ${field}`));
+  };
+  const one = '<!-- entries below this line -->\n## L-001 · Example\n- Trigger: observed\n- Rule: preserve history\n- Scope: project\n- Evidence: 1\n- Status: candidate\n';
+  assert.deepEqual(problems(one), []);
+  assert.deepEqual(problems(one.replace('- Status: candidate\n', '')), ['0: Status']);
+  assert.deepEqual(problems(one + '- Trigger: duplicate\n'), ['0: Trigger']);
+  assert.deepEqual(problems(readFileSync(join(root, '.claude/memory/LEARNINGS.md'), 'utf8')), []);
 });
