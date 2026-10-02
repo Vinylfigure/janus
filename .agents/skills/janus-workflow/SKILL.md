@@ -12,7 +12,10 @@ Claude-specific mechanics. User scope and existing approval gates still bind.
 
 ## Existing-project package
 
-If `PROJECT.md` exists beside this skill, read it first. It binds this versioned
+If `references/` exists beside this skill, this is the existing-project package:
+`PROJECT.md` is required, and its absence means UNVERIFIED; hold use rather
+than falling back to template assumptions. If `PROJECT.md` exists, read it first.
+It binds this versioned
 package to the project's canonical instructions, existing ledger and actual
 quick/full commands. Unfilled fields, missing files or unresolved conflicts
 mean UNVERIFIED: hold use and complete the adoption review. The project's
@@ -123,5 +126,7 @@ and the five hypotheses, reflect in-session, and stop editing.
 For CLI automation, use native `codex exec` with `--json` for events and
 `--output-last-message` for the final result when that run is authorized; keep
 logs outside the changed source paths. Do not add a wrapper runner or infer
-success solely from the final prose. See `docs/CODEX.md` for compatibility
-boundaries and the official sources checked for this adapter.
+success solely from the final prose. In the original template layout, see
+`docs/CODEX.md` for compatibility boundaries and checked official sources.
+In the existing-project package, use PROJECT.md's reviewed adoption evidence
+and scope; the template's documentation is not part of that payload.

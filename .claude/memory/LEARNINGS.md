@@ -37,6 +37,13 @@ Rules for curators (`/evolve`):
 
 <!-- entries below this line -->
 
+## L-20261002-payload-closure · 2026-10-02 · Check dependency closure before describing a reduced template payload as usable
+- Trigger: independent review of Janus candidate 741f5f2 identified that excluding workflows and Claude hooks from a new full-scaffold child leaves check-loops.sh and fixture dependencies unsatisfied; main-thread inspection confirmed declared workflow existence is checked even when enabled is false. The existing-project candidate instead copies only a closed set of procedure references, while full replication holds until a coherent integration payload is selected. Origin: subagent report verified against local source; no promotion requested.
+- Rule: check the retained entrypoints and verification dependencies of a reduced template payload before claiming that the resulting child is usable.
+- Scope: portable
+- Evidence: 1
+- Status: candidate
+
 ## L-001 · 2026-07-06 · Fixture-test every hook with sample JSON before committing
 - Trigger: session-start.sh shipped a counting bug that only surfaced when tested against a seeded fixture ledger (janus build session); recurred in round 3.5 — the ripe-counter awk carried two more counting bugs (Evidence >= 10 missed, state leaking across entries) that only red-first regression fixtures exposed; observed: 2026-08-18 — the same per-entry state-reset bug class was designed out up front in scripts/check-ledger-aging.sh (a plain script, not a hook, but built to the same discipline) by fixture-testing stale/fresh/promoted/ripe cases in scripts/test-hooks.sh before commit (work-loop firing, issue #17)
 - Rule: before committing a hook script, pipe fixture JSON through it and assert exit code and output for the pass, fail, and repeat cases

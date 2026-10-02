@@ -15,11 +15,13 @@ prerequisite.
 1. **Create the repo.** From any existing Janus project, say you want to start
    a new project and let `/replicate` interview you (it confirms name,
    visibility, and location before creating anything) — portable learnings are
-   inherited, so each generation starts smarter. GitHub's **Use this template**
-   button also works but copies files only: none of the heredity transforms
-   run and the memory loop starts dead (L-039), so have the child's first
-   session run `/replicate retrofit` — the session-start status detects the
-   un-replicated copy and says so.
+   inherited, so each generation starts smarter. Prepare and review the local
+   payload before any authorized remote publication. GitHub's **Use this
+   template** copies executable workflows before heredity or automation review;
+   it is not an inert staging step. For an existing copy, inventory ownership
+   before `/replicate retrofit`; a template-looking title cannot authorize
+   resetting accumulated history. See [ADOPTION.md](ADOPTION.md) for the
+   procedure-only Codex candidate and full-scaffold integration gates.
 2. **Open a session.** `cd` into the clone, run `claude`. The session-start
    status says the scaffold is not bootstrapped, and Claude proposes
    `/bootstrap`.
