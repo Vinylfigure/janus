@@ -1,0 +1,26 @@
+{
+  "version": "2026.10-codex-rc.2",
+  "status": "candidate",
+  "mode": "existing-project-procedures",
+  "installation": "reviewed additive copy; no installer",
+  "capabilities": {
+    "native_skill": true,
+    "shared_procedures": ["plan", "verify", "reflect", "evolve-proposal", "authorized-parallel-work"],
+    "automatic_hooks": false,
+    "runtime_enforcement": false,
+    "scheduling": false,
+    "publication_authority": false
+  },
+  "files": [
+    {"source": ".agents/skills/janus-workflow/SKILL.md", "target": ".agents/skills/janus-workflow/SKILL.md"},
+    {"source": ".agents/skills/janus-workflow/adoption/PROJECT.md", "target": ".agents/skills/janus-workflow/PROJECT.md"},
+    {"source": ".claude/skills/plan-feature/SKILL.md", "target": ".agents/skills/janus-workflow/references/plan.md"},
+    {"source": ".claude/skills/verify-loop/SKILL.md", "target": ".agents/skills/janus-workflow/references/verify.md"},
+    {"source": ".claude/skills/reflect/SKILL.md", "target": ".agents/skills/janus-workflow/references/reflect.md"},
+    {"source": ".claude/skills/evolve/SKILL.md", "target": ".agents/skills/janus-workflow/references/evolve.md"},
+    {"source": ".claude/agents/verifier.md", "target": ".agents/skills/janus-workflow/references/verifier.md"},
+    {"source": ".claude/agents/memory-curator.md", "target": ".agents/skills/janus-workflow/references/memory-curator.md"},
+    {"source": ".claude/skills/worktree-parallel/SKILL.md", "target": ".agents/skills/janus-workflow/references/worktree-parallel.md"},
+    {"source": "docs/DELIVERY.md", "target": ".agents/skills/janus-workflow/references/delivery.md"}
+  ]
+}

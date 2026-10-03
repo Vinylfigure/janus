@@ -1,9 +1,22 @@
 /** Pure authority effects. Unknown syntax is a hold, never evidence of safety. */
 import { createHash } from 'node:crypto';
-export const POLICY_VERSION = 3;
+export const POLICY_VERSION = 5;
 export const hash = value => createHash('sha256').update(typeof value === 'string' ? value : stable(value)).digest('hex');
 export const stable = value => JSON.stringify(value, (_, v) => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a],[b]) => a.localeCompare(b))) : v);
-export const machineryPath = path => /^(?:\.github\/|\.claude\/(?!memory\/)|scripts\/|CLAUDE\.md$|AGENTS\.md$|(?:package(?:-lock)?\.json|yarn\.lock|pnpm-lock\.yaml)$|docs\/(?:MERGE-POLICY|DECISIONS)\.md$)/.test(path);
+// Native instruction discovery walks repository directories, not only its root.
+// Case folding also protects instruction files on case-insensitive checkouts.
+// Register literal custom fallback basenames here, under the policy digest.
+// Per-host/profile/CLI configuration cannot be inferred by the remote reader.
+export const CODEX_FALLBACK_FILENAMES = Object.freeze([]);
+const nativeInstructionNames = ['AGENTS.md','AGENTS.override.md',...CODEX_FALLBACK_FILENAMES].map(name=>name.toLowerCase());
+export function codexFallbackCoverage(filenames) {
+  if(!Array.isArray(filenames)||filenames.some(name=>typeof name!=='string'||!name||/[\\/]/.test(name)))
+    return {supported:false,reason:'Effective Codex fallback filenames must be an explicit array of basenames.'};
+  const unsupported=filenames.filter(name=>!nativeInstructionNames.includes(name.toLowerCase()));
+  return {supported:unsupported.length===0,unsupported};
+}
+const nativeInstructionPath = path => nativeInstructionNames.includes(path.split('/').at(-1).toLowerCase()) || /(?:^|\/)\.(?:agents|codex)(?:\/|$)/i.test(path);
+export const machineryPath = path => nativeInstructionPath(path) || /^(?:\.github\/|\.claude\/(?!memory\/)|scripts\/|CLAUDE\.md$|(?:package(?:-lock)?\.json|yarn\.lock|pnpm-lock\.yaml)$|docs\/(?:MERGE-POLICY|DECISIONS)\.md$)/.test(path);
 const selfPolicy = path => /(?:effect-policy|policy-approval|policy-operators|check-machinery-gate|auto-merge|gate-integrity|MERGE-POLICY|DECISIONS)/.test(path);
 const record = (kind,path,before,after) => ({kind,path,before,after});
 function strictJSON(text) {

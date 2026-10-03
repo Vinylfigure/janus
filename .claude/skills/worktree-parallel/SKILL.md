@@ -27,7 +27,7 @@ session gets the same skills, hooks, and memory for free.
 5. Merge protocol, once tracks report green:
    - In the main checkout, merge each track's branch one at a time, running `scripts/verify.sh full` after each merge.
    - On conflict or post-merge red: fix in the main checkout before merging the next track.
-   - Ledger reconciliation: if more than one track appended `LEARNINGS.md` entries, colliding L-NNN ids are guaranteed — renumber the later entries sequentially above the merged maximum, bump Evidence on true duplicates instead of keeping twins, and land the result as one consolidated commit.
+   - Ledger reconciliation: preserve existing IDs, including grandfathered L-NNN entries; never renumber historical entries. New entries use `L-<YYYYMMDD>-<two-word-slug>` as /reflect specifies. Check uniqueness before adding an entry and after combining tracks; if two new slugs collide, disambiguate the unlanded entry and its references. Merge equivalent evidence using the maximum count, never the sum, and retain retired entries with their lineage.
 6. Cleanup: remove each merged track's worktree (`git worktree remove` + branch delete).
 
 ## Before finishing

@@ -56,11 +56,12 @@ lands on the highest rung that can actually hold it (L-040):
   the end of every run. **Adding requires room; room comes from merging or
   retiring.** The budget rationale is in
   [ARCHITECTURE.md](ARCHITECTURE.md#the-capacity-budget-rationale).
-- Editing CLAUDE.md is gated: in an interactive session `/evolve` asks the
-  user first; in a headless run (the heartbeat) it delivers via PR — the
-  review is the confirmation. This is the general convention for every
-  side-effect skill: no invocation lock, an in-body gate immediately before
-  the irreversible action, degrading to PR-delivery when no user is present.
+- Editing CLAUDE.md is gated: `/evolve` requires the user's explicit scope;
+  reuse it when already supplied, otherwise ask. A headless run may deliver a
+  reviewable PR only within its existing grant; publication is itself an effect.
+  Side-effect skills verify applicable authority before acting, stop native
+  denials, and keep publication separate from merge and signed machinery approval.
+  [The delivery contract](DELIVERY.md) records the accepted endpoint and evidence.
 
 **5. Inheritance.** `/replicate` copies `Scope: portable` entries (and their
 promoted rules) into child repositories, re-marked `Status: inherited`.
@@ -78,8 +79,9 @@ history, which is what makes the ledger a genome rather than a notebook.
 - `Scope: portable` is a promise: true in *any* repository. Judge harshly —
   a wrongly-portable entry pollutes every descendant.
 - Never delete; mark. History is data.
-- New IDs are date+slug (`L-<YYYYMMDD>-<two-word-slug>`, L-058) — collision-proof, so parallel sessions never reconcile IDs at
-  merge time (see the worktree-parallel skill).
+- New IDs are date+slug (`L-<YYYYMMDD>-<two-word-slug>`, L-058). Check uniqueness
+  before writing and after combining tracks; disambiguate colliding new entries
+  before landing. Existing IDs are immutable (see the worktree-parallel skill).
 
 ## Improving Janus itself (dogfooding)
 

@@ -15,7 +15,7 @@ firing starts fresh and can only learn what it can read.
 
 1. One task per firing. The schedule is the loop counter; a firing that tries to drain the queue trades fresh context for compounding drift.
 2. The worker never grades its own homework: no verifier judgment, no ship. A loop with no verifier produces wrong answers faster.
-3. Delivery is a PR, never the default branch — the human gate is the merge, not a pre-approval.
+3. Delivery is a PR, never a default-branch push. Use existing trusted task authority for publication; merging still requires the current merge policy. Follow `docs/DELIVERY.md` and report local/pushed/PR/CI/merged/blocked states separately. A native denial stops the action, not the unrelated local work.
 4. Never execute a proposal in the firing that created it: generation and execution live in separate iterations, and the gap between firings is the operator's veto window (closing the issue is the veto).
 5. Untouchable: any issue the Gating labels list (Steps 1) excludes — held, questioned, unspecced, or awaiting the operator's check. The kill switch is pausing the routine.
 6. **Headless permission boundary.** An unattended firing cannot write `.claude/hooks/**`, `.github/workflows/**`, or `.claude/settings.json`: the platform gates those paths as sensitive regardless of what `allowed_tools` grants, and there is nobody to answer the prompt, so the firing hangs instead of failing. The first armed firing proved it — three hours at `requires_action` on an Edit to `session-start.sh` (#26).

@@ -9,6 +9,9 @@ export async function readPolicySnapshot(repo,pr,expectedHead,api) {
   while(true){const batch=await api(`repos/${repo}/pulls/${pr}/files?per_page=100&page=${page++}`);if(!Array.isArray(batch))throw Error('Unreadable file list');files.push(...batch);if(batch.length<100)break;}
   if(files.length!==pull.changed_files)throw Error('Incomplete file list');
   const trees=await Promise.all([base,head].map(async ref=>{const tree=await api(`repos/${repo}/git/trees/${ref}?recursive=1`);if(tree.truncated||!Array.isArray(tree.tree))throw Error('Incomplete source tree');return new Map(tree.tree.map(f=>[f.path,f]));}));
+  // A stable instruction symlink can give an ordinary-path target authority.
+  // Without a proven target resolver, even edits beyond that link must hold.
+  const linkedAuthority=trees.some(tree=>[...tree.values()].some(f=>f.mode==='120000'&&machineryPath(f.path)));
   const cache=new Map();let reads=0,changedReads=0;const maxReads=180;let dependencyIncomplete=false;
   const read=async(path,ref,changed=false)=>{const tree=trees[ref===base?0:1];const key=tree.get(path)?.sha??ref+':'+path;if(!cache.has(key))cache.set(key,(async()=>{if(changed?++changedReads>200:++reads>maxReads){const error=Error('Authority dependency expansion incomplete: bounded source budget exhausted');error.code='POLICY_BUDGET';throw error;}const f=await api(`repos/${repo}/contents/${path}?ref=${ref}`);if(f.encoding!=='base64'||typeof f.content!=='string')throw Error('Unreadable source');return Buffer.from(f.content,'base64').toString('utf8');})());return cache.get(key);};
   // Follow both trees: a PR cannot move enforcement to an ordinary helper and
@@ -47,5 +50,5 @@ export async function readPolicySnapshot(repo,pr,expectedHead,api) {
       beforeBlob:before?.sha??null,afterBlob:after?.sha??null,
       before:relevant&&before?await changedContent(f.filename,base):'',after:relevant&&after?await changedContent(f.filename,head):''};
   }));
-  return {repo:pull.base.repo.full_name.toLowerCase(),repoId:pull.base.repo.id,pr:Number(pr),base,head,complete:!dependencyIncomplete,incompleteReason:dependencyIncomplete?'Authority dependency expansion incomplete; exact revision requires review.':null,authorityPaths:[...authorityPaths].sort(),files:projected.sort((a,b)=>a.path.localeCompare(b.path))};
+  return {repo:pull.base.repo.full_name.toLowerCase(),repoId:pull.base.repo.id,pr:Number(pr),base,head,complete:!dependencyIncomplete&&!linkedAuthority,incompleteReason:linkedAuthority?'Symbolic machinery sources are unsupported; target authority requires exact-revision review.':dependencyIncomplete?'Authority dependency expansion incomplete; exact revision requires review.':null,authorityPaths:[...authorityPaths].sort(),files:projected.sort((a,b)=>a.path.localeCompare(b.path))};
 }

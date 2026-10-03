@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { readPolicySnapshot } from './effect-policy-read.mjs';
 import { signedApprovalVerdict } from './policy-approval.mjs';
-import { bindPolicy, approvalVerdict, machineryPath, hash } from './effect-policy.mjs';
+import { bindPolicy, approvalVerdict, machineryPath, hash, codexFallbackCoverage } from './effect-policy.mjs';
 const run=(cmd,args)=>execFileSync(cmd,args,{encoding:'utf8',maxBuffer:20*1024*1024});
 const arg=name=>process.argv.find(s=>s.startsWith(`--${name}=`))?.slice(name.length+3);
 const policyDigest=hash(readFileSync(new URL('./effect-policy.mjs',import.meta.url),'utf8'));
@@ -21,6 +21,11 @@ export async function gitSnapshot(base,head='HEAD') {
   return readPolicySnapshot('local/worktree',1,headSHA,api);
 }
 if(process.argv[1]===fileURLToPath(import.meta.url))try{
+  if(arg('codex-fallbacks')) {
+    const coverage=codexFallbackCoverage(JSON.parse(readFileSync(arg('codex-fallbacks'),'utf8')));
+    console.log(JSON.stringify({policyDigest,...coverage}));
+    process.exit(coverage.supported?0:1);
+  }
   const repo=arg('repo'),pr=arg('pr');
   const input=arg('input')?JSON.parse(readFileSync(arg('input'),'utf8')):repo?await readPolicySnapshot(repo,pr,arg('head'),async path=>JSON.parse(run('gh',['api',path]))):await gitSnapshot(arg('base'),arg('head')??'HEAD');
   const result=bindPolicy(input,policyDigest);

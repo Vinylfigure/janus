@@ -8,7 +8,8 @@ several "arbitrary" numbers here are load-bearing.
 
 ```
 CLAUDE.md                     always-on memory (≤20 concepts; sentinel-marked blocks)
-AGENTS.md                     generated mirror of CLAUDE.md for the agents.md convention (#22 / L-046); never hand-edit
+AGENTS.md                     generated Codex adapter pointer + verbatim CLAUDE.md (#22 / L-046); never hand-edit
+.agents/skills/janus-workflow/ native Codex adapter; reads shared procedures on demand (docs/CODEX.md)
 .claude/
   settings.json               hook wiring + safe-command permissions
   hooks/                      4 shell hooks (protocol below)
@@ -21,7 +22,7 @@ scripts/
   test-hooks.sh               fixture suite for the scaffold plumbing — hooks + docs cross-refs (verify.sh full + CI)
   check-loops.sh              loops.yaml schema check — 0 ok / 1 missing / 2 violation (verify.sh full + CI)
   check-ledger-aging.sh       nudges on Evidence-1 ledger candidates stale >= 30d (verify.sh full; its own fixtures run in CI via test-hooks.sh; always exits 0)
-  generate-agents-md.sh       regenerates AGENTS.md from CLAUDE.md; --check is verify.sh full's drift gate — 0 ok / 1 missing source / 2 drift (#22)
+  generate-agents-md.sh       regenerates the Codex pointer + CLAUDE.md in AGENTS.md; --check is verify.sh full's drift gate — 0 ok / 1 missing source / 2 drift (#22)
   check-ready.sh              the consumption gate, executable: gating labels + `working` + done-means, fixtured (#42 / L-057) — 0 ready / 1 blocked / 64 usage
   ready-sweep.sh              the work-loop's step-1 ready sweep, mechanical half only: prints one `<number><TAB><title>` line per open task: issue the record alone proves ready (title, labels, done-means, blocked-on-open-question, no PR already delivering it); the tool-grant judgment stays with the model (.claude/skills/work-loop/SKILL.md) — exit 0 empty-or-populated / 2 the GitHub read itself failed
   check-record.sh             In plain words at filing, executable: rejects a task:/question: body whose plain LINE 1 breaks the one cap every record shares — over card-grammar.json's headlineChars, over its headlineWords, more than one sentence, a question not ending in '?' — or which carries backticks or matches the jargon deny-list, and a question: without Options, fixtured in test-hooks.sh (verify.sh full's only exercise of it — never scans live issues) — 0 compliant / 1 not compliant / 64 usage
@@ -214,14 +215,14 @@ retired in favour of "retire before adding", because it never once bound.
 | Practice | Where it lives in Janus |
 |---|---|
 | Plan mode before code | `/plan-feature` (and prime directive #1) |
-| Ship as a loop — babysit CI and reviews to merged | `/ship`, plus `.github/workflows/verify.yml` running `scripts/test-hooks.sh` as the remote closed loop |
+| Ship as a loop to the authorized endpoint | `/ship` and `docs/DELIVERY.md` distinguish local/pushed/PR/CI/merged/blocked evidence; `.github/workflows/verify.yml` runs `scripts/verify.sh full` as the remote closed loop |
 | CLAUDE.md as compounding memory — "any time Claude does something wrong, add a note" | The session loop: signals → `/reflect` → ledger → `/evolve` → CLAUDE.md, with evidence thresholds so notes compound instead of accumulating |
 | Closed feedback loops — "if Claude can close the loop on its own, it will iterate until the output is right" | PostToolUse hook (inner loop) + `/verify-loop` + the verifier agent |
 | Subagents for focused work | Custom: verifier (evidence-bound judge) and memory-curator (proposal-only librarian). Scouting and independent design use Claude Code's native exploration/planning subagents — the platform owns the mechanism; the template keeps only the disciplines it adds |
 | Parallel sessions in worktrees — 3–5 at once, one task per session | `/worktree-parallel`: native `claude --worktree`, `claude agents` as the fleet view; `.claude/` is in-tree so every worktree gets the full scaffold |
 | Team-shared configuration | `.claude/settings.json` is committed; `settings.local.json` is gitignored |
 | Encoded practices drift as tools evolve | `/recalibrate` re-verifies conventions against primary sources and files drift as candidate learnings; `/evolve` keeps promotion authority; `memory/sources-seen.md` separates living sources (always re-read) from dated ones (read once); the session-start staleness nudge and the heartbeat routine keep it running |
-| Loops trigger; skills encode quality | Skills auto-invoke from their trigger descriptions (the conductor directive routes goals to skills + modality); side-effect skills carry in-body gates that degrade to PR-delivery when headless; `/goal`-style loops and the weekly heartbeat only decide *when* |
+| Loops trigger; skills encode quality | Skills auto-invoke from their trigger descriptions; side-effect skills verify existing trusted scope and stop native denials, including headless publication; `/goal`-style loops and the weekly heartbeat only decide *when* |
 
 ## Claude 5 context-engineering alignment (sources read 2026-07-24)
 

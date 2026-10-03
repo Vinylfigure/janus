@@ -10,12 +10,19 @@ its own sessions and inherit what its ancestors learned.
 Janus has two faces: one looks back (distilling lessons from what happened),
 one looks forward (stamping those lessons into the next project).
 
+Codex can reuse the plan, verify, reflect and evolve disciplines through the
+native `$janus-workflow` skill. See [Codex compatibility](docs/CODEX.md) for
+explicit checks, shared learning history and the current integration boundary.
+For an existing repository, the [versioned adoption candidate](docs/ADOPTION.md)
+adds only a native skill and shared procedure snapshots, preserving its rules,
+checks and learning history. Hooks and runtime enforcement are not installed.
+
 ## Quickstart
 
-1. Run `/replicate` from an existing Janus repo. (GitHub's **Use this
-   template** button also works, but it copies files only — none of
-   `/replicate`'s heredity transforms run, so have the child's first session
-   run `/replicate retrofit` before real work starts.)
+1. Run `/replicate` from an existing Janus repo to prepare a reviewed local
+   child first. GitHub's **Use this template** copies executable workflows
+   before heredity or automation review; do not use it as an inert staging
+   step. For an existing copy, inventory ownership before `/replicate retrofit`.
 2. `cd` into the clone and start `claude`.
 3. Run `/bootstrap` — it detects (or asks for) your stack, wires
    `scripts/verify.sh` to your real lint/test commands, and proves the
@@ -46,7 +53,8 @@ To make this repo itself a template: `gh repo edit <owner>/janus --template`
 
 You don't memorize these commands — every skill carries a trigger
 description, so Claude proposes the right one when the situation matches,
-and side-effect skills confirm with you before acting. Typing the
+and side-effect skills check applicable authorization before acting, asking for
+missing scope. Typing the
 `/command` is the escape hatch.
 
 | Piece | Purpose |
@@ -59,7 +67,7 @@ and side-effect skills confirm with you before acting. Typing the
 | `/recalibrate` | Re-verify encoded practices against primary sources; file drift as learnings |
 | `/plan-feature` | Plan-first workflow with explicit "done means" criteria |
 | `/verify-loop` | Iterate a change to green against a runnable check |
-| `/ship` | Verify green, commit, push, PR, then babysit CI and reviews until merged |
+| `/ship` | Verify, publish and check the authorized delivery; merge only when permitted |
 | `/worktree-parallel` | Fan out parallel sessions in git worktrees |
 | `/add-skill` | Author new skills in the canonical shape |
 | `/decision-lock` | Freeze a resolved decision as a dated record in docs/DECISIONS.md |

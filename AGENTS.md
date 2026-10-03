@@ -1,6 +1,10 @@
 <!-- GENERATED FILE — mirrors CLAUDE.md for the agents.md convention.
      Do not hand-edit; regenerate with scripts/generate-agents-md.sh.
-     verify.sh full fails the build if this drifts from CLAUDE.md (#22). -->
+     verify.sh full fails the build if this drifts from its generator or CLAUDE.md (#22). -->
+
+Codex: read `.agents/skills/janus-workflow/SKILL.md` before using the Janus
+procedures below. It maps shared disciplines to native tools and preserves
+the current task scope; Claude commands and hooks are not Codex configuration.
 
 # Janus (template)
 

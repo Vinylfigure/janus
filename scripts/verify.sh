@@ -3,16 +3,16 @@
 #
 # Usage:
 #   scripts/verify.sh quick [file]   # fast per-file check (<10s): format/lint/typecheck
-#   scripts/verify.sh full           # the whole truth: tests + build (+ graph refresh)
+#   scripts/verify.sh full           # configured suite (scaffold until bootstrap)
 #
 # Contract:
 # - `quick` is wired to the PostToolUse hook: it must be FAST and exit nonzero
 #   with useful output on failure (the agent sees stderr and iterates).
 # - `full` is the closed loop for /verify-loop and the verifier agent: exit 0
-#   means the project is genuinely healthy.
+#   means the configured checks passed, not that unchecked behavior is healthy.
 # - Until /bootstrap runs, quick checks only the scaffold's own plumbing
 #   (*.sh syntax, *.json validity) and full runs the fixture suite; app code
-#   passes untouched, so the template stays quiet out of the box.
+#   remains unchecked, and the dispatcher reports that limited scope.
 set -uo pipefail
 
 MODE="${1:-full}"
@@ -28,8 +28,10 @@ case "$MODE" in
     # Keep the *.sh/*.json arms — hook scripts exist in every child.
     case "$FILE" in
       *.sh) bash -n "$FILE" ;;
-      *.json) if command -v jq >/dev/null 2>&1; then jq . "$FILE" >/dev/null; fi ;;
-      *) exit 0 ;;
+      *.json)
+        command -v jq >/dev/null 2>&1 || { echo "verify: jq is required to check JSON; no check ran" >&2; exit 1; }
+        jq . "$FILE" >/dev/null ;;
+      *) echo "verify: scaffold-only; no project check configured for: $FILE" ;;
     esac
     # janus:bootstrap:quick:end
     ;;
@@ -48,6 +50,7 @@ case "$MODE" in
     # Template plumbing suite. /bootstrap replaces this block with the
     # project's real suite (lint all, typecheck, tests, build), e.g.:
     #   ruff check . && pytest
+    echo "verify: scaffold-only; project checks are not configured (run /bootstrap)"
     "$(dirname "$0")/test-hooks.sh"
     # janus:bootstrap:full:end
     ;;
